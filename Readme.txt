@@ -1,4 +1,4 @@
-Para ejecutar el kernel:
+Para ejecutar el TP de SO:
 LINUX:
     Requerimientos:
         Contar con una versión de Docker en el dispositivo.
