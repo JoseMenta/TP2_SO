@@ -32,6 +32,7 @@ static void setup_IDT_entry (int index, uint64_t offset);
 // Para ello, se debe asociar el codigo de interrupcion/excepcion con la rutina de atencion que se desea ejecutar si se lanza
 //----------------------------------------------------------------------
 void load_idt() {
+  _cli();
   //colocar todas las entradas a la IDT que queremos
   //excepciones o interupciones, segun la tabla de la catedra
   setup_IDT_entry (0x20, (uint64_t)&_irq00Handler);         // La interrupcion para el timer tick es la 0x20

@@ -11,3 +11,4 @@ compile.sh
 .idea/*
 .vscode/*
 *.elf
+.bashrc
