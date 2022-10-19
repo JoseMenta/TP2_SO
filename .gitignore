@@ -9,6 +9,8 @@ compile.sh
 *.bash_history
 *.gdb_history
 .idea/*
+Image/.x64BareBonesImage.img.icloud
+Userland/.0000-sampleCodeModule.elf.icloud
 .vscode/*
 *.elf
 .bashrc
