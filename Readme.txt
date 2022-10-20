@@ -41,7 +41,7 @@ WINDOWS:
     Moverse al directorio donde se encuentra el proyecto (la carpeta con los archivos fuente)
     Escribir en consola los siguientes comandos:
     $ docker pull agodio/itba-so:1.0
-    $ docker run -d -v ${PWD}:/root --security-opt seccomp:unconfined -ti --name tpe_arqui_compile agodio/itba-so:1.0
+    $ docker run -d -v "${PWD}:/root" --security-opt seccomp:unconfined -ti --name tpe_arqui_compile agodio/itba-so:1.0
 
 En el caso donde no funcione correctamente el archivo dockerScript.sh (se presentaron algunos problemas de compatibilidad), correr los siguientes comandos
 	$ docker start tpe_arqui_compile
