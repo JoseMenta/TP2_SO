@@ -83,9 +83,11 @@ context_switch_handler:
 ; create_new_process_context
 ; ---------------------------------------------------------------------------------
 ; Argumentos:
-;   RDI: Dirección de la primera función a ejecutar
-;   RSI: Puntero a la variable que almacena el base pointer del nuevo proceso (PCB)
-;   RDX: Puntero a la variable que almacena el stack pointer del nuevo proceso (PCB)
+;   RDI: arg_c del programa
+;   RSI: arg_v del programa
+;   RDX: Dirección de la primera función a ejecutar
+;   RCX: Puntero a la variable que almacena el base pointer del nuevo proceso (PCB)
+;   R8: Puntero a la variable que almacena el stack pointer del nuevo proceso (PCB)
 ; ---------------------------------------------------------------------------------
 ; Se encarga de crear el contexto de un nuevo proceso, solicitando espacio al Memory Manager
 ; ---------------------------------------------------------------------------------
@@ -106,20 +108,20 @@ create_new_process_context:
     ret
 
 create_stack:                           ; Sino, se crea el stack con la direccion obtenida (rax)
-
     mov rsp, rax
                                         ; Ver la diapositiva 69 del PDF Context Switching
-    and rsp, -32                        ; ALIGN
-    mov rcx, rsp
+    ;and rsp, -32                        ; ALIGN
+    and rsp, -16
+    mov [r8], rsp                       ;Guarda el SP del nuevo proceso (no la base)
     push 0                              ; SS
     push rcx                            ; RSP (Stack alineado para el proceso)
     push 0x202                          ; RFLAGS
     push 0x8                            ; CS
-    push rdi                            ; RIP
+    push rdx                            ; RIP
     push_state                          ; GPRs
 
-    mov [rsi], rax                      ; Almaceno el valor del BP (rax) y del SP (rcx) del nuevo proceso
-    mov [rdx], rcx                      ; en los punteros otorgados
+    mov [rcx], rax                      ; Almaceno el valor del BP (rax)
+    ;mov [rdx], rcx
 
     mov rsp, rbp
     pop rbp

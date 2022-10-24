@@ -1,5 +1,5 @@
 #include <dispatcher.h>
-
+#include "../include/mm.h"
 #define STACK_SIZE 0x1000               // 4KB
 
 // -----------------------------------------------------------------------------
@@ -18,5 +18,6 @@ void * allocate_new_process_stack(){
     }
 
     // BP: Inicio del stack + tamaño del stack - 1
-    return stack + STACK_SIZE - 1;
+//    return stack + STACK_SIZE - 1;
+    return stack+STACK_SIZE;//nos pasamos en 1, total el primer push lo va a arreglar
 }

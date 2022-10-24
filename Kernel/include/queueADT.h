@@ -4,35 +4,23 @@
 
 #ifndef TP2_SO_QUEUEADT_H
 #define TP2_SO_QUEUEADT_H
-//Se debe definir convenientemente para el tipo de dato utilizado
-#define NULL ((void*)0)
-
-//Vamos a hacer una queue utilizando una lista simplemente encadenada ascendente por PID
-typedef struct node{
-    elemType data;
-    struct node* next;
-}TNode;
-
-typedef TNode* TList;
-typedef int elemType;
-typedef struct listCDT* listADT;
-static int compare(elemType elem1, elemType elem2){
-    return elem1-elem2;
-}
-
-void toBegin(listADT list);
-int hasNext(const listADT list);
-elemType next(listADT list);
-listADT newList();
-static void freeListRec(TList l);
-void freeList(listADT list);
-int isEmpty(listADT list);
-void add(listADT list, elemType elem);
-int size(const listADT list);
-int remove(listADT list, elemType elem);
-TNode * extract(listADT list, elemType elem);
-void insert(listADT list, TNode * node);
-elemType getNext(listADT list);
+#include <stdint.h>
+#include <scheduler.h>
+#include <stddef.h>
+#include "../include/DS.h"
 
 
+typedef struct queueCDT* queueADT;
+
+void queueADT_toBegin(queueADT list);
+int queueADT_hasNext(const queueADT list);
+elemType queueADT_next(queueADT list);
+queueADT new_queueADT();
+void free_queueADT(queueADT list);
+elemType queueADT_remove(queueADT queue, elemType elem);
+elemType queueADT_find(queueADT queue, elemType elem);
+int queueADT_is_empty(queueADT list);
+int queueADT_insert(queueADT list, elemType elem);
+uint32_t queueADT_size(const queueADT list);
+elemType queueADT_get_next(queueADT list);
 #endif //TP2_SO_QUEUEADT_H

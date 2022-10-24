@@ -4,7 +4,7 @@
 #define TPE_SCHEDULER_H
 #include <interrupts.h>
 #include <stdint.h>
-
+#include <stddef.h>
 // Estado en el que se puede encontrar un programa/proceso
 // RUNNING: El proceso debe correrse
 // WAITING: El proceso esta esperando a que terminen procesos que el ejecuto
@@ -17,7 +17,13 @@ typedef enum {ALL = 0, LEFT, RIGHT} positionType;       // Posicion del programa
 typedef enum {R8 = 0, R9, R10, R11, R12, R13, R14, R15, RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, RIP, RFLAGS} registers; // El orden en el que llegan los registros en el arreglo
 
 
+typedef struct{
+    uint64_t pid;
+    uint8_t priority;
+    uint8_t status;
+}PCB;
 
+#define PCB_NOT_FOUND NULL
 #define OFFSET (1024)                                     // Espacio que se le va a dejar de stack a cada proceso
 //Estructura de un proceso que utiliza el scheduler para manejar el cambio de contexto
 typedef struct {

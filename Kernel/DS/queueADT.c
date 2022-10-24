@@ -1,64 +1,110 @@
 #include <queueADT.h>
+#include "../include/queueADT.h"
 #include <mm.h>
+#include "../include/mm.h"
 #include <stdint.h>
-
-
-struct listCDT{
+//Vamos a hacer una queue utilizando una lista simplemente encadenada
+typedef struct node{
+    elemType data;
+    struct node* next;
+}TNode;
+typedef TNode* TList;
+struct queueCDT{
     uint64_t size;
     TList first;
     TList current; //para iteradores, apunta al siguiente que tiene que devolver
     TList last; //Para agregar un elemento al final
 };
-
-void toBegin(listADT list){
+void queueADT_toBegin(queueADT list){
     list->current=list->first;
 }
-
-int hasNext(const listADT list){
+int queueADT_hasNext(const queueADT list){
     return list->current!= NULL;
 }
-
-elemType next(listADT list){
+elemType queueADT_next(queueADT list){
     if(list->current==NULL){
-        return NULL;
+        return ELEM_NOT_FOUND;
     }
-    elemType aux=list->current->head;
-    list->current=list->current->tail;
+    elemType aux=list->current->data;
+    list->current=list->current->next;
     return aux;
 }
-
-listADT newList(){
-    //listADT ans = mm_alloc(sizeof (struct listCDT));
-    listADT ans = malloc(sizeof (struct listCDT));
+queueADT new_queueADT(){
+    queueADT ans = mm_alloc(sizeof (struct queueCDT));
+    if(ans==NULL){
+        return NULL;
+    }
     ans->first = NULL;
     ans->last = NULL;
     ans->current = NULL;
     ans->size = 0;
+    return ans;
 }
-
 static void freeListRec(TList l){
     if(l==NULL){
         return;
     }
-    freeListRec(l->tail);
+    freeListRec(l->next);
     mm_free(l);
-    //free(l);
 }
-
 //para que la funcion sea recursiva, el argumento debe ser recursivo y listADT no lo es
-void freeList(listADT list){//no puede ser recursiva, la estructura listADT no es recursiva
+void free_queueADT(queueADT list){//no puede ser recursiva, la estructura listADT no es recursiva
     freeListRec(list->first);
     mm_free(list);
-    //free(list);
 }
-
-int isEmpty(listADT list){
+int queueADT_is_empty(queueADT list){
     return list->size==0;
 }
-
-//agrego un nuevo elemento al final de la lista
-void add(listADT list, elemType elem){
+elemType queueADT_find(queueADT queue, elemType elem){
+    TList curr = queue->first;
+    while(curr!=NULL && elemType_compare_to(curr->data, elem)!=0){
+        curr = curr->next;
+    }
+    if(curr==NULL){
+        return ELEM_NOT_FOUND;
+    }
+    return curr->data;
+}
+//para el kill
+elemType queueADT_remove(queueADT queue, elemType elem){
+    if(queue->size==0){
+        return ELEM_NOT_FOUND;
+    }
+    TList prev = NULL;
+    TList curr = queue->first;
+    if(elemType_compare_to(curr->data,elem)==0){
+        //si es el primero en la lista
+        elemType ans = curr->data;
+        if(queue->last==queue->first){
+            queue->last = NULL;
+        }
+        queue->first = curr->next;
+        (queue->size)--;
+        mm_free(curr);
+        return ans;
+    }
+    while(curr!=NULL && elemType_compare_to(curr->data, elem)!=0){
+        prev = curr;
+        curr = curr->next;
+    }
+    if(curr==NULL){
+        return ELEM_NOT_FOUND;
+    }
+    (queue->size)--;
+    if(curr==queue->last){
+        queue->last = prev;
+    }
+    elemType ans = curr->data;
+    prev->next = curr->next;
+    mm_free(curr);
+    return ans;
+}
+//Agrega un elemento al final de la cola
+int queueADT_insert(queueADT list, elemType elem){
     TList newNode = mm_alloc(sizeof (struct node));
+    if(newNode==NULL){
+        return -1;
+    }
     newNode->data = elem;
     newNode->next = NULL;
     //queremos insertar el elemento al final de la cola
@@ -70,107 +116,30 @@ void add(listADT list, elemType elem){
     }else{
         list->last->next = newNode;
         list->last = newNode;
-        list->size++;
-    }
-}
-
-int size(const listADT list){
-    return list->size;
-}
-
-//Elimino un elemento de la lista
-int remove(listADT list, elemType elem){
-    if(list== NULL || list->first == NULL)
-        return 1;
-    TNode * current = list->first;
-    TNode * prev = NULL;
-    while(current != NULL){
-        if(compare(elem, current->data) == 0){
-            if(compare(current->data, list->first->data) == 0){
-                list->first = current->next;
-            }
-            if(compare(current->data, list->last->data) == 0){
-                list->last = prev;
-                //si es el primero y el ultimo
-                if(prev != NULL)
-                    prev->next=NULL;
-            }
-            else{
-                prev->next = current->next;
-            }
-            //free(current);
-            mm_free(current);
-            list->size--;
-            return 0;
-        }
-        prev = current;
-        current = current->next;
+        (list->size)++;
     }
     return 1;
 }
 
-
-TNode * extract(listADT list, elemType elem){
-    if(list== NULL || list->first == NULL)
-        return NULL;
-    TNode * current = list->first;
-    TNode * prev = NULL;
-    while(current != NULL){
-        if(compare(elem, current->data) == 0){
-            if(compare(current->data, list->first->data) == 0){
-                list->first = current->next;
-            }
-            if(compare(current->data, list->last->data) == 0){
-                list->last = prev;
-                if(prev != NULL)
-                    prev->next=NULL;
-            }
-            else{
-                prev->next = current->next;
-            }
-            current->next=NULL;
-            list->size--;
-            return current;
-        }
-        prev = current;
-        current = current->next;
-    }
-    return NULL;
+uint32_t queueADT_size(const queueADT list){
+    return list->size;
 }
-
-//agrego un nuevo elemento al final de la lista
-void insert(listADT list, TNode * node){
-    //queremos insertar el elemento al final de la cola
-    if(list->last==NULL){
-        //es el primer elemento que agrego
-        list->first = node;
-        list->last = node;
-        (list->size)++;
-    }else{
-        list->last->next = node;
-        list->last = node;
-        list->size++;
-    }
-}
-
-
-
-
-
-
-//Devuelve el nodo que sigue en la cola
+//devuelve el nodo que sigue en la cola
 //Elimina a ese elemento de la cola
-elemType getNext(listADT list){
+elemType queueADT_get_next(queueADT list){
     if(list->first==NULL){
         //No hay un proximo elemento
-        return NULL;
+        return ELEM_NOT_FOUND;
     }
     //Le damos el primer elemento
     elemType ans = list->first->data;
     TList nodeToRemove = list->first;
-    //mm_free(nodeToRemove);
-    free(nodeToRemove);
+    if(list->last == list->first){
+        list->last = NULL;
+    }
     (list->size)--;
     list->first = list->first->next;
+    mm_free(nodeToRemove);
     return ans;
 }
+
