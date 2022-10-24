@@ -109,7 +109,7 @@ create_stack:                           ; Sino, se crea el stack con la direccio
 
     mov rsp, rax
                                         ; Ver la diapositiva 69 del PDF Context Switching
-    and rsp, -32                        ; ALIGN
+    and rsp, -16                        ; ALIGN
     mov rcx, rsp
     push 0                              ; SS
     push rcx                            ; RSP (Stack alineado para el proceso)
