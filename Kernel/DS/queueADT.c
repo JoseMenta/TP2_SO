@@ -116,7 +116,7 @@ int queueADT_insert(queueADT list, elemType elem){
     }else{
         list->last->next = newNode;
         list->last = newNode;
-        (list->size)++;
+        list->size++;
     }
     return 1;
 }

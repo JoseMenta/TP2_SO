@@ -24,6 +24,7 @@ RRADT new_RR(){
     };
     ans->current_level = 0;
     ans->process_count = 0;
+    return ans;
 }
 void free_RR(RRADT rr){
     for(int i = 0; i<PRIORITY_LEVELS; i++){
@@ -60,7 +61,7 @@ elemType RR_get_next(RRADT rr){
         return ELEM_NOT_FOUND;
     }
     elemType ans = ELEM_NOT_FOUND;
-    while ((ans = RRLevel_get_next((rr->levels)[rr->current_level]))==ELEM_NOT_FOUND && rr->current_level<PRIORITY_LEVELS){
+    while ( rr->current_level<PRIORITY_LEVELS &&(ans = RRLevel_get_next((rr->levels)[rr->current_level]))==ELEM_NOT_FOUND ){
         (rr->current_level)++;
     }
     if(rr->current_level==PRIORITY_LEVELS){
@@ -76,4 +77,8 @@ elemType RR_get_next(RRADT rr){
         (rr->process_count)--;
         return ans;
     }
+}
+
+uint64_t RR_process_count(RRADT r){
+    return r->process_count;
 }
