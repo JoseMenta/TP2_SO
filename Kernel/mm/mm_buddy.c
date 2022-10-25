@@ -7,6 +7,8 @@
 #include <mm.h>
 #include <mm_buddy.h>
 
+// TODO: MOVER EL HEAP DESPUES DE USERLAND (128MB) Y AJUSTAR EL TAMAÑO MINIMO A 8 BYTES
+
 // La dirección donde termina la seccion data del Kernel y empieza el heap
 extern uint8_t endOfKernel;
 
@@ -200,7 +202,8 @@ void mm_free(void * p){
             node_size /= 2;
         }
         // Si lo encuentro, me guardo su indice y restauro el tamaño inicial del nodo
-        if(buddy_manager.node[i].start_address == (uint8_t *) p){
+        if(buddy_manager.node[i].start_address == (uint8_t *) p && buddy_manager.node[i].size_available == 0 &&
+           (node_size == 1 || (buddy_manager.node[LEFT_LEAF(i)].size_available != 0 && buddy_manager.node[RIGHT_LEAF(i)].size_available != 0))){
             buddy_manager.node[i].size_available = node_size;
             index = i;
         }
@@ -335,5 +338,8 @@ void mm_buddy_dump(){
         }
     }
     canvas[buddy_manager.size] = '\0';
+    // TODO: Ajustar la impresión al driver de video
+    printf("\n\nEstado de la memoria\n*: Byte ocupado\n_: Byte libre\n");
     puts(canvas);
+    printf("\n\n");
 }
