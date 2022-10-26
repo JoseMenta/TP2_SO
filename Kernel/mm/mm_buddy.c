@@ -354,7 +354,7 @@ void mm_buddy_dump(){
                 print("Posicion: ", WHITE, ALL);
                 print_dec_format(i - buddy_manager.size / MIN_SIZE + 1, ALL);
                 new_line(ALL);
-                canvas[i - buddy_manager.size + 1] = '*';
+                canvas[i - buddy_manager.size / MIN_SIZE + 1] = '*';
             }
             else if(buddy_manager.node[LEFT_LEAF(i)].size_available && buddy_manager.node[RIGHT_LEAF(i)].size_available) {
                 offset = ((i + 1) * node_size - buddy_manager.size) / MIN_SIZE;
