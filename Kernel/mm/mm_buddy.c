@@ -7,20 +7,41 @@
 #include <mm.h>
 #include <mm_buddy.h>
 
-// TODO: MOVER EL HEAP DESPUES DE USERLAND (128MB) Y AJUSTAR EL TAMAÑO MINIMO A 8 BYTES
+/* ----------------------------------------------------------------------------------------------------------------
+ * Buddy
+ *
+ * Tamaño total de heap: 128 MB
+ * Tamaño minimo de bloque: 8 B
+ *
+ * Cant. de nodos: 1 (128 MB) + 2 (64 MB) + 4 (32 MB) + 8 (16 MB) + 16 (8 MB) + 32 (4 MB) + 64 (2 MB) + 128 (1 MB) +
+		    256 (512 KB) + 512 (256 KB) + 1024 (128 KB) + 2048 (64 KB) + 4096 (32 KB) + 8192 (16 KB). +
+                16384 (8 KB) + 32768 (4 KB) + 65536 (2 KB) + 131072 (1 KB) + 262144 (512 B) + 524288 (256 B) +
+   	  	    1048576 (128 B) + 2097152 (64 B) + 4194304 (32 B) + 8388608 (16 B) + 16777216 (8 B) = 33554431 nodos
 
-// La dirección donde termina la seccion data del Kernel y empieza el heap
-extern uint8_t endOfKernel;
+ * Tamaño de un nodo: 4 B
+ * Tamaño total de nodos: 134217724 B
+ *
+ * Tamaño del buddy: 16 B
+ *
+ * Tamaño total: 134217740 B = 134.21774 MB < 135 MB
+ *
+ * Inicio del buddy:    0x  600000 (6 MB)
+ * Fin del buddy: 	    0x 8D00000 (141 MB)
+ *
+ * Inicio del heap: 	0x 8E00000 (142 MB)
+ * Fin del heap:	    0x10E00000 (270 MB)
+// ---------------------------------------------------------------------------------------------------------------- */
 
-// La direccion donde comienza la seccion de Userland
-#define USERLAND_START_DIRECTION 0x400000
 
-// Calcula el tamaño del heap (sin ajustar a potencia de dos)
-#define MM_SIZE (((uint8_t *) USERLAND_START_DIRECTION) - ((uint8_t *) &endOfKernel))
+#define BUDDY_MANAGER_START 0x600000
+#define BUDDY_MANAGER_END   0x8D00000
 
-// Define la cantidad máxima de nodos que podra manejar el buddy (depende del tamaño asignado al heap)
-// Al ajustarse a una potencia de dos, buddy terminará usando una menor cantidad de nodos
-#define NODES (2 * MM_SIZE - 1)
+#define HEAP_START          0x8E00000
+#define HEAP_END            0x10E00000
+
+#define NODES               33554431
+#define MIN_SIZE            8
+#define MM_SIZE             (((uint8_t *)HEAP_END) - ((uint8_t *)HEAP_START))
 
 #define LEFT_LEAF(index)    ((index) * 2 + 1)               // Devuelve el indice del nodo hijo izquierdo de index
 #define RIGHT_LEAF(index)   ((index) * 2 + 2)               // Devuelve el indice del nodo hijo derecho de index
@@ -29,8 +50,8 @@ extern uint8_t endOfKernel;
 #define IS_POWER_OF_2(x)    (!((x) & ((x) - 1)))            // Indica si x es potencia de dos o no
 #define MAX(a, b)           (((a) > (b)) ? (a) : (b))       // Devuelve el mayor entre a y b
 
-static const uint8_t * start_address = (uint8_t *) &endOfKernel;
-static const uint8_t * end_address = (uint8_t *) USERLAND_START_DIRECTION;
+static const uint8_t * start_address = (uint8_t *) HEAP_START;
+static const uint8_t * end_address = (uint8_t *) HEAP_END;
 static uint64_t allocated_bytes = 0;
 static uint64_t allocated_blocks = 0;
 
@@ -56,7 +77,6 @@ static uint32_t previous_power_of_2(uint64_t number){
     if(number == 0){
         return 0;
     }
-    number--;
     number |= number >> 1;
     number |= number >> 2;
     number |= number >> 4;
@@ -69,19 +89,18 @@ static uint32_t previous_power_of_2(uint64_t number){
 typedef struct
 {
     uint32_t size_available;                            // Espacio para ocupar en el nodo
-    uint8_t * start_address;                            // Direccion por la que comienza su espacio en el heap
-} node_t;
+} node_t;                                               // Tamaño: 4B
 
 
 typedef struct
 {
     uint32_t size;                                      // Tamaño del heap
     node_t * node;                                      // Cantidad de nodos del arbol de buddy
-} buddy_t;
+} buddy_t;                                              // Tamaño: 16B
 
 
-// Inicializo el buddy (sin espacio)
-static buddy_t buddy_manager = {-1};
+// Inicializo el buddy
+static buddy_t buddy_manager = {-1, (node_t *) BUDDY_MANAGER_START};
 
 
 // Setea el buddy para empezar a manejar el heap
@@ -89,18 +108,14 @@ void mm_init(){
     uint8_t * address = (uint8_t *) start_address;
     uint32_t node_size, buddy_size;
 
-    // Defino el arreglo (arbol) de nodos a manejar
-    node_t nodes[NODES];
-    buddy_manager.node = nodes;
-
     // Define el tamaño del heap que va a manejar el buddy system
     buddy_size = previous_power_of_2(MM_SIZE);
     buddy_manager.size = buddy_size;
 
     node_size = buddy_size * 2;
 
-    // Seteamos a cada nodo el tamaño maximo a manejar y su dirección de inicio
-    for(uint32_t i = 0; i < 2 * buddy_size - 1; i++){
+    // Seteamos a cada nodo el tamaño maximo a manejar
+    for(uint32_t i = 0; i < NODES; i++){
         // Cada vez que se llegue a una potencia de 2 es porque se paso al siguiente nivel del arbol
         // por lo que el tamaño del nodo decrece a la mitad y comienza a apuntar nuevamente al principio de la memoria
         if(IS_POWER_OF_2(i+1)){
@@ -108,12 +123,8 @@ void mm_init(){
             node_size /= 2;
         }
         buddy_manager.node[i].size_available = node_size;
-        buddy_manager.node[i].start_address = address;
         address += node_size;
     }
-
-    // Actualizamos la ultima direccion valida para asignar espacio
-    end_address = address - node_size;
 }
 
 //----------------------------------------------------------------------
@@ -130,7 +141,7 @@ void mm_init(){
 //----------------------------------------------------------------------
 void * mm_alloc(uint32_t wanted_size){
     uint32_t node_size, index = 0;
-    void * address;
+    uint8_t * address = (uint8_t *) start_address;
 
     // Si es la primera vez que se solicita memoria, se inicializa el buddy
     if(buddy_manager.size == -1){
@@ -138,8 +149,11 @@ void * mm_alloc(uint32_t wanted_size){
     }
 
     // Si el espacio solicitado no es potencia de 2, lo ajustamos a la proxima potencia de 2 para ajustarse al nodo correspondiente en el buddy
-    if(wanted_size == 0){
+    // Otro caso es que el tamaño solicitado sea menor al minimo nodo, en ese caso se debe ajustar el tamaño solicitado al minimo
+    if (wanted_size == 0){
         return NULL;
+    } else if (wanted_size < MIN_SIZE){
+        wanted_size = MIN_SIZE;
     } else if (!IS_POWER_OF_2(wanted_size)){
         wanted_size = next_power_of_2(wanted_size);
     }
@@ -149,18 +163,19 @@ void * mm_alloc(uint32_t wanted_size){
         return NULL;
     }
 
-    // Busca el indice del nodo que debe asignar para mantener el espacio solicitado, priorizando los subarboles izquierdos
+    // Busca el índice del nodo que debe asignar para mantener el espacio solicitado, priorizando los subarboles izquierdos
     for(node_size = buddy_manager.size; node_size != wanted_size; node_size /= 2){
         if(buddy_manager.node[LEFT_LEAF(index)].size_available >= wanted_size){
             index = LEFT_LEAF(index);
         } else {
+            // Si nos movemos a la derecha, debemos ajustar address a la direccion de memoria que le corresponde al nodo derecho
+            address += node_size / 2;
             index = RIGHT_LEAF(index);
         }
     }
 
-    // Una vez que encuentro el nodo, actualizo su espacio disponible (0 pues se ocupo) y obtengo su dirección de inicio
+    // Una vez que encuentro el nodo, actualizo su espacio disponible (0 pues se ocupo)
     buddy_manager.node[index].size_available = 0;
-    address = (void *) buddy_manager.node[index].start_address;
 
     // Se actualiza el espacio ocupado y los bloques ocupados
     allocated_bytes += wanted_size;
@@ -193,23 +208,30 @@ void mm_free(void * p){
     }
 
     uint32_t node_size, index = -1, left_size, right_size;
+    uint8_t * address = (uint8_t *) start_address;
 
     node_size = buddy_manager.size * 2;
 
     // Busco el nodo cuya direccion inicial sea p
-    for(uint32_t i = 0; index == -1 && i < 2 * previous_power_of_2(MM_SIZE) - 1; i++){
+    for(uint32_t i = 0; index == -1 && i < NODES; i++){
         if(IS_POWER_OF_2(i+1)){
+            // Cada vez que alcanzo una potencia de 2, bajo un nivel mas en el arbol, empezando por el nodo más a la izquierda
+            address = (uint8_t *) start_address;
             node_size /= 2;
         }
-        // Si lo encuentro, me guardo su indice y restauro el tamaño inicial del nodo
-        if(buddy_manager.node[i].start_address == (uint8_t *) p && buddy_manager.node[i].size_available == 0 &&
-           (node_size == 1 || (buddy_manager.node[LEFT_LEAF(i)].size_available != 0 && buddy_manager.node[RIGHT_LEAF(i)].size_available != 0))){
+        // Si lo encuentro, me guardo su índice y restauro el tamaño inicial del nodo
+        if(address == (uint8_t *) p && buddy_manager.node[i].size_available == 0 &&
+           (node_size == MIN_SIZE || (buddy_manager.node[LEFT_LEAF(i)].size_available != 0 && buddy_manager.node[RIGHT_LEAF(i)].size_available != 0))){
             buddy_manager.node[i].size_available = node_size;
             index = i;
         }
+        // Si no lo encuentro, entonces me muevo a la dirección del proximo nodo a la derecha (si es que hay)
+        else {
+            address += node_size;
+        }
     }
 
-    // Si index no cambio es porque la direccion no es valida para liberar, por lo que retorna
+    // Si index no cambio es porque la direccion no es válida para liberar, por lo que retorna
     if(index == -1){
         return;
     }
@@ -218,7 +240,7 @@ void mm_free(void * p){
     allocated_bytes -= node_size;
     allocated_blocks--;
 
-    // Ahora se debe actualizar el tamaño disponible de los nodos ancetros del nodo que se libero
+    // Ahora se debe actualizar el tamaño disponible de los nodos ancetros del nodo que se liberó
     while(index) {
         index = PARENT(index);
         node_size *= 2;
@@ -226,11 +248,11 @@ void mm_free(void * p){
         left_size = buddy_manager.node[LEFT_LEAF(index)].size_available;
         right_size = buddy_manager.node[RIGHT_LEAF(index)].size_available;
 
-        // Si tanto hijo izquierdo como hijo derecho estan liberados (la suma de su espacio libre equivale al espacio esperado del nodo padre), entonces el nodo esta completamente libre
+        // Si tanto hijo izquierdo como hijo derecho están liberados (la suma de su espacio libre equivale al espacio esperado del nodo padre), entonces el nodo esta completamente libre
         if(left_size + right_size == node_size){
             buddy_manager.node[index].size_available = node_size;
         }
-            // Si no, entonces algunos de sus subarboles esta ocupado, por lo se queda con el tamaño disponible maximo entre sus dos subarboles
+        // Si no, entonces algunos de sus subarboles esta ocupado, por lo se queda con el tamaño disponible maximo entre sus dos subarboles
         else {
             buddy_manager.node[index].size_available = MAX(left_size, right_size);
         }
@@ -310,36 +332,48 @@ uint64_t get_free_bytes(){
 //
 //----------------------------------------------------------------------
 void mm_buddy_dump(){
-    char canvas[buddy_manager.size + 1];
+    char * canvas = (char *) BUDDY_MANAGER_END - (buddy_manager.size / MIN_SIZE + 1) - 1;
     uint32_t i, j, node_size, offset;
 
-    for(i = 0; i < buddy_manager.size + 1; i++){
+    for(i = 0; i < buddy_manager.size / MIN_SIZE + 1; i++){
         canvas[i] = '_';
     }
 
     node_size = buddy_manager.size * 2;
 
-    for(i = 0; i < 2 * buddy_manager.size - 1; i++){
+    for(i = 0; i < NODES; i++){
         if(IS_POWER_OF_2(i+1)){
             node_size /= 2;
         }
 
         if(buddy_manager.node[i].size_available == 0){
-            if(i >= buddy_manager.size - 1){
+            if(node_size == MIN_SIZE){
+                print("\nTamaño del nodo: ", WHITE, ALL);
+                print_dec_format(node_size, ALL);
+                print("\nCantidad: 1\n", WHITE, ALL);
+                print("Posicion: ", WHITE, ALL);
+                print_dec_format(i - buddy_manager.size / MIN_SIZE + 1, ALL);
+                new_line(ALL);
                 canvas[i - buddy_manager.size + 1] = '*';
             }
             else if(buddy_manager.node[LEFT_LEAF(i)].size_available && buddy_manager.node[RIGHT_LEAF(i)].size_available) {
-                offset = (i+1) * node_size - buddy_manager.size;
+                offset = ((i + 1) * node_size - buddy_manager.size) / MIN_SIZE;
 
-                for(j = offset; j < offset + node_size; j++){
+                print("\nTamaño del nodo: ", WHITE, ALL);
+                print_dec_format(node_size, ALL);
+                print("\nCantidad: ", WHITE, ALL);
+                print_dec_format(node_size / MIN_SIZE, ALL);
+
+                for(j = offset; j < offset + node_size / MIN_SIZE; j++){
+                    print("\nPosicion: ", WHITE, ALL);
+                    print_dec_format(j, ALL);
                     canvas[j] = '*';
                 }
             }
         }
     }
-    canvas[buddy_manager.size] = '\0';
-    // TODO: Ajustar la impresión al driver de video
-    printf("\n\nEstado de la memoria\n*: Byte ocupado\n_: Byte libre\n");
-    puts(canvas);
-    printf("\n\n");
+    canvas[buddy_manager.size / MIN_SIZE] = '\0';
+    print("\n\nEstado de la memoria\n*: Byte ocupado\n_: Byte libre\n", WHITE, ALL);
+    print(canvas, WHITE, ALL);
+    print("\n\n", WHITE, ALL);
 }
