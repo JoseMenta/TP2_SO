@@ -1,8 +1,165 @@
+//Inicio scheduler SO
+#include <RRADT.h>
+#include "../include/RRADT.h"
+#include <mm.h>
+#include "../include/mm.h"
+#include <dispatcher.h>
+#include "../include/dispatcher.h"
+
+static RRADT rr = NULL;
+static uint64_t new_pid = 1;
+static PCB* current_process=NULL;
+#define BASE_PRIORITY 2
+#define CHECK_PID(pid) (pid>=1 && pid<new_pid)
+//TODO: en el pid=0, guardamos al proceso default
+extern uint64_t ticks;
+extern void idle_process();
+//hasta que no este listo el hash, uso un arreglo para guardar a los procesos
+static PCB* hash[100]={0};
+//inicializa las estructuras que va a utilizar el scheduler
+int initialize_scheduler(){
+    rr = new_RR();
+    if(rr==NULL){
+        return -1;
+    }
+    PCB* new_process = mm_alloc(sizeof (PCB));
+    if(new_process==NULL){
+        return -1;
+    }
+    void* bp; //para guardar las direcciones donde se ubica el stack del proceso
+    void* sp;
+    if(create_new_process_context(0,NULL,&idle_process,&bp,&sp)==-1){
+        return -1;
+    }
+    new_process->bp = bp;
+    new_process->sp = sp;
+    new_process->pid = new_pid;
+    new_process->status = READY;
+    new_process->priority = BASE_PRIORITY;
+    //TODO: cargar al proceso default en hash[0]
+    hash[0] = new_process;
+    return 0;
+}
+//devuelve el pid del proceso si no hubo error, -1 si hubo error
+int create_process(void* start,uint64_t arg_c,char** arg_v){
+    PCB* new_process = mm_alloc(sizeof (PCB));
+    if(new_process==NULL){
+        return -1;
+    }
+    void* bp; //para guardar las direcciones donde se ubica el stack del proceso
+    void* sp;
+    if(create_new_process_context(arg_c,arg_v,start,&bp,&sp)==-1){
+        return -1;
+    }
+    new_process->bp = bp;
+    new_process->sp = sp;
+    new_process->pid = new_pid;
+    new_process->status = READY;
+    new_process->priority = BASE_PRIORITY;
+    hash[new_pid++]=new_process;
+    if( RR_add_process(rr,new_process,BASE_PRIORITY)==-1){
+        return -1;
+    }
+    return new_process->pid;
+}
+//Cambia el estado de un proceso a bloqueado
+//No cambia el proceso que va a seguir ejecutandose luego de la llamada
+//por lo que si se bloquea al proceso que se esta ejecutando, se debe llamar a la funcion para elegir el proceso que sigue3
+int block_process(int pid){
+    if(!CHECK_PID(pid)){
+        return -1;
+    }
+    PCB* process = hash[pid];
+    //lo saco de la cola de listos (solo me sirve si no es el que esta corriendo)
+    RR_remove_process(rr,process->priority,process);
+    process->status=BLOCKED;
+    //si es una syscall bloqueante, se debe llamar en ella al cambio de contexto si se desea bloquear al proceso que esta corriendo
+    return 0;
+}
+//TODO: ver si tenemos que guardar el valor de retorno en rax, aunque creo que el wait no lo espera
+//int terminate_process(int pid){
+//    if(!CHECK_PID(pid)){
+//        return -1;
+//    }
+//    PCB* process = hash[pid];
+//    process->status = FINISHED;
+//    RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
+//    //Liberamos ahora a la memoria, pero en el caso donde esta terminando el proceso que se estaba ejecutando, hay que
+//    //notar que si esta terminando el proceso que estaba en ejecucion, parece peligroso liberar la memoria ahora
+//    //sin embargo, es responsabilidad de la syscall llamar al cambio de contexto luego de terminar a un proceso
+//    //Y si se cambia el contexto inmediatamente, entonces no hay problemas de seguridad con liberar la memoria ahora
+//    //porque nadie va a pedir mas memoria hasta que termine la syscall (interrupt gate)
+//    free_process_stack(process->bp);
+//    return 1;
+//}
+//cambia la prioridad de un proceso dado su pid
+int change_process_priority(int pid, uint8_t new_priority){
+    if(!CHECK_PID(pid) || !CHECK_PRIORITY(new_priority)){
+        return -1;
+    }
+    PCB* process = hash[pid];
+    //Lo tenemos que mover a la cola de la nueva prioridad si esta en el RR o deberia estar
+    if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
+        RR_remove_process(rr,process->priority,process);
+        RR_add_process(rr,process,new_priority);
+    }
+    process->priority=new_priority;
+    return 1;
+}
+int unblock_process(int pid){
+    if(!CHECK_PID(pid)){
+        return -1;
+    }
+    PCB* process = hash[pid];
+    process->status = READY;
+    //lo agrego para que pueda seguir ejecutandose cuando sigue
+    RR_add_process(rr,process,process->priority);
+    return 1;
+}
+//devuelve RSP del proceso que debe continuar en ejecucion
+void* scheduler(void* curr_rsp){
+    //si debe seguir el proceso que esta en el momento
+    //Se determina la cantidad de ticks con la prioridad
+    if(current_process!=NULL && current_process->status==EXECUTE && ticks< GET_QUANTUM_INTERVAL(current_process->priority)){
+        return current_process->sp;
+    }
+    //Si corresponde, guardamos al proceso que se estaba ejecutando para que siga luego
+    if(current_process->status==READY || current_process->status==EXECUTE){
+        current_process->status = READY;
+        current_process->sp = curr_rsp;
+        RR_add_process(rr,current_process,current_process->priority);
+    }
+    //Debemos buscar el siguiente proceso a ejecutar
+    if(RR_process_count(rr)==0){
+        //si no hay procesos listos, debemos ejecutar al proceso default
+        current_process = hash[0];
+        return current_process->sp;
+    }
+    //tenemos que seguir con el proximo proceso segun RR
+    current_process = RR_get_next(rr);
+    return current_process->sp;
+}
+
+int waitPid(int pid){
+    if(!CHECK_PID(pid)){
+        return -1;
+    }
+    //veo si el proceso por el que espera ya termino
+    if(hash[pid]->status!=FINISHED){
+        //Si el proceso no termino
+        //bloqueo al proceso que llama a wait
+        block_process(current_process->status);
+    }
+    return 0;
+}
+//Inicio Scheduler arqui
+
 #include <scheduler.h>
 #include <interrupts.h>
 #include <stdint.h>
 #include <keyboard.h>
 #include <video_driver.h>
+
 
 #define ORIGINAL_PROCESS_INDEX 0
 #define DEFAULT_PROCESS_INDEX 4

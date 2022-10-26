@@ -12,7 +12,7 @@ typedef struct RRLevelCDT* RRLevelADT;
 
 RRLevelADT new_RRLevel(uint8_t priority, uint8_t tt_interval);
 void free_RRLevel(RRLevelADT RRLevel);
-void RRLevel_insert(RRLevelADT RRLevel,elemType process);
+int RRLevel_insert(RRLevelADT RRLevel,elemType process);
 void RRLevel_switch_queues(RRLevelADT RRLevel);
 elemType RRLevel_delete(RRLevelADT RRLevel, elemType elem);
 uint32_t RRLevel_to_execute_size(RRLevelADT RRLevel);

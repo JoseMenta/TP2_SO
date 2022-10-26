@@ -11,7 +11,7 @@
 //      ERROR: Devuelve NULL
 //      EXITO: Devuelve la dirección del BP/SP inicial
 // -----------------------------------------------------------------------------
-void * allocate_new_process_stack(){
+void* allocate_new_process_stack(){
     void * stack;
     if((stack = mm_alloc(STACK_SIZE)) == NULL){
         return NULL;
@@ -20,4 +20,8 @@ void * allocate_new_process_stack(){
     // BP: Inicio del stack + tamaño del stack - 1
 //    return stack + STACK_SIZE - 1;
     return stack+STACK_SIZE;//nos pasamos en 1, total el primer push lo va a arreglar
+}
+
+void free_process_stack(void* bp){
+    mm_free(bp-STACK_SIZE);
 }

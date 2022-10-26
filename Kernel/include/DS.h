@@ -7,8 +7,6 @@
 #include "scheduler.h"
 #include <stddef.h>
 typedef PCB* elemType;
-int elemType_compare_to(elemType e1, elemType e2){
-    return e1->pid-e2->pid;
-}
+int elemType_compare_to(elemType e1, elemType e2);
 #define ELEM_NOT_FOUND NULL
 #endif //TP2_SO_DS_H

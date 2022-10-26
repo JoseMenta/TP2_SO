@@ -4,7 +4,7 @@
 
 #ifndef TP2_SO_ROUNDROBIN_H
 #define TP2_SO_ROUNDROBIN_H
-#include <RRLevel.h>
+#include <RRLevelADT.h>
 #include "../include/RRLevelADT.h"
 #include <stdint.h>
 #include <DS.h>
@@ -17,4 +17,10 @@
 
 typedef struct RRCDT * RRADT;
 
+RRADT new_RR();
+void free_RR(RRADT rr);
+int RR_add_process(RRADT rr, elemType elem, uint64_t priority);
+elemType RR_remove_process(RRADT rr, uint64_t priority,elemType elem);
+elemType RR_get_next(RRADT rr);
+uint64_t RR_process_count(RRADT r);
 #endif //TP2_SO_ROUNDROBIN_H

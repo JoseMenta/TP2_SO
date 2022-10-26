@@ -1,7 +1,7 @@
 #include <time.h>
 #include <scheduler.h>
 
-static uint64_t ticks = 0;
+uint64_t ticks = 0;
 //----------------------------------------------------------------------
 // timer_handler: handler para timer tick
 //----------------------------------------------------------------------

@@ -13,6 +13,9 @@ struct RRCDT{
 
 RRADT new_RR(){
     RRADT ans = mm_alloc(sizeof (struct RRCDT));
+    if(ans==NULL){
+        return ans;
+    }
     for(int i = 0; i<PRIORITY_LEVELS; i++){
         (ans->levels)[i] = new_RRLevel(i, GET_QUANTUM_INTERVAL(i));
         if((ans->levels)[i]==NULL){

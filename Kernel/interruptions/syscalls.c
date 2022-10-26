@@ -4,6 +4,14 @@
 #include <scheduler.h>
 #include <queue.h>
 #include <time.h>
+#include <stddef.h>
+void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler};
+void* syscall_dispatcher(uint64_t num){
+    if(num<0 || num>=10){
+        return NULL;
+    }
+    return syscalls[num];
+}
 //----------------------------------------------------------------------
 // read_handler: handler para leer un caracter del teclado
 //----------------------------------------------------------------------
@@ -127,7 +135,7 @@ uint8_t mem_handler(uint64_t init_dir, uint8_t * arr){
     }
     // Si aun quedan espacios libres (i < 32), se completa con NULL
     for(int j = i; j < MAX_ARRAY_SIZE; j++){
-        arr[j] = NULL;
+        arr[j] = 0;
     }
     // En i se almacenan la cantidad real de datos que se pudieron almacenar
     return i;

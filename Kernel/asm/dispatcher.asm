@@ -1,5 +1,5 @@
 ; push_state_no_rax: Pushea el estado de los registros generales (GPR), salvo RAX, en el stack
-%macro push_state_no_rax
+%macro push_state_no_rax 0
     push rbx
     push rcx
     push rdx
@@ -18,7 +18,7 @@
 %endmacro
 
 ; pop_state_no_rax: Popea el estado de los registros generales (GPR), salvo RAX, del stack
-%macro pop_state_no_rax
+%macro pop_state_no_rax 0
     pop r15
     pop r14
     pop r13
@@ -37,13 +37,13 @@
 %endmacro
 
 ; push_state: Pushea el estado de los registros generales (GPR) en el stack
-%macro push_state
+%macro push_state 0
     push rax
     push_state_no_rax
 %endmacro
 
 ; pop_state: Popea el estado de los registros generales (GPR) del stack
-%macro pop_state
+%macro pop_state 0
     pop_state_no_rax
     pop rax
 %endmacro
@@ -54,9 +54,39 @@ EXTERN allocate_new_process_stack
 EXTERN scheduler
 
 GLOBAL context_switch_handler
+GLOBAL idle_process
 GLOBAL create_new_process_context
 
 SECTION .text
+
+idle_process:
+    sti
+    hlt
+    jmp idle_process
+
+
+syscall_handler:
+    push_state_no_rax
+    push rdi
+    mov rdi, rax ;pasamos el numero de la syscall
+;    call syscall_dispatcher
+    pop rdi
+    cmp rax, 0
+    je fin
+    call rax ;llamamos a la funcion que nos devuelve el dispatcher
+    ;llamamos al scheduler para ver quien sigue
+fin:
+    int 20h
+    pop_state_no_rax
+    iretq
+
+;TODO: hacer que las syscalls reciban los parametros por los registros de 64 bits
+;rax->syscall_number
+;rdi->arg[0]
+;rsi->arg[1]
+;rdx->arg[2]
+;rcx->arg[3]
+
 
 ; ---------------------------------------------------------------------------------
 ; context_switch_handler
