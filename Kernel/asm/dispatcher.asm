@@ -138,6 +138,7 @@ create_new_process_context:
     ret
 
 create_stack:                           ; Sino, se crea el stack con la direccion obtenida (rax)
+
     mov rsp, rax
                                         ; Ver la diapositiva 69 del PDF Context Switching
     ;and rsp, -32                        ; ALIGN
