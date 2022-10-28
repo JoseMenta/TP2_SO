@@ -5,6 +5,7 @@
 #include "../include/mm.h"
 #include <dispatcher.h>
 #include "../include/dispatcher.h"
+#include "../include/HashADT.h"
 
 static RRADT rr = NULL;
 static uint64_t new_pid = 1;
@@ -14,8 +15,11 @@ static PCB* current_process=NULL;
 //TODO: en el pid=0, guardamos al proceso default
 extern uint64_t ticks;
 extern void idle_process();
+
 //hasta que no este listo el hash, uso un arreglo para guardar a los procesos
 static PCB* hash[100]={0};
+//static HashADT myHash = newHashADT();
+
 //inicializa las estructuras que va a utilizar el scheduler
 int initialize_scheduler(){
     rr = new_RR();
@@ -39,6 +43,7 @@ int initialize_scheduler(){
     new_process->priority = BASE_PRIORITY;
     //No se lo carga en RR, para ejecutarlo solo cuando no hay otros
     hash[0] = new_process;
+    //HashProcess_add(myHash, new_process);
     return 0;
 }
 //devuelve el pid del proceso si no hubo error, -1 si hubo error
@@ -59,6 +64,7 @@ int create_process(executable_t* executable){
     new_process->name = executable->name;
     new_process->priority = BASE_PRIORITY;
     hash[new_pid++]=new_process;
+    //HashProcess_add(myHash, new_process);
     if( RR_add_process(rr,new_process,BASE_PRIORITY)==-1){
         return -1;
     }
@@ -72,6 +78,7 @@ int block_process(int pid){
         return -1;
     }
     PCB* process = hash[pid];
+    //PCB* process = HashProcess_get(myHash, pid);
     //lo saco de la cola de listos (solo me sirve si no es el que esta corriendo)
     RR_remove_process(rr,process->priority,process);
     process->status=BLOCKED;
@@ -100,6 +107,7 @@ int change_process_priority(int pid, uint8_t new_priority){
         return -1;
     }
     PCB* process = hash[pid];
+    //PCB* process = HashProcess_get(myHash, pid);
     //Lo tenemos que mover a la cola de la nueva prioridad si esta en el RR o deberia estar
     if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
         RR_remove_process(rr,process->priority,process);
@@ -113,6 +121,7 @@ int unblock_process(int pid){
         return -1;
     }
     PCB* process = hash[pid];
+    //PCB* process = HashProcess_get(myHash, pid);
     process->status = READY;
     //lo agrego para que pueda seguir ejecutandose cuando sigue
     RR_add_process(rr,process,process->priority);
@@ -155,6 +164,7 @@ int waitPid(int pid){
         return -1;
     }
     //veo si el proceso por el que espera ya termino
+    //if(HashProcess_get(myHash, pid)->status!=FINISHED);
     if(hash[pid]->status!=FINISHED){
         //Si el proceso no termino
         //bloqueo al proceso que llama a wait

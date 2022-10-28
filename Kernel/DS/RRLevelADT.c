@@ -7,6 +7,7 @@
 #include "../include/queueADT.h"
 #include <mm.h>
 #include "../include/mm.h"
+
 struct RRLevelCDT {
     queueADT to_execute;
     queueADT executed;
@@ -31,6 +32,7 @@ void free_RRLevel(RRLevelADT RRLevel){
     free_queueADT(RRLevel->executed);
     mm_free(RRLevel);
 }
+
 //agrega un proceso a la cola de ejecutados para que se ejecute despues
 int RRLevel_insert(RRLevelADT RRLevel,elemType process){
     //lo inserto en la cola de los expirados
