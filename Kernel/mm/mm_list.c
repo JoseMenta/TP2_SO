@@ -8,8 +8,8 @@ extern uint8_t endOfKernel;
 
 //La memoria la vemos como un arreglo de uint8_t (para movernos de a 1 byte)
 //TODO: ver lo de getStackBase para corregir eso si no le damos el stack con el mm
-static const uint8_t* start_address = (uint8_t*) &endOfKernel;
-static const uint8_t* end_address = (uint8_t*)0x400000;
+static const uint8_t* start_address = (uint8_t*) 0x600000;
+static const uint8_t* end_address = (uint8_t*)0x800000;
 static uint64_t allocated_bytes=0;
 static uint64_t allocated_blocks = 0;
 static uint64_t heap_size = 0;
@@ -65,6 +65,8 @@ void mm_init(){
 //----------------------------------------------------------------------
 void* mm_alloc(uint32_t wanted_size){
     //TODO: ver el manejo de la concurrencia aca, si tengo que usar cli y sti cuando manejo la lista
+    //No es necesario, tenemos solo 1 core y no es desalojable el kernel
+    //Pero en teoria si seria necesario
     //Si no esta seteado el entorno para el mm, tengo que inicializar al mm
     if(end_block==NULL){
         mm_init();

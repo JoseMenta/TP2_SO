@@ -17,7 +17,7 @@ static const char * Names[] = { "R8: ", "R9: ", "R10: ", "R11: ", "R12: ", "R13:
 //----------------------------------------------------------------------
 void exceptionDispatcher(int exception) {
 	exceptions[exception]();
-    terminate_process();//Matamos al programa que lanzo la excepcion
+    terminate_process(1);//Matamos al programa que lanzo la excepcion
 	return;
 }
 

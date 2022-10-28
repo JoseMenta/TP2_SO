@@ -9,15 +9,18 @@
 extern char bss;					// Inicio del segmento BSS
 extern char endOfBinary;			// Fin del segmento BSS
 
-int main();
+int main(uint64_t arg_c, char** arg_v);
 
 void * memset(void * destiny, int32_t c, uint64_t length);
 
-int _start() {
+//Agregamos los parametros para pasarlos a main
+int _start(uint64_t arg_c, char** arg_v) {
+    //ESTO CAMBIA A LOS PARAMETROS QUE RECIBE MAIN
+    //NO VAMOS A PODER PASAR PARAMETROS A MAIN DIRECTO DESDE KERNEL, HAY QUE PASAR POR START
 	//Clean BSS: Al setear en 0, desde el inicio hasta el final del segmento BSS, este se limpia
 	memset(&bss, 0, &endOfBinary - &bss);
 
-	return main();
+	return main(arg_c,arg_v);
 
 }
 

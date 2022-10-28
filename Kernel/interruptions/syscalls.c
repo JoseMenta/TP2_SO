@@ -5,13 +5,8 @@
 #include <queue.h>
 #include <time.h>
 #include <stddef.h>
-void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler};
-void* syscall_dispatcher(uint64_t num){
-    if(num<0 || num>=10){
-        return NULL;
-    }
-    return syscalls[num];
-}
+#define REGISTERS_COUNT 1
+
 //----------------------------------------------------------------------
 // read_handler: handler para leer un caracter del teclado
 //----------------------------------------------------------------------
@@ -40,13 +35,13 @@ uint8_t read_handler(char* str){
 //  format: el color de la letra que se desea usar
 //----------------------------------------------------------------------
 uint8_t write_handler(const char * str, formatType format){
-    if(process_array_is_empty()){
-        //No se cargaron procesos, por default imprime en LEFT
-        positionType position = ALL;
-        print(str, format, position);
-        return 0;
-    }
-    print(str, format, get_current_position());        // Imprime por pantalla
+//    if(process_array_is_empty()){
+//        //No se cargaron procesos, por default imprime en LEFT
+//        positionType position = ALL;
+//        print(str, format, position);
+//        return 0;
+//    }
+    print(str, format, ALL);        // Imprime por pantalla
     return 0;
 }
 
@@ -65,18 +60,19 @@ uint8_t write_handler(const char * str, formatType format){
 //  -1 si cant no es valido
 //  0 si logro ejecutar a los procesos
 //----------------------------------------------------------------------
-uint8_t exec_handler(uint8_t cant, const program_t* programs){//Recibe un vector de program_t
-    if(cant == 0 || cant > 2)
+uint8_t exec_handler(uint8_t cant, const executable_t* program){//Recibe un vector de program_t
+    if(cant == 0 || cant >= 2){
         return -1;
-    else if(cant==1){
-        clear(ALL);
-        add_full_process(programs[0]);
-        //add_process(programs[0],ALL);
-    }else{
-        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
-        add_two_processes(programs[0],programs[1]);
-        print_lines();
     }
+//    else if(cant==1){
+//        clear(ALL);
+//        add_full_process(programs[0]);
+        //add_process(programs[0],ALL);
+//    }else{
+//        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
+//        add_two_processes(programs[0],programs[1]);
+//        print_lines();
+//    }
     return 0;
 }
 //----------------------------------------------------------------------
@@ -90,7 +86,7 @@ uint8_t exec_handler(uint8_t cant, const program_t* programs){//Recibe un vector
 //  0 si logra terminar el proceso
 //----------------------------------------------------------------------
 uint8_t exit_handler(){
-    return terminate_process();
+    return terminate_process(1);
 }
 //----------------------------------------------------------------------
 // time_handler: obtiene la unidad del tiempo que se pide
@@ -159,7 +155,7 @@ uint64_t tick_handler(void){
 //  void
 //----------------------------------------------------------------------
 uint8_t blink_handler(void){
-    video_blink(get_current_position());
+    video_blink(ALL);
     return 0;
 }
 //----------------------------------------------------------------------
@@ -185,4 +181,12 @@ uint8_t regs_handler(uint64_t * regs_arr){
 uint8_t clear_handler(void){
     clear(ALL);
     return 0;
+}
+
+uint8_t (*syscalls[10])()={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler};
+void* syscall_dispatcher(uint64_t syscall_num){
+    if(syscall_num<0 || syscall_num>=10){
+        return NULL;
+    }
+    return syscalls[syscall_num];
 }

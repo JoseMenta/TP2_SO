@@ -19,6 +19,8 @@ GLOBAL _exception0Handler					; Es una funcion que ejecuta la excepcion de id 0 
 GLOBAL _exception6Handler					; Es una funcion que ejecuta la excepcion de id 6 (invalid opcode)
 ;GLOBAL get_registers						; Funcion para obtener el valor de los registros (utilizada en las excepciones)
 GLOBAL getCurrContext                       ; Funcion para obtener el valor de los registros (utilizada en el scheduler)
+GLOBAL idle_process
+EXTERN scheduler
 
 EXTERN irqDispatcher						; Cuando se lance una interrupcion, se llamara a esta funcion para que ejecute la rutina de atencion correspondiente
 EXTERN exceptionDispatcher					; Similar a la funcion anterior, pero dedicada a excepciones
@@ -33,8 +35,58 @@ EXTERN tick_handler
 EXTERN blink_handler
 EXTERN regs_handler
 EXTERN clear_handler
-
+EXTERN syscall_dispatcher
+EXTERN timer_handler
 SECTION .text
+
+%macro push_state_no_rax 0
+    push rbx
+    push rcx
+    push rdx
+    push rbp
+    push rsp
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+%endmacro
+
+; pop_state_no_rax: Popea el estado de los registros generales (GPR), salvo RAX, del stack
+%macro pop_state_no_rax 0
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rsp
+    pop rbp
+    pop rdx
+    pop rcx
+    pop rbx
+%endmacro
+
+; push_state: Pushea el estado de los registros generales (GPR) en el stack
+%macro push_state 0
+    push rax
+    push_state_no_rax
+%endmacro
+
+; pop_state: Popea el estado de los registros generales (GPR) del stack
+%macro pop_state 0
+    pop_state_no_rax
+    pop rax
+%endmacro
 
 %macro saveRegs 1
     mov [%1], r8
@@ -157,6 +209,11 @@ picSlaveMask:
     pop     rbp
     retn
 
+;Proceso que se ejecuta cuando no hay otro
+idle_process:
+    sti
+    hlt
+    jmp idle_process
 
 ;--------------------------------------------------------------------------------------
 ; Interrupciones
@@ -165,7 +222,20 @@ picSlaveMask:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-	irqHandlerMaster 0
+;TODO: REVISAR ESTO, HAY UN ERROR ACA
+	;irqHandlerMaster 0
+	push_state
+    call timer_handler
+    mov rdi, rsp
+    call scheduler                           ; scheduler es la funcion encargada de recibir el SP del proceso ejecutandose y otorgar el SP del proceso a ejecutar
+    mov rsp, rax
+
+    mov al, 20h                              ; Aviso al PIC que termino la interrupcion
+    out 20h, al
+
+    pop_state
+
+    iretq
 
 ;Keyboard
 _irq01Handler:
@@ -199,6 +269,202 @@ _exception0Handler:
 _exception6Handler:
 	exceptionHandler 6
 
+_int20:
+    int 20h
+    ret
+
+
+_syscallHandler:
+    push_state_no_rax
+    push rdi
+    push rsi
+    mov rdi, rax ;pasamos el numero de la syscall
+    call syscall_dispatcher
+;    ;OJO con cuidar el estado de los registros entre llamadas a C
+    pop rsi
+    pop rdi
+    cmp rax, 0
+    je fin
+    call rax
+fin:
+;    int 20h ;Esto no va aca
+;    hay que hacerlo adentro de la funcion bloqueante para que se frene inmediatamente la ejecucion ahi
+    pop_state_no_rax
+    iretq
+
+;_syscallHandler:
+;;    saveRegs curr_context                       ; Resguardamos los registros
+;    push_state_no_rax
+;    cmp rax, 0
+;    jz sys_read                                 ; Syscall para read (id = 0)
+;    cmp rax, 1
+;    jz sys_write                                ; Syscall para write (id = 1)
+;    cmp rax, 2
+;    jz sys_exec                                 ; Syscall para exec (id = 2)
+;    cmp rax, 3
+;    jz sys_exit                                 ; Syscall para exit (id = 3)
+;    cmp rax, 4
+;    jz sys_time                                 ; Syscall para time (id = 4)
+;    cmp rax, 5
+;    jz sys_mem                                  ; Syscall para mem (id = 5)
+;    cmp rax, 6
+;    jz sys_tick                                 ; Syscall para timer ticks (id = 6)
+;    cmp rax, 7
+;    jz sys_blink                                ; Syscall para video blink (id = 7)
+;    cmp rax, 8
+;    jz sys_regs                                 ; Syscall para devolver un screenshot de los registros (id = 8)
+;    cmp rax, 9
+;    jz sys_clear                                ; Syscall para limpiar el driver de video
+;    mov rax, -2                                 ; Si no es una funcion conocida, se devuelve -2 en rax
+;    jmp fin
+;
+;; ------------------------------------------
+;; Read: Lee el siguiente caracter ingresado por pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: el string donde copiar el caracter (tamaño minimo: 2)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: cantidad de caracteres leidos
+;;-------------------------------------------------------------------------------------
+;sys_read:
+;;    mov rdi, rbx
+;    call read_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Write: Escribe por pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: string a imprimir
+;;   rcx: formato de impresion (un color definido previamente)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: cantidad de caracteres escritos
+;;------------------------------------------------------------------------------------
+;sys_write:
+;;    mov rdi, rbx
+;;    mov rsi, rcx
+;    call write_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Exec: Guarda un proceso
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: cantidad de programas que se desea correr (1 o 2)
+;;   rcx: vector con 1 o 2 program_t para inicializar a los programas (si son 2, el primero es el de la izquierda)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si logro correr el programa; -1 si no
+;;------------------------------------------------------------------------------------
+;sys_exec:
+;;    mov rdi, rbx ;paso la cantidad de programas
+;;    mov rsi, rcx ;paso el vector de program_t
+;    call exec_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Exit: Termina la ejecucion del proceso que la llama
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si pudo terminarlo, -1 si no
+;;------------------------------------------------------------------------------------
+;sys_exit:
+;    call exit_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Time: Devuelve el valor para la unidad de tiempo indicada en el parametro
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: 0 = secs, 2 = mins, 4 = hour, 6 = day of week, 7 = day, 8 = month, 9 = year
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: el valor para el tipo de unidad indicada
+;;------------------------------------------------------------------------------------
+;sys_time:
+;;    mov rdi, rbx
+;    call time_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Mem: Devuelve un arreglo con la informacion de los siguientes 32 bytes de memoria
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: Direccion de memoria inicial sobre el cual consultar
+;;   rcx: La direccion de memoria donde comienza el arreglo
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: Cantidad de elementos en el arreglo (max = 32)
+;;------------------------------------------------------------------------------------
+;sys_mem:
+;;    mov rdi, rbx
+;;    mov rsi, rcx
+;    call mem_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Tick: Devuelve la cantidad de ticks realizados por el timer tick desde que inicio la computadora
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: Cantidad de ticks
+;;------------------------------------------------------------------------------------
+;sys_tick:
+;    call tick_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Blink: Indica donde se escribira el próximo caracter en pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0
+;;------------------------------------------------------------------------------------
+;sys_blink:
+;    call blink_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Regs: Devuelve el estado de los registros de la ultima vez que se realizo CTRL+S
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: Un arreglo con 18 espacios para enteros de 64 bits
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si todos los registros estan en 0, 1 si ya se realizo CTRL+S
+;;------------------------------------------------------------------------------------
+;sys_regs:
+;;    mov rdi, rbx
+;    call regs_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; sys_clear: Limpiar la terminal de comandos
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;------------------------------------------------------------------------------------
+;sys_clear:
+;    call clear_handler
+;    jmp fin
+;
+;fin:
+;;    mov [aux], rax                                  ; Resguardamos el valor de retorno (ojo que aux es una direccion, y queremos guardar adentro)
+;;    restoreRegs curr_context                        ; Recuperamos los registros
+;    pop_state_no_rax
+;;    mov rax, [aux]                                  ; Recuperamos el valor de retorno en rax
+;    iretq
 ;-------------------------------------------------------------------------------------
 ; _syscallHandler: Handler para las interrupciones (int 80h)
 ;-------------------------------------------------------------------------------------
@@ -209,177 +475,197 @@ _exception6Handler:
 ; Retorno:
 ;   rax: Depende de la syscall, o -2 si no es un parametro valido
 ;------------------------------------------------------------------------------------
-_syscallHandler:
-    saveRegs curr_context                       ; Resguardamos los registros
-    cmp rax, 0
-    jz sys_read                                 ; Syscall para read (id = 0)
-    cmp rax, 1
-    jz sys_write                                ; Syscall para write (id = 1)
-    cmp rax, 2
-    jz sys_exec                                 ; Syscall para exec (id = 2)
-    cmp rax, 3
-    jz sys_exit                                 ; Syscall para exit (id = 3)
-    cmp rax, 4
-    jz sys_time                                 ; Syscall para time (id = 4)
-    cmp rax, 5
-    jz sys_mem                                  ; Syscall para mem (id = 5)
-    cmp rax, 6
-    jz sys_tick                                 ; Syscall para timer ticks (id = 6)
-    cmp rax, 7
-    jz sys_blink                                ; Syscall para video blink (id = 7)
-    cmp rax, 8
-    jz sys_regs                                 ; Syscall para devolver un screenshot de los registros (id = 8)
-    cmp rax, 9
-    jz sys_clear                                ; Syscall para limpiar el driver de video
-    mov rax, -2                                 ; Si no es una funcion conocida, se devuelve -2 en rax
-    jmp fin
-
-; ------------------------------------------
-; Read: Lee el siguiente caracter ingresado por pantalla
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: el string donde copiar el caracter (tamaño minimo: 2)
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: cantidad de caracteres leidos
-;-------------------------------------------------------------------------------------
-sys_read:
-    mov rdi, rbx
-    call read_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Write: Escribe por pantalla
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: string a imprimir
-;   rcx: formato de impresion (un color definido previamente)
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: cantidad de caracteres escritos
-;------------------------------------------------------------------------------------
-sys_write:
-    mov rdi, rbx
-    mov rsi, rcx
-    call write_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Exec: Guarda un proceso
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: cantidad de programas que se desea correr (1 o 2)
-;   rcx: vector con 1 o 2 program_t para inicializar a los programas (si son 2, el primero es el de la izquierda)
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: 0 si logro correr el programa; -1 si no
-;------------------------------------------------------------------------------------
-sys_exec:
-    mov rdi, rbx ;paso la cantidad de programas
-    mov rsi, rcx ;paso el vector de program_t
-    call exec_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Exit: Termina la ejecucion del proceso que la llama
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   void
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: 0 si pudo terminarlo, -1 si no
-;------------------------------------------------------------------------------------
-sys_exit:
-    call exit_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Time: Devuelve el valor para la unidad de tiempo indicada en el parametro
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: 0 = secs, 2 = mins, 4 = hour, 6 = day of week, 7 = day, 8 = month, 9 = year
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: el valor para el tipo de unidad indicada
-;------------------------------------------------------------------------------------
-sys_time:
-    mov rdi, rbx
-    call time_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Mem: Devuelve un arreglo con la informacion de los siguientes 32 bytes de memoria
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: Direccion de memoria inicial sobre el cual consultar
-;   rcx: La direccion de memoria donde comienza el arreglo
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: Cantidad de elementos en el arreglo (max = 32)
-;------------------------------------------------------------------------------------
-sys_mem:
-    mov rdi, rbx
-    mov rsi, rcx
-    call mem_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Tick: Devuelve la cantidad de ticks realizados por el timer tick desde que inicio la computadora
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   void
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: Cantidad de ticks
-;------------------------------------------------------------------------------------
-sys_tick:
-    call tick_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Blink: Indica donde se escribira el próximo caracter en pantalla
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   void
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: 0 
-;------------------------------------------------------------------------------------
-sys_blink:
-    call blink_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; Regs: Devuelve el estado de los registros de la ultima vez que se realizo CTRL+S
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   rbx: Un arreglo con 18 espacios para enteros de 64 bits
-;-------------------------------------------------------------------------------------
-; Retorno:
-;   rax: 0 si todos los registros estan en 0, 1 si ya se realizo CTRL+S
-;------------------------------------------------------------------------------------
-sys_regs:
-    mov rdi, rbx
-    call regs_handler
-    jmp fin
-
-;-------------------------------------------------------------------------------------
-; sys_clear: Limpiar la terminal de comandos
-;-------------------------------------------------------------------------------------
-; Parametros:
-;   void
-;-------------------------------------------------------------------------------------
-; Retorno:
-;------------------------------------------------------------------------------------
-sys_clear:
-    call clear_handler
-    jmp fin
-
-fin:
-    mov [aux], rax                                  ; Resguardamos el valor de retorno (ojo que aux es una direccion, y queremos guardar adentro)
-    restoreRegs curr_context                        ; Recuperamos los registros
-    mov rax, [aux]                                  ; Recuperamos el valor de retorno en rax
-    iretq
+;_syscallHandler:
+;;    saveRegs curr_context                       ; Resguardamos los registros
+;    push_state_no_rax
+;    push rdi
+;    push rsi
+;    mov rdi, rax ;pasamos el numero de la syscall
+;    call syscall_dispatcher
+;    ;OJO con cuidar el estado de los registros entre llamadas a C
+;    pop rsi
+;    pop rdi
+;    cmp rax, 0
+;    je fin
+;    call sys_write ;llamamos a la funcion que nos devuelve el dispatcher
+;        ;llamamos al scheduler para ver quien sigue
+;fin:
+;;    mov [aux], rax                                  ; Resguardamos el valor de retorno (ojo que aux es una direccion, y queremos guardar adentro)
+;;    restoreRegs curr_context                        ; Recuperamos los registros
+;;    mov rax, [aux]                                  ; Recuperamos el valor de retorno en rax
+;;    int 20h ;Esto no va aca
+;;    hay que hacerlo adentro de la funcion bloqueante para que se frene inmediatamente la ejecucion ahi
+;    pop_sate_no_rax
+;    iretq
+;;    cmp rax, 0
+;;    jz sys_read                                 ; Syscall para read (id = 0)
+;;    cmp rax, 1
+;;    jz sys_write                                ; Syscall para write (id = 1)
+;;    cmp rax, 2
+;;    jz sys_exec                                 ; Syscall para exec (id = 2)
+;;    cmp rax, 3
+;;    jz sys_exit                                 ; Syscall para exit (id = 3)
+;;    cmp rax, 4
+;;    jz sys_time                                 ; Syscall para time (id = 4)
+;;    cmp rax, 5
+;;    jz sys_mem                                  ; Syscall para mem (id = 5)
+;;    cmp rax, 6
+;;    jz sys_tick                                 ; Syscall para timer ticks (id = 6)
+;;    cmp rax, 7
+;;    jz sys_blink                                ; Syscall para video blink (id = 7)
+;;    cmp rax, 8
+;;    jz sys_regs                                 ; Syscall para devolver un screenshot de los registros (id = 8)
+;;    cmp rax, 9
+;;    jz sys_clear                                ; Syscall para limpiar el driver de video
+;;    mov rax, -2                                 ; Si no es una funcion conocida, se devuelve -2 en rax
+;;    jmp fin
+;
+;; ------------------------------------------
+;; Read: Lee el siguiente caracter ingresado por pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: el string donde copiar el caracter (tamaño minimo: 2)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: cantidad de caracteres leidos
+;;-------------------------------------------------------------------------------------
+;sys_read:
+;    mov rdi, rbx
+;    call read_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Write: Escribe por pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: string a imprimir
+;;   rcx: formato de impresion (un color definido previamente)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: cantidad de caracteres escritos
+;;------------------------------------------------------------------------------------
+;sys_write:
+;    mov rdi, rbx
+;    mov rsi, rcx
+;    call write_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Exec: Guarda un proceso
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: cantidad de programas que se desea correr (1 o 2)
+;;   rcx: vector con 1 o 2 program_t para inicializar a los programas (si son 2, el primero es el de la izquierda)
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si logro correr el programa; -1 si no
+;;------------------------------------------------------------------------------------
+;sys_exec:
+;    mov rdi, rbx ;paso la cantidad de programas
+;    mov rsi, rcx ;paso el vector de program_t
+;    call exec_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Exit: Termina la ejecucion del proceso que la llama
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si pudo terminarlo, -1 si no
+;;------------------------------------------------------------------------------------
+;sys_exit:
+;    call exit_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Time: Devuelve el valor para la unidad de tiempo indicada en el parametro
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: 0 = secs, 2 = mins, 4 = hour, 6 = day of week, 7 = day, 8 = month, 9 = year
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: el valor para el tipo de unidad indicada
+;;------------------------------------------------------------------------------------
+;sys_time:
+;    mov rdi, rbx
+;    call time_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Mem: Devuelve un arreglo con la informacion de los siguientes 32 bytes de memoria
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: Direccion de memoria inicial sobre el cual consultar
+;;   rcx: La direccion de memoria donde comienza el arreglo
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: Cantidad de elementos en el arreglo (max = 32)
+;;------------------------------------------------------------------------------------
+;sys_mem:
+;    mov rdi, rbx
+;    mov rsi, rcx
+;    call mem_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Tick: Devuelve la cantidad de ticks realizados por el timer tick desde que inicio la computadora
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: Cantidad de ticks
+;;------------------------------------------------------------------------------------
+;sys_tick:
+;    call tick_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Blink: Indica donde se escribira el próximo caracter en pantalla
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0
+;;------------------------------------------------------------------------------------
+;sys_blink:
+;    call blink_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; Regs: Devuelve el estado de los registros de la ultima vez que se realizo CTRL+S
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   rbx: Un arreglo con 18 espacios para enteros de 64 bits
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;   rax: 0 si todos los registros estan en 0, 1 si ya se realizo CTRL+S
+;;------------------------------------------------------------------------------------
+;sys_regs:
+;    mov rdi, rbx
+;    call regs_handler
+;    jmp fin
+;
+;;-------------------------------------------------------------------------------------
+;; sys_clear: Limpiar la terminal de comandos
+;;-------------------------------------------------------------------------------------
+;; Parametros:
+;;   void
+;;-------------------------------------------------------------------------------------
+;; Retorno:
+;;------------------------------------------------------------------------------------
+;sys_clear:
+;    call clear_handler
+;    jmp fin
+;
+;;fin:
+;;    mov [aux], rax                                  ; Resguardamos el valor de retorno (ojo que aux es una direccion, y queremos guardar adentro)
+;;    restoreRegs curr_context                        ; Recuperamos los registros
+;;    mov rax, [aux]                                  ; Recuperamos el valor de retorno en rax
+;;    iretq
 
 
 
@@ -404,15 +690,15 @@ getCurrContext:
     pop rbp
     ret
 
-;get_registers:
-;	push rbp
-;	mov rbp, rsp
-;
-;	mov rax, curr_context                                ; Devolvemos el arreglo con los registros en el momento de la excepcion
-;
-;	mov rsp, rbp
-;	pop rbp
-;	ret
+get_registers:
+	push rbp
+	mov rbp, rsp
+
+	mov rax, curr_context                                ; Devolvemos el arreglo con los registros en el momento de la excepcion
+
+	mov rsp, rbp
+	pop rbp
+	ret
 
 haltcpu:
 	cli

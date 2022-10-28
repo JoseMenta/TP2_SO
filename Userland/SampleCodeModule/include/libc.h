@@ -15,7 +15,12 @@ typedef struct{
     uint64_t cant_arg;              // Cantidad de argumentos ingresados al programa
     char ** args;                   // Este es un vector que se tiene que definir aparte, antes de inicializar la estructura
 } program_t;
-
+typedef struct{
+    char* name;
+    void* start;            // Direccion de la funcion que ejecuta el programa
+    uint64_t arg_c;      // Cantidad de argumentos ingresados al programa
+    char** arg_v;            // Vector de strings con los argumentos del programa
+} executable_t;
 typedef struct {
     char* name;
     char* desc;

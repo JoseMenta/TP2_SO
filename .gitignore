@@ -14,3 +14,4 @@ Userland/.0000-sampleCodeModule.elf.icloud
 .vscode/*
 *.elf
 .bashrc
+.gdb_history 2

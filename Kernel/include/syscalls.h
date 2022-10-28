@@ -12,7 +12,7 @@ typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8
 
 uint8_t read_handler(char * str);                               // Lee por pantalla el siguiente caracter y lo copia en str
 uint8_t write_handler(const char* str, formatType format);      // Escribe el string str por pantalla con el formato format
-uint8_t exec_handler(uint8_t cant, const program_t* programas);                    // Agrega un nuevo proceso al arreglo de procesos
+uint8_t exec_handler(uint8_t cant, const executable_t* programas);                    // Agrega un nuevo proceso al arreglo de procesos
 uint8_t exit_handler();                                         // Finaliza un proceso con codigo de error
 int8_t time_handler(timeType time_unit);                        // Devuelve el valor para la unidad indicada en GMT
 uint8_t mem_handler(uint64_t init_dir, uint8_t * arr);          // Complete un arreglo de 32 elementos con la informacion que guarda init_dir y las 31 direcciones siguientes

@@ -59,10 +59,10 @@ GLOBAL create_new_process_context
 
 SECTION .text
 
-idle_process:
-    sti
-    hlt
-    jmp idle_process
+;idle_process:
+;    sti
+;    hlt
+;    jmp idle_process
 
 
 syscall_handler:
@@ -125,11 +125,23 @@ context_switch_handler:
 ;   ERROR: Devuelve -1
 ;   EXITO: Devuelve la dirección del registro RSP
 ; ---------------------------------------------------------------------------------
+;TODO: se esta guardando cualquier cosa en el arg_c
 create_new_process_context:
     push rbp
     mov rbp, rsp
 
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    push r8
     call allocate_new_process_stack
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+
     cmp rax, 0
     jnz create_stack                    ; Si la funcion devuelve NULL (0), se devuelve -1 (ERROR)
     mov rax, -1
@@ -142,17 +154,19 @@ create_stack:                           ; Sino, se crea el stack con la direccio
     mov rsp, rax
                                         ; Ver la diapositiva 69 del PDF Context Switching
     ;and rsp, -32                        ; ALIGN
+    mov[rcx], rax
     and rsp, -16
-    mov [r8], rsp                       ;Guarda el SP del nuevo proceso (no la base)
+    ;mov [r8], rsp                       ;Guarda el SP del nuevo proceso (no la base)
     push 0                              ; SS
-    push rcx                            ; RSP (Stack alineado para el proceso)
+    push rax                            ; RSP (Stack alineado para el proceso)
     push 0x202                          ; RFLAGS
     push 0x8                            ; CS
     push rdx                            ; RIP
     push_state                          ; GPRs
 
-    mov [rcx], rax                      ; Almaceno el valor del BP (rax)
+    ;mov [rcx], rax                      ; Almaceno el valor del BP (rax)
     ;mov [rdx], rcx
+    mov [r8],rsp ;dejo a sp en el tope del stack
 
     mov rsp, rbp
     pop rbp

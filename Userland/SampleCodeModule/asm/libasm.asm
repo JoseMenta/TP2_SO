@@ -31,8 +31,8 @@ sys_write:
     push rbp
     mov rbp, rsp            ; Armado de stack frame
 
-    mov rbx, rdi            ; La sys_call recibe por rbx el string a imprimir
-    mov rcx, rsi            ; La sys_call recibe por rcx el formato
+;    mov rbx, rdi            ; La sys_call recibe por rbx el string a imprimir
+;    mov rcx, rsi            ; La sys_call recibe por rcx el formato
     mov rax, 1
     int 80h
 
@@ -54,7 +54,7 @@ sys_read:
     push rbp
     mov rbp, rsp
 
-    mov rbx, rdi            ; La sys_call recibe por rbx la posicion de memoria donde se guarda el caracter
+;    mov rbx, rdi            ; La sys_call recibe por rbx la posicion de memoria donde se guarda el caracter
     mov rax, 0
     int 80h
 
@@ -76,8 +76,8 @@ sys_exec:
     push rbp
     mov rbp, rsp
 
-    mov rbx, rdi
-    mov rcx, rsi
+;    mov rbx, rdi
+;    mov rcx, rsi
     mov rax, 2
     int 80h
 
@@ -118,7 +118,7 @@ sys_time:
     push rbp
     mov rbp, rsp
 
-    mov rbx, rdi
+;    mov rbx, rdi
     mov rax, 4
     int 80h
 
@@ -141,8 +141,8 @@ sys_mem:
     push rbp
     mov rbp, rsp
 
-    mov rcx, rsi
-    mov rbx, rdi
+;    mov rcx, rsi
+;    mov rbx, rdi
     mov rax, 5
     int 80h
 
@@ -223,7 +223,7 @@ sys_regs:
     push rbp
     mov rbp, rsp
 
-    mov rbx, rdi
+;    mov rbx, rdi
     mov rax, 8
     int 80h
 

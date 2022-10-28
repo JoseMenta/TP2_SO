@@ -55,11 +55,11 @@ void keyboard_handler(){
     uint8_t key = get_keyboard_scan_code();
 
     //Agrego la logica para cuando quiere volver
-    extern uint8_t want_to_return;
+    uint8_t want_to_return;
     if(key == ESC){
         //Si pone ESC, se cortan todos los procesos que se encuentren corriendo en el momento y vuelve al proceso que los llamo
         want_to_return = 1;
-        change_context();
+//        change_context();
         // Al reiniciar un proceso antiguo, se pierde el estado de los procesos pues se eliminaron
         all_state = left_state = right_state = 1;
     }
@@ -98,10 +98,10 @@ void keyboard_handler(){
             if(all_state){
                 // Suspende el proceso si esta corriendo en pantalla completo y cambia el flag de all_state al asignarse
                 // Si no esta corriendo en pantalla completa (se hizo un split), entonces no hay que cambiar el flag
-                all_state = suspend_full();
+//                all_state = suspend_full();
             }else{
                 // Siempre podra restartear el proceso si all_state = 0 pues tuvo que poder suspenderlo
-                all_state = restart_full();
+//                all_state = restart_full();
             }
         }
         else if(keyboard_reference[key] == 'l' && ctrl_pressed){
@@ -109,10 +109,10 @@ void keyboard_handler(){
             if(left_state){
                 // Suspende el proceso si esta corriendo en pantalla split y cambia el flag de left_state al asignarse
                 // Si no esta corriendo en split (esta en pantalla completa), entonces no hay que cambiar el flag
-                left_state = suspend_left();
+//                left_state = suspend_left();
             }else{
                 // Siempre podra restartear el proceso si left_state = 0 pues tuvo que poder suspenderlo
-                left_state = restart_left();
+//                left_state = restart_left();
             }
         }
         else if(keyboard_reference[key] == 'r' && ctrl_pressed){
@@ -121,23 +121,23 @@ void keyboard_handler(){
             if(right_state){
                 // Suspende el proceso si esta corriendo en pantalla split y cambia el flag de right_state al asignarse
                 // Si no esta corriendo en split (esta en pantalla completa), entonces no hay que cambiar el flag
-                right_state = suspend_right();
+//                right_state = suspend_right();
             }else{
                 // Siempre podra restartear el proceso si right_state = 0 pues tuvo que poder suspenderlo
-                right_state = restart_right();
+//                right_state = restart_right();
             }
         }
 
 
         // Detenimiento de procesos
         else if(keyboard_reference[key] == 'f' && alt_pressed){
-            all_state = kill_full();
+//            all_state = kill_full();
         }
         else if (keyboard_reference[key] == 'l' && alt_pressed){
-            left_state = kill_left();
+//            left_state = kill_left();
         }
         else if(keyboard_reference[key] == 'r' && alt_pressed){
-            right_state = kill_right();
+//            right_state = kill_right();
         }
         else if(keyboard_reference[key] == 's' && ctrl_pressed){
             copy_curr_context_to_inforeg_context();
