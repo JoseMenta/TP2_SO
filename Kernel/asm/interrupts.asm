@@ -14,7 +14,7 @@ GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 
 GLOBAL _syscallHandler                      ; Ejecuta las interrupciones de software
-
+GLOBAL _int20
 GLOBAL _exception0Handler					; Es una funcion que ejecuta la excepcion de id 0 (division por cero)
 GLOBAL _exception6Handler					; Es una funcion que ejecuta la excepcion de id 6 (invalid opcode)
 ;GLOBAL get_registers						; Funcion para obtener el valor de los registros (utilizada en las excepciones)
@@ -284,8 +284,11 @@ _syscallHandler:
     pop rsi
     pop rdi
     cmp rax, 0
-    je fin
+    je error
     call rax
+    jmp fin
+error:
+    mov rax, -1
 fin:
 ;    int 20h ;Esto no va aca
 ;    hay que hacerlo adentro de la funcion bloqueante para que se frene inmediatamente la ejecucion ahi

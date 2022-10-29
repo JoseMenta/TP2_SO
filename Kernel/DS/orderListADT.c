@@ -1,7 +1,7 @@
 
 #include "../include/orderListADT.h"
 #include <stdio.h>
-
+#include <DS.h>
 //No requiere una incializacion porque eso lo hago cuando inserto el primer elemento
 TList new_orderListADT(){
     return NULL;
@@ -39,9 +39,9 @@ TList orderListADT_delete(TList myListADT, elemType elem){
     return myListADT;
 }
 
-int elemType_compare_to(elemType e1, elemType e2){
-    return e1->pid-e2->pid;
-}
+//int elemType_compare_to(elemType e1, elemType e2){
+//    return e1->pid-e2->pid;
+//}
 
 TList orderListADT_edit(TList myListADT, elemType prevElem, elemType newElem){
     //No esta en la lista

@@ -12,7 +12,13 @@ GLOBAL invalid_opcode_exc
 GLOBAL get_registers
 GLOBAL get_register
 GLOBAL sys_clear
-
+GLOBAL sys_block
+GLOBAL sys_unblock
+GLOBAL sys_waitpid
+GLOBAL sys_yield
+GLOBAL sys_terminate
+GLOBAL sys_getpid
+GLOBAL sys_nice
 EXTERN print_string
 
 section .text
@@ -64,13 +70,12 @@ sys_read:
 
 
 ;-------------------------------------------------------------------------------------
-; sys_exec: Ejecuta uno o dos nuevos procesos
+; sys_exec: Ejecuta un programa
 ;-------------------------------------------------------------------------------------
 ; Parametros:
-;   rdi: la cantidad de nuevos procesos a ejecutar
-;   rsi: vector con el/los nuevo/s proceso/s a ejecutar
+;   rdi: estructura executable_t con la informacion del programa que se desea ejecutar
 ;-------------------------------------------------------------------------------------
-; Retorno: 0 si resulto exitoso, -1 si no (se agregaron mas de dos procesos)
+; Retorno: el pid del nuevo proceso si no hubo error, -1 si no
 ;------------------------------------------------------------------------------------
 sys_exec:
     push rbp
@@ -225,6 +230,154 @@ sys_regs:
 
 ;    mov rbx, rdi
     mov rax, 8
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_block: Bloquea al proceso con el pid indicado (debe usarse solo para testeos)
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: pid del proceso que se desea bloquear
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, 0 si no
+;------------------------------------------------------------------------------------
+; Bloquear a un proceso no garantiza que se vaya a desbloquear con la syscall de
+; desbloqueo, puede desbloquearse por otra razon.
+;------------------------------------------------------------------------------------
+sys_block:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 10
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_unblock: Desbloquea al proceso con el pid indicado (debe usarse solo para testeos)
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: pid del proceso que se desea desbloquear
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, 0 si no
+;------------------------------------------------------------------------------------
+; Desbloquar a un proceso es peligroso, ya que puede romper con la logica como
+; los bloqueos para leer de un pipe o esperar para entrar a una zona critica
+; Por lo tanto, debe usarse solo para testeo
+;------------------------------------------------------------------------------------
+sys_unblock:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 13
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_waitpid: Espera a la terminacion de un proceso, posiblemente bloqueando al que
+;               realiza la llamada si el proceso indicado con el pid no finalizo
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: pid del proceso que se desea esperar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, 3 si no (FINISHED)
+;------------------------------------------------------------------------------------
+sys_waitpid:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 11
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_yield: Libera al procesador
+;-------------------------------------------------------------------------------------
+; Parametros:
+;
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, 0 si no
+;------------------------------------------------------------------------------------
+sys_yield:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 12
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_terminate: Termina al proceso con el pid indicado
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: pid del proceso que se desea terminar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, 0 si no
+;------------------------------------------------------------------------------------
+sys_terminate:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 14
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_getpid: Devuelve el pid del proceso actual
+;-------------------------------------------------------------------------------------
+; Parametros:
+;
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, el pid si no hubo error (uint64_t)
+;------------------------------------------------------------------------------------
+sys_getpid:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 16
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+;-------------------------------------------------------------------------------------
+; sys_nice: Cambia la prioridad del proceso con el pid indicado
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: pid del proceso cuya prioridad se desea cambiar
+;   rsi: prioridad que se le desea asignar (entre 0, la mayor, y 4)
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 si hubo error, el pid si no hubo error (uint64_t)
+;------------------------------------------------------------------------------------
+sys_nice:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 15
     int 80h
 
     mov rsp, rbp

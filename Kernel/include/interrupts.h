@@ -21,7 +21,7 @@ void _exception0Handler(void);              // Es una funcion que ejecuta la exc
 void _exception6Handler(void);              // Es una funcion que ejecuta la excepcion de id 6 (operador invalido)
 
 void _syscallHandler(void);                 // Ejecuta las interrupciones de software
-
+ void _int20(void);                         // Ejecuta la interrupcion 20 (Timer tick)
 void _cli(void);                            // Ejecuta la instruccion cli, la cual inhabilita las interrupciones
 
 void _sti(void);                            // Ejecuta la instruccion sti, la cual vuelve a habilitar las instrucciones

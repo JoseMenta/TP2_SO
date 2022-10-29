@@ -3,15 +3,19 @@
 #ifndef TPE_SCHEDULER_H
 #define TPE_SCHEDULER_H
 #include <stdint.h>
+//#include <queueADT.h>
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
+typedef struct queueCDT* queueADT;
 typedef struct{
     char* name;
-    uint32_t pid;
+    uint64_t pid;
     uint8_t priority;
     process_status status;
     void* bp;
     void* sp;
+    queueADT waiting_processes;
+    uint64_t waiting_count;
 }PCB;
 typedef struct{
     char* name;
@@ -21,10 +25,12 @@ typedef struct{
 } executable_t;
 int initialize_scheduler();
 int create_process(executable_t* executable);
+int yield_current_process();
 int block_process(int pid);
 int terminate_process(int pid);
-int change_process_priority(int pid, uint8_t new_priority);
+int change_process_priority(uint64_t pid, uint8_t new_priority);
 int unblock_process(int pid);
+uint64_t get_current_pid();
 void* scheduler(void* curr_rsp);
 int waitPid(int pid);
 //Inicio scheduler arqui

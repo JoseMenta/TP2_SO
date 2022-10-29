@@ -1,6 +1,7 @@
 #include <libc.h>
 #include <programs.h>
-
+//TODO: sacar
+#include "../include/libc.h"
 front_program_t programs[CANT_PROG] = {
         {"help","\thelp: Despliega los distintos comandos disponibles\n",help},
         {"div0","\tdiv0: Genera una excepcion por division por cero\n",zero_division_exc},
@@ -339,4 +340,31 @@ void copy_str(char * dest, char * source){
     dest[i] = '\0';
 }
 
+int32_t block_process(uint64_t pid){
+    return sys_block(pid);
+}
+uint32_t unblock_process(uint64_t pid){
+    return sys_unblock(pid);
+}
+int32_t waitpid(uint64_t pid){
+    return sys_waitpid(pid);
+}
 
+int32_t yield(){
+    return sys_yield();
+}
+int32_t terminate_process(uint64_t pid){
+    return sys_terminate(pid);
+}
+
+uint64_t getpid(){
+    return sys_getpid();
+}
+
+uint64_t nice(uint64_t pid, uint8_t priority){
+    return sys_nice(pid,priority);
+}
+
+void exit(){
+    sys_terminate(sys_getpid());
+}

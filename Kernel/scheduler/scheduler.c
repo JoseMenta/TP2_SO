@@ -1,9 +1,15 @@
 //Inicio scheduler SO
+#include <scheduler.h>
 #include <RRADT.h>
 #include "../include/RRADT.h"
 #include <mm.h>
 #include "../include/mm.h"
 #include <dispatcher.h>
+#include <interrupts.h>
+
+//TODO: sacar
+#include "../include/queueADT.h"
+#include "../include/interrupts.h"
 #include "../include/dispatcher.h"
 #include "../include/HashADT.h"
 
@@ -11,7 +17,7 @@ static RRADT rr = NULL;
 static uint64_t new_pid = 1;
 static PCB* current_process=NULL;
 #define BASE_PRIORITY 2
-#define CHECK_PID(pid) (pid>=1 && pid<new_pid)
+#define CHECK_PID(pid) (pid>=1 && pid<new_pid && hash[pid]!=NULL)
 //TODO: en el pid=0, guardamos al proceso default
 extern uint64_t ticks;
 extern void idle_process();
@@ -41,6 +47,7 @@ int initialize_scheduler(){
     new_process->pid = 0;
     new_process->status = READY; //ESTO ES FUNDAMENTAL PARA QUE SIEMPRE QUE LLEGA EL TT INTENTE SACARLO
     new_process->priority = BASE_PRIORITY;
+    new_process->waiting_processes = NULL;
     //No se lo carga en RR, para ejecutarlo solo cuando no hay otros
     hash[0] = new_process;
     //HashProcess_add(myHash, new_process);
@@ -63,6 +70,9 @@ int create_process(executable_t* executable){
     new_process->status = READY;
     new_process->name = executable->name;
     new_process->priority = BASE_PRIORITY;
+    new_process->waiting_processes = new_queueADT(); //para despertar a los que estan esperando solo si lo estan esperando
+    //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
+    //Si no, podria despertar al padre de un pipe y no tiene que ser asi
     hash[new_pid++]=new_process;
     //HashProcess_add(myHash, new_process);
     if( RR_add_process(rr,new_process,BASE_PRIORITY)==-1){
@@ -85,8 +95,17 @@ int block_process(int pid){
     //si es una syscall bloqueante, se debe llamar en ella al cambio de contexto si se desea bloquear al proceso que esta corriendo
     return 0;
 }
+int yield_current_process(){
+    if(current_process==NULL){
+        return -1;
+    }
+    current_process->status = READY;
+    return 0;
+}
 //TODO: ver si tenemos que guardar el valor de retorno en rax, aunque creo que el wait no lo espera
 int terminate_process(int pid){
+    //TODO: cambiar este chequeo por el hash
+    //Devolver -1 si no encuentra al proceso (ya termino y todos hicieron wait o nunca existio)
     if(!CHECK_PID(pid)){
         return -1;
     }
@@ -99,22 +118,29 @@ int terminate_process(int pid){
     //Y si se cambia el contexto inmediatamente, entonces no hay problemas de seguridad con liberar la memoria ahora
     //porque nadie va a pedir mas memoria hasta que termine la syscall (interrupt gate)
     free_process_stack(process->bp);
-    return 1;
+    PCB* curr = NULL;
+    //Desbloquea a todos los que lo estan esperando
+    while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
+        unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
+    }
+    free_queueADT(process->waiting_processes);
+    return 0;
 }
 //cambia la prioridad de un proceso dado su pid
-int change_process_priority(int pid, uint8_t new_priority){
+int change_process_priority(uint64_t pid, uint8_t new_priority){
     if(!CHECK_PID(pid) || !CHECK_PRIORITY(new_priority)){
         return -1;
     }
     PCB* process = hash[pid];
     //PCB* process = HashProcess_get(myHash, pid);
     //Lo tenemos que mover a la cola de la nueva prioridad si esta en el RR o deberia estar
-    if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
+//    if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
+    if(process->priority!=new_priority && process->status==READY ){
         RR_remove_process(rr,process->priority,process);
         RR_add_process(rr,process,new_priority);
     }
     process->priority=new_priority;
-    return 1;
+    return 0;
 }
 int unblock_process(int pid){
     if(!CHECK_PID(pid)){
@@ -125,7 +151,7 @@ int unblock_process(int pid){
     process->status = READY;
     //lo agrego para que pueda seguir ejecutandose cuando sigue
     RR_add_process(rr,process,process->priority);
-    return 1;
+    return 0;
 }
 //devuelve RSP del proceso que debe continuar en ejecucion
 void* scheduler(void* curr_rsp){
@@ -139,7 +165,7 @@ void* scheduler(void* curr_rsp){
     //Si corresponde, guardamos al proceso que se estaba ejecutando para que siga luego
     if(current_process!=NULL){
         //si tenemos que dejarlo para mas adelante
-        if(current_process->status==EXECUTE || current_process->status==READY){
+        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!=hash[0]){
             current_process->status = READY;
             RR_add_process(rr,current_process,current_process->priority);
         }
@@ -149,6 +175,7 @@ void* scheduler(void* curr_rsp){
     //Debemos buscar el siguiente proceso a ejecutar
     if(RR_process_count(rr)==0){
         //si no hay procesos listos, debemos ejecutar al proceso default
+        //Notar que no le ponemos el estado en EXECUTE para que intente salir en el proximo tt
         current_process = hash[0];
         return current_process->sp;
     }
@@ -163,14 +190,41 @@ int waitPid(int pid){
     if(!CHECK_PID(pid)){
         return -1;
     }
+    //TODO: agregar a current_process a la lista que esta esperando
+    //Me agrego a la lista de los que estan esperando para que me despierte cuando termine
+    if(hash[pid]->status!=FINISHED){
+        queueADT_insert(hash[pid]->waiting_processes,current_process);
+    }
+    //TODO: ver como hacer para decidir cuando se tiene que elimiar del hash
+    //Es decir, cuando ya no queda alguno por hacer wait
+    //Lo hice con la variable waiting_count
+
     //veo si el proceso por el que espera ya termino
     //if(HashProcess_get(myHash, pid)->status!=FINISHED);
-    if(hash[pid]->status!=FINISHED){
+    while(hash[pid]->status!=FINISHED){
+        (hash[pid]->waiting_count)++;
         //Si el proceso no termino
         //bloqueo al proceso que llama a wait
-        block_process(current_process->status);
+        block_process(current_process->pid);
+        _int20();
+        (hash[pid]->waiting_count)--;
     }
-    return 0;
+    int ans = hash[pid]->status;
+//    (hash[pid]->waiting_count)--;
+    if(hash[pid]->waiting_count==0){
+        //si soy el ultimo en hacer wait, lo saco del hash
+        //TODO: sacar del hash
+        mm_free(hash[pid]);
+        hash[pid]=NULL;
+    }
+    //TODO: ver si llego a devolver el valor de retorno
+    return ans;
+}
+uint64_t get_current_pid(){
+    if(current_process==NULL){
+        return -1;
+    }
+    return current_process->pid;
 }
 
 //Inicio Scheduler arqui

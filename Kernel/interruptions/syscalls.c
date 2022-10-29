@@ -5,7 +5,13 @@
 #include <queue.h>
 #include <time.h>
 #include <stddef.h>
-#define REGISTERS_COUNT 1
+#include <stdint.h>
+#include <interrupts.h>
+//TODO: sacar
+#include "../include/scheduler.h"
+#include "../include/syscalls.h"
+#include "../include/interrupts.h"
+//#define REGISTERS_COUNT 1
 
 //----------------------------------------------------------------------
 // read_handler: handler para leer un caracter del teclado
@@ -17,7 +23,7 @@
 //  0 si no hay caracteres para ller
 //  1 si hay caracteres para leer
 //----------------------------------------------------------------------
-uint8_t read_handler(char* str){
+int32_t read_handler(char* str){
     extern queue_t queue;
     if (is_empty(&queue)){
         *str = '\0'; //no hay caracteres para imprimir
@@ -34,7 +40,7 @@ uint8_t read_handler(char* str){
 //  str: el string que se desea imprimor
 //  format: el color de la letra que se desea usar
 //----------------------------------------------------------------------
-uint8_t write_handler(const char * str, formatType format){
+int32_t write_handler(const char * str, formatType format){
 //    if(process_array_is_empty()){
 //        //No se cargaron procesos, por default imprime en LEFT
 //        positionType position = ALL;
@@ -60,21 +66,21 @@ uint8_t write_handler(const char * str, formatType format){
 //  -1 si cant no es valido
 //  0 si logro ejecutar a los procesos
 //----------------------------------------------------------------------
-uint8_t exec_handler(uint8_t cant, const executable_t* program){//Recibe un vector de program_t
-    if(cant == 0 || cant >= 2){
-        return -1;
-    }
-//    else if(cant==1){
-//        clear(ALL);
-//        add_full_process(programs[0]);
-        //add_process(programs[0],ALL);
-//    }else{
-//        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
-//        add_two_processes(programs[0],programs[1]);
-//        print_lines();
+//uint8_t exec_handler(uint8_t cant, const executable_t* program){//Recibe un vector de program_t
+//    if(cant == 0 || cant >= 2){
+//        return -1;
 //    }
-    return 0;
-}
+////    else if(cant==1){
+////        clear(ALL);
+////        add_full_process(programs[0]);
+//        //add_process(programs[0],ALL);
+////    }else{
+////        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
+////        add_two_processes(programs[0],programs[1]);
+////        print_lines();
+////    }
+//    return 0;
+//}
 //----------------------------------------------------------------------
 // exit_handler: termina el proceso que lo llama
 //----------------------------------------------------------------------
@@ -85,9 +91,9 @@ uint8_t exec_handler(uint8_t cant, const executable_t* program){//Recibe un vect
 //  -1 si no hay procesos para terminar
 //  0 si logra terminar el proceso
 //----------------------------------------------------------------------
-uint8_t exit_handler(){
-    return terminate_process(1);
-}
+//int32_t exit_handler(){
+//    return terminate_process(1);
+//}
 //----------------------------------------------------------------------
 // time_handler: obtiene la unidad del tiempo que se pide
 //----------------------------------------------------------------------
@@ -97,7 +103,7 @@ uint8_t exit_handler(){
 // Retorno:
 //  El valor pedido o -1 si no es un parametro correcto
 //----------------------------------------------------------------------
-int8_t time_handler(timeType time_unit){
+uint8_t time_handler(timeType time_unit){
     if(time_unit != SEC && time_unit != MIN && time_unit != HOUR && time_unit != DAY_WEEK &&
         time_unit != DAY_MONTH && time_unit != MONTH && time_unit != YEAR){
         return -1;
@@ -117,7 +123,7 @@ int8_t time_handler(timeType time_unit){
 // Retorno:
 //  La cantidad de posiciones que se logro almacenar
 //----------------------------------------------------------------------
-uint8_t mem_handler(uint64_t init_dir, uint8_t * arr){
+int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
     uint8_t i = 0;
     // Empiezo a completar el arreglo, siempre y cuando la direccion consultada sea menor a la ultima
     // Asi se evita overflow
@@ -154,7 +160,7 @@ uint64_t tick_handler(void){
 // Argumentos:
 //  void
 //----------------------------------------------------------------------
-uint8_t blink_handler(void){
+int32_t blink_handler(void){
     video_blink(ALL);
     return 0;
 }
@@ -178,14 +184,70 @@ uint8_t regs_handler(uint64_t * regs_arr){
 // Argumentos:
 //  void
 //----------------------------------------------------------------------
-uint8_t clear_handler(void){
+int32_t clear_handler(void){
     clear(ALL);
     return 0;
 }
-
-uint8_t (*syscalls[10])()={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler};
+int32_t terminate_handler(uint64_t pid){
+    int status = 0;
+    if((status = terminate_process(pid))==-1){
+        return -1;
+    }
+    //No tengo problema con haber liberado el stack
+    //Pues no es un kernel desalojable (no me interrumpen aca)
+    _int20();//por si me termino a mi mismo
+    return status;
+}
+int32_t block_process_handler(uint64_t pid){
+    int status = 0;
+    if((status = block_process(pid))==-1){
+        return -1;
+    }
+    _int20();//llama al scheduler para ver como sigue, es para el caso donde se bloquea a si mismo
+    return status;
+}
+//hace _int20() adentro de wait, para que devuelva el codigo cuando ya esta disponible el que fue esperado
+int32_t waitpid_handler(uint64_t pid){
+    int status = 0;
+    if((status = waitPid(pid))==-1){
+        return -1;
+    }
+    return status;
+}
+int32_t yield_handler(){
+    int status = 0;
+    if((status = yield_current_process())==-1){
+        return -1;
+    }
+    _int20();
+    return status;
+}
+int32_t unblock_process_handler(uint64_t pid){
+    int status = 0;
+    if((status = unblock_process(pid))==-1){
+        return -1;
+    }
+    return status;
+}
+int32_t exec_handler(executable_t* executable){
+    if(executable==NULL){
+        return -1;
+    }
+    return create_process(executable);
+}
+int32_t nice_handler(uint64_t pid, uint8_t priority){
+    return change_process_priority(pid,priority);
+}
+uint64_t getpid_handler(){
+    return get_current_pid();
+}
+int32_t exit_handler(){
+    return terminate_handler(get_current_pid());
+}
+void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
+                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler};
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=10){
+    if(syscall_num<0 || syscall_num>=17){
         return NULL;
     }
     return syscalls[syscall_num];

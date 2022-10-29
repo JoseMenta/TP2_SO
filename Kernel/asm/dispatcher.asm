@@ -52,7 +52,7 @@
 
 EXTERN allocate_new_process_stack
 EXTERN scheduler
-
+EXTERN exit_handler
 GLOBAL context_switch_handler
 GLOBAL idle_process
 GLOBAL create_new_process_context
@@ -65,20 +65,20 @@ SECTION .text
 ;    jmp idle_process
 
 
-syscall_handler:
-    push_state_no_rax
-    push rdi
-    mov rdi, rax ;pasamos el numero de la syscall
-;    call syscall_dispatcher
-    pop rdi
-    cmp rax, 0
-    je fin
-    call rax ;llamamos a la funcion que nos devuelve el dispatcher
-    ;llamamos al scheduler para ver quien sigue
-fin:
-    int 20h
-    pop_state_no_rax
-    iretq
+;syscall_handler:
+;    push_state_no_rax
+;    push rdi
+;    mov rdi, rax ;pasamos el numero de la syscall
+;;    call syscall_dispatcher
+;    pop rdi
+;    cmp rax, 0
+;    je fin
+;    call rax ;llamamos a la funcion que nos devuelve el dispatcher
+;    ;llamamos al scheduler para ver quien sigue
+;fin:
+;    int 20h
+;    pop_state_no_rax
+;    iretq
 
 ;TODO: hacer que las syscalls reciban los parametros por los registros de 64 bits
 ;rax->syscall_number
@@ -94,20 +94,25 @@ fin:
 ; Se encarga de realizar el cambio de contexto entre dos procesos: El que se está ejecutando se detiene,
 ; y alguno de los procesos que está en la cola de listos comienza su ejecucion
 ; ---------------------------------------------------------------------------------
-context_switch_handler:
+;context_switch_handler:
+;
+;    push_state
+;
+;    mov rdi, rsp
+;    call scheduler                           ; scheduler es la funcion encargada de recibir el SP del proceso ejecutandose y otorgar el SP del proceso a ejecutar
+;    mov rsp, rax
+;
+;    mov al, 20h                              ; Aviso al PIC que termino la interrupcion
+;    out 20h, al
+;
+;    pop_state
+;
+;    iretq
 
-    push_state
-
-    mov rdi, rsp
-    call scheduler                           ; scheduler es la funcion encargada de recibir el SP del proceso ejecutandose y otorgar el SP del proceso a ejecutar
-    mov rsp, rax
-
-    mov al, 20h                              ; Aviso al PIC que termino la interrupcion
-    out 20h, al
-
-    pop_state
-
-    iretq
+;wrapper para los procesos para que no tengan que ejecutar exit (pueden hacer return)
+process_wrapper:
+    call rdx   ;el puntero del proceso se deja en rdx cuando se crea el stack del proceso
+    call exit_handler
 
 ; ---------------------------------------------------------------------------------
 ; create_new_process_context
@@ -161,7 +166,7 @@ create_stack:                           ; Sino, se crea el stack con la direccio
     push rax                            ; RSP (Stack alineado para el proceso)
     push 0x202                          ; RFLAGS
     push 0x8                            ; CS
-    push rdx                            ; RIP
+    push process_wrapper                            ; RIP
     push_state                          ; GPRs
 
     ;mov [rcx], rax                      ; Almaceno el valor del BP (rax)

@@ -3,7 +3,7 @@
 //#include <stdio.h>
 
 HashADT newHashADT(){
-    HashADT aux = malloc(sizeof (TList) * 10);
+    HashADT aux = mm_alloc(sizeof (TList) * 10);
     for(int i=0; i<SIZE; i++){
         (*aux)[i] = new_orderListADT();
     }
@@ -47,5 +47,5 @@ void freeHashADT(HashADT hash){
     for(int i=0; i<SIZE; i++){
         free_orderListADT((*hash)[i]);
     }
-    free(hash);
+    mm_free(hash);
 }

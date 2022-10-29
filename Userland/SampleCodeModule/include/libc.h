@@ -32,16 +32,23 @@ typedef struct {
 #define STDOUT WHITE
 #define STDERR RED
 
-uint8_t sys_write(const char * string, formatType format);
-uint8_t sys_read(char * c);
-uint8_t sys_exec(uint8_t process_c, const program_t* process_v);
-uint8_t sys_exit(void);
+int32_t sys_write(const char * string, formatType format);
+int32_t sys_read(char * c);
+int32_t sys_exec(executable_t* executable);
+//uint8_t sys_exit(void);
 uint8_t sys_time(timeType time_unit);
-uint8_t sys_mem(uint64_t init_dir, uint8_t * arr);
+int32_t sys_mem(uint64_t init_dir, uint8_t * arr);
 uint64_t sys_tick(void);
-uint8_t sys_blink(void);
-uint8_t sys_clear(void);
+int32_t sys_blink(void);
+int32_t sys_clear(void);
 uint8_t sys_regs(uint64_t * regs_arr);
+int32_t sys_block(uint64_t pid);
+int32_t sys_unblock(uint64_t pid);
+int32_t sys_waitpid(uint64_t pid);
+int32_t sys_yield(void);
+int32_t sys_terminate(uint64_t pid);
+uint64_t sys_getpid();
+int32_t sys_nice(uint64_t pid, uint8_t priority);
 
 void * get_program(const char * str);
 uint8_t get_char(void);
@@ -51,7 +58,14 @@ uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);
 uint64_t uintToBase(uint64_t value, char * buffer, uint64_t base);
 void copy_str(char * dest, char * source);
-
+int32_t block_process(uint64_t pid);
+uint32_t unblock_process(uint64_t pid);
+int32_t waitpid(uint64_t pid);
+int32_t yield();
+int32_t terminate_process(uint64_t pid);
+uint64_t getpid();
+uint64_t nice(uint64_t pid, uint8_t priority);
+void exit();
 uint8_t get_year(void);
 uint8_t get_month(void);
 uint8_t get_day_week(void);
