@@ -227,6 +227,10 @@ uint64_t get_current_pid(){
     return current_process->pid;
 }
 
+PCB * get_current_pcb(){
+    return current_process;
+}
+
 //Inicio Scheduler arqui
 
 //#include <scheduler.h>
