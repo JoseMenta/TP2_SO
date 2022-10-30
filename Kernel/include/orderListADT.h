@@ -1,26 +1,28 @@
 
 #ifndef TP2_SO_ORDERLISTADT_H
 #define TP2_SO_ORDERLISTADT_H
-#include <mm.h>
-#include <scheduler.h>
+
+#include <stdint.h>
 
 
-typedef PCB * elemType;
+// compare_function es la funcion que se debe pasar para comparar los elementos que conformen a la estructura
+typedef int64_t (* compare_function) (void * e1, void * e2);
 
-typedef struct node{
-    elemType data;
-    struct node* next;
-}TNode;
+typedef struct list_t * orderListADT;
 
-typedef TNode* TList;
+orderListADT new_orderListADT(compare_function cmp);
+int8_t orderListADT_add(orderListADT myListADT, void * elem);
+void * orderListADT_delete(orderListADT myListADT, void * elem);
+void * orderListADT_edit(orderListADT myListADT, void * prev_elem, void * new_elem);
+void * orderListADT_get(orderListADT myListADT, void * elem_id);
+uint64_t orderListADT_size(orderListADT myListADT);
+uint8_t orderListADT_is_empty(orderListADT myListADT);
+void free_orderListADT(orderListADT myListADT);
 
-int elemType_compare_to(elemType e1, elemType e2);
-TList new_orderListADT();
-TList orderListADT_add(TList myListADT, elemType elem);
-TList orderListADT_delete(TList myListADT, elemType elem);
-TList orderListADT_edit(TList myListADT, elemType prevElem, elemType newElem);
-elemType orderListADT_get(TList myListADT, uint32_t pid);
-void printList(TList myListADT);
-void free_orderListADT(TList myListADT);
+void orderListADT_toBegin(orderListADT myListADT);
+uint8_t orderListADT_hasNext(const orderListADT myListADT);
+void * orderListADT_next(orderListADT myListADT);
+
+void printList(orderListADT myListADT);
 
 #endif //TP2_SO_ORDERLISTADT_H
