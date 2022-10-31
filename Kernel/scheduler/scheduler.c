@@ -266,6 +266,9 @@ uint64_t get_current_pid(){
     }
     return current_process->pid;
 }
+PCB * get_current_pcb(){
+    return current_process;
+}
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count){
     //TODO: cambiar por el iterador del hash map
     int32_t index = 0;

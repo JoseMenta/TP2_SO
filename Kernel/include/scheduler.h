@@ -3,6 +3,8 @@
 #ifndef TPE_SCHEDULER_H
 #define TPE_SCHEDULER_H
 #include <stdint.h>
+#include "pipe_struct.h"
+
 //#include <queueADT.h>
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
@@ -12,6 +14,7 @@ typedef struct{
     uint64_t pid;
     uint8_t priority;
     process_status status;
+    pipe_restrict * fd[MAXFD];
     void* bp;
     void* sp;
     queueADT waiting_processes;
@@ -43,6 +46,7 @@ int terminate_process(int pid);
 int change_process_priority(uint64_t pid, uint8_t new_priority);
 int unblock_process(int pid);
 uint64_t get_current_pid();
+PCB * get_current_pcb();
 void* scheduler(void* curr_rsp);
 int waitPid(int pid);
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
