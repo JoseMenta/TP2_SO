@@ -31,5 +31,9 @@ int32_t unblock_process_handler(uint64_t pid);
 int32_t exec_handler(executable_t* executable);
 int32_t nice_handler(uint64_t pid, uint8_t priority);
 uint64_t getpid_handler();
+int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count);
+uint64_t process_count_handler();
+void* mm_alloc_handler(uint32_t wanted_size);
+void mm_free_handler(void* p);
 void* syscall_dispatcher(uint64_t syscall_num);
 #endif

@@ -100,10 +100,10 @@ void testMM(){
         ncNewline();
     }
     *dir2 = '2';
-    ncPrint("Dir: ");
-    ncPrintHex((uint64_t)dir);
-    ncPrint("Dir2: ");
-    ncPrintHex((uint64_t)dir2);
+//    ncPrint("Dir: ");
+//    ncPrintHex((uint64_t)dir);
+//    ncPrint("Dir2: ");
+//    ncPrintHex((uint64_t)dir2);
     if(*dir!='1'){
         ncPrint("Error: No se preseva el valor escrito en la direccion dir");
         ncNewline();
@@ -219,7 +219,7 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     ncClear();
 //    mm_init();
     testMM();
-    print("Pasa el testeo del mm\n",WHITE,ALL);
+//    print("Pasa el testeo del mm\n",WHITE,ALL);
 
     initialize_scheduler();
     executable_t exec;
@@ -227,6 +227,7 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     exec.arg_c=2;
     exec.arg_v=aux;
     exec.name = "Process 1";
+    exec.foreground = 1;
     exec.start=sampleCodeModuleAddress;
     create_process(&exec);
 //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera

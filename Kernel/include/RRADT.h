@@ -12,7 +12,7 @@
 #include <mm.h>
 #define PRIORITY_LEVELS 5
 //TODO: definir cuantos TT va a durar
-#define GET_QUANTUM_INTERVAL(level) (20/(level+1))
+#define GET_QUANTUM_INTERVAL(level) (10/(level+1))
 #define CHECK_PRIORITY(priority) (priority>=0 && priority<PRIORITY_LEVELS)
 
 typedef struct RRCDT * RRADT;

@@ -19,9 +19,9 @@ void* allocate_new_process_stack(){
 
     // BP: Inicio del stack + tamaño del stack - 1
 //    return stack + STACK_SIZE - 1;
-    return stack+STACK_SIZE;//nos pasamos en 1, total el primer push lo va a arreglar
+    return (uint8_t *)stack+STACK_SIZE;//nos pasamos en 1, total el primer push lo va a arreglar
 }
 
 void free_process_stack(void* bp){
-    mm_free(bp-STACK_SIZE);
+    mm_free((uint8_t*)bp-STACK_SIZE);
 }

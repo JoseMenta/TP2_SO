@@ -277,6 +277,7 @@ void throw_error(char * str){
     print_string("\n", WHITE);
     print_string(str, STDERR);
     print_string("\n\n", WHITE);
+//    exit();
     sys_exit();
 }
 
@@ -365,6 +366,9 @@ uint64_t nice(uint64_t pid, uint8_t priority){
     return sys_nice(pid,priority);
 }
 
-void exit(){
-    sys_terminate(sys_getpid());
+void* malloc(uint32_t wanted_size){
+    return sys_mm_alloc(wanted_size);
+}
+void free(void* p){
+    sys_mm_free(p);
 }

@@ -13,7 +13,7 @@ typedef struct node{
 }TNode;
 
 typedef TNode* TList;
-
+//TODO: cambiar el pid a uint64_t
 int elemType_compare_to(elemType e1, elemType e2);
 TList new_orderListADT();
 TList orderListADT_add(TList myListADT, elemType elem);

@@ -1,6 +1,8 @@
 #include <video_driver.h>
 #include <keyboard.h>
-
+//TODO: sacar
+#include "../include/video_driver.h"
+#include "../include/keyboard.h"
 #define WIDTH 160
 #define HEIGHT 25
 #define NEXT_COL 2
@@ -173,7 +175,7 @@ void next(coordinatesType * position){
     // Si se llego al final de una fila, paso a la proxima fila y al principio de ella
     if(position->col_current == position->col_end){
         position->col_current = position->col_start;
-        position->row_current++;
+        (position->row_current)++;
     }
         // Si no llegue al final, paso a la siguiente columna en la fila
     else {
@@ -220,8 +222,8 @@ void scroll_up(positionType position){
     // Nos paramos en la fila anterior pues todo se subio una fila arriba
     if(coordinates[position].row_current >= 1){
         // Si habia llegado a la ultima fila, debo borrar los caracteres en esa fila
-        if(coordinates[position].row_current == coordinates[position].row_end){
-            for(coordinatesType c = {coordinates[position].row_end, coordinates[position].col_start, coordinates[position].row_end, coordinates[position].col_start, coordinates[position].row_end, coordinates[position].col_end};
+        if(coordinates[position].row_current == coordinates[position].row_end){//Aca se esta rompiendo hash[70]
+            for(coordinatesType c = {coordinates[position].row_start, coordinates[position].col_start, coordinates[position].row_end, coordinates[position].col_start, coordinates[position].row_end, coordinates[position].col_end};
                 c.row_current <= coordinates[position].row_end && c.col_current <= coordinates[position].col_end;
                 next(&c)){
                 *(video_start + c.row_current * WIDTH + c.col_current) = ' ';

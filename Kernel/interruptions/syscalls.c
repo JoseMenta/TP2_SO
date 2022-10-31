@@ -7,11 +7,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <interrupts.h>
+#include <mm.h>
 //TODO: sacar
 #include "../include/scheduler.h"
 #include "../include/syscalls.h"
 #include "../include/interrupts.h"
-//#define REGISTERS_COUNT 1
+#include "../include/mm.h"
+
+//TODO: cambiar a pipes para el read y el keyboard
 
 //----------------------------------------------------------------------
 // read_handler: handler para leer un caracter del teclado
@@ -25,6 +28,7 @@
 //----------------------------------------------------------------------
 int32_t read_handler(char* str){
     extern queue_t queue;
+    //TODO: usar un pipe
     if (is_empty(&queue)){
         *str = '\0'; //no hay caracteres para imprimir
         return 0;
@@ -50,37 +54,6 @@ int32_t write_handler(const char * str, formatType format){
     print(str, format, ALL);        // Imprime por pantalla
     return 0;
 }
-
-//----------------------------------------------------------------------
-// ecec_handler: agrega procesos para que se ejecuten
-//----------------------------------------------------------------------
-// Argumentos:
-//  cant: la cantidad de procesos que se desea ejecutar (1 si es en toda la pantalla, 2 si es en pantalal dividida)
-//  programs: arreglo de program_t con los programas que se desean ejecutar
-//----------------------------------------------------------------------
-// Si cant==1, programs debe tener al menos 1 elemento, y se ejecuta el primero
-// Si cant==2, programs debe tener al menos 2 elementos, el primero se ejecuta a la izquierda y el
-//  segundo a la derecha
-//----------------------------------------------------------------------
-// Retorno:
-//  -1 si cant no es valido
-//  0 si logro ejecutar a los procesos
-//----------------------------------------------------------------------
-//uint8_t exec_handler(uint8_t cant, const executable_t* program){//Recibe un vector de program_t
-//    if(cant == 0 || cant >= 2){
-//        return -1;
-//    }
-////    else if(cant==1){
-////        clear(ALL);
-////        add_full_process(programs[0]);
-//        //add_process(programs[0],ALL);
-////    }else{
-////        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
-////        add_two_processes(programs[0],programs[1]);
-////        print_lines();
-////    }
-//    return 0;
-//}
 //----------------------------------------------------------------------
 // exit_handler: termina el proceso que lo llama
 //----------------------------------------------------------------------
@@ -244,10 +217,22 @@ uint64_t getpid_handler(){
 int32_t exit_handler(){
     return terminate_handler(get_current_pid());
 }
+int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count){
+    return get_scheduler_info(processInfo,max_count);
+}
+uint64_t process_count_handler(){
+    return get_process_count();
+}
+void* mm_alloc_handler(uint32_t wanted_size){
+    return mm_alloc(wanted_size);
+}
+void mm_free_handler(void* p){
+    mm_free(p);
+}
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
-                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler};
+                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler};
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=17){
+    if(syscall_num<0 || syscall_num>=21){
         return NULL;
     }
     return syscalls[syscall_num];

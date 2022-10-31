@@ -19,6 +19,10 @@ GLOBAL sys_yield
 GLOBAL sys_terminate
 GLOBAL sys_getpid
 GLOBAL sys_nice
+GLOBAL sys_get_scheduler_info
+GLOBAL sys_get_process_count
+GLOBAL sys_mm_alloc
+GLOBAL sys_mm_free
 EXTERN print_string
 
 section .text
@@ -384,6 +388,88 @@ sys_nice:
     pop rbp
     ret
 
+;-------------------------------------------------------------------------------------
+; sys_get_scheduler_info: Obtinene la informacion del scheduler
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: vector de process_info_t donde se debe almacenar la informacion (reservado por el usuario)
+;   rsi: cantidad maxima de procesos cuya informacion se puede almacenar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   cantidad de procesos almacenados en el vector
+;------------------------------------------------------------------------------------
+sys_get_scheduler_info:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 17
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_get_process_count: Obtiene la cantidad maxima de procesos cuya informacion
+;                       se logra obtener con sys_get_scheduler_info
+;-------------------------------------------------------------------------------------
+; Parametros:
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Cantidad maxima de procesos que maneja el scheduler (todos los creados - los que
+;    fueron esperados por sus padres (es decir, los que dejaron de ser zombies)
+;------------------------------------------------------------------------------------
+sys_get_process_count:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 18
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+
+;-------------------------------------------------------------------------------------
+; sys_mm_alloc: Reserva memoria en el heap
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: cantidad de memoria (en bytes) que se desea reservar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   NULL si hubo error, el inicio de la memoria reservada si no
+;------------------------------------------------------------------------------------
+sys_mm_alloc:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 19
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+;-------------------------------------------------------------------------------------
+; sys_mm_free: Libera memoria en el heap
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: el puntero al inicio de la memoria reservada
+;-------------------------------------------------------------------------------------
+; Retorno:
+;
+;------------------------------------------------------------------------------------
+sys_mm_free:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 20
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero
 ;-------------------------------------------------------------------------------------

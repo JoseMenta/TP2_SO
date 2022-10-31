@@ -16,13 +16,25 @@ typedef struct{
     void* sp;
     queueADT waiting_processes;
     uint64_t waiting_count;
+    uint8_t foreground;
 }PCB;
 typedef struct{
     char* name;
     void* start;            // Direccion de la funcion que ejecuta el programa
     uint64_t arg_c;      // Cantidad de argumentos ingresados al programa
     char** arg_v;            // Vector de strings con los argumentos del programa
+    uint8_t foreground;
 } executable_t;
+
+typedef struct{
+    char* name;
+    uint64_t pid;
+    uint8_t priority;
+    uint64_t sp;
+    uint64_t bp;
+    process_status status;
+    uint8_t foreground;
+}process_info_t;
 int initialize_scheduler();
 int create_process(executable_t* executable);
 int yield_current_process();
@@ -33,6 +45,8 @@ int unblock_process(int pid);
 uint64_t get_current_pid();
 void* scheduler(void* curr_rsp);
 int waitPid(int pid);
+int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
+uint64_t get_process_count();
 //Inicio scheduler arqui
 //#include <interrupts.h>
 //#include <stdint.h>
