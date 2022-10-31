@@ -1,8 +1,8 @@
 
+#ifndef TP2_SO_SEMAPHORE_H
+#define TP2_SO_SEMAPHORE_H
+
 #include <stdint.h>
-#include <string.h>
-#include <syscalls.h>
-#include <mm.h>
 #include <queueADT.h>
 #include <orderListADT.h>
 
@@ -36,11 +36,12 @@ typedef struct {
     char * name;                        // Nombre del semaforo
 } sem_dump_t;
 
-int8_t sem_init(sem_t * sem, uint64_t value, char * name);
-sem_t * sem_open(char * name);
+sem_t * sem_open(char * name, uint64_t value);
 int8_t sem_wait(sem_t * sem);
 int8_t sem_post(sem_t * sem);
 int8_t sem_close(sem_t * sem);
 
 uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free(sem_dump_t * buffer, uint32_t length);
+
+#endif // TP2_SO_SEMAPHORE_H

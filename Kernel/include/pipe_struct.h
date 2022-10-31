@@ -1,14 +1,14 @@
 
 #ifndef TP2_SO_PIPE_STRUCT_H
 #define TP2_SO_PIPE_STRUCT_H
-
+#include <stdint.h>
+#include <semaphores.h>
 typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
 #define PIPESIZE 30
 #define MAXLOCK 5
 
 typedef struct{
-    //sem lock;
-    int lock;
+    sem_t * lock;
     char * name;
     char buff[PIPESIZE];
     uint64_t pid_write_lock[MAXLOCK];
@@ -31,6 +31,5 @@ typedef struct{
     uint8_t index_write;
     uint8_t index_read;
 }pipe_user_info;
-
 
 #endif //TP2_SO_PIPE_STRUCT_H

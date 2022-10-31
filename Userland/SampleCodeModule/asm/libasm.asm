@@ -23,10 +23,37 @@ GLOBAL sys_get_scheduler_info
 GLOBAL sys_get_process_count
 GLOBAL sys_mm_alloc
 GLOBAL sys_mm_free
+GLOBAL sys_pipe
+GLOBAL sys_open_fifo
+GLOBAL sys_open_fifo
+GLOBAL sys_link_pipe_named
+GLOBAL sys_close_fd
+GLOBAL sys_write
+GLOBAL sys_read
+GLOBAL sys_get_info
+GLOBAL sys_sem_init
+GLOBAL sys_sem_open
+GLOBAL sys_sem_wait
+GLOBAL sys_sem_post
+GLOBAL sys_sem_close
+GLOBAL sys_sems_dump
+GLOBAL sys_sems_dump_free
+
 EXTERN print_string
 
 section .text
 
+%macro syscall_macro 1
+    push rbp
+    mov rbp, rsp
+
+    mov rax, %1
+    int 80h
+
+    mov rsp, rbp
+    pop rbp
+    ret
+%endmacro
 ;-------------------------------------------------------------------------------------
 ; sys_write: Llama a la sys_call de escritura
 ;-------------------------------------------------------------------------------------
@@ -38,17 +65,18 @@ section .text
 ;   rax: cantidad de caracteres escritos
 ;------------------------------------------------------------------------------------
 sys_write:
-    push rbp
-    mov rbp, rsp            ; Armado de stack frame
-
-;    mov rbx, rdi            ; La sys_call recibe por rbx el string a imprimir
-;    mov rcx, rsi            ; La sys_call recibe por rcx el formato
-    mov rax, 1
-    int 80h
-
-    mov rsp, rbp            ; Desarmado de stack frame
-    pop rbp
-    ret
+    syscall_macro 1
+;    push rbp
+;    mov rbp, rsp            ; Armado de stack frame
+;
+;;    mov rbx, rdi            ; La sys_call recibe por rbx el string a imprimir
+;;    mov rcx, rsi            ; La sys_call recibe por rcx el formato
+;    mov rax, 1
+;    int 80h
+;
+;    mov rsp, rbp            ; Desarmado de stack frame
+;    pop rbp
+;    ret
 
 
 ;-------------------------------------------------------------------------------------
@@ -61,16 +89,17 @@ sys_write:
 ;   rax: cantidad de caracteres leidos
 ;------------------------------------------------------------------------------------
 sys_read:
-    push rbp
-    mov rbp, rsp
-
-;    mov rbx, rdi            ; La sys_call recibe por rbx la posicion de memoria donde se guarda el caracter
-    mov rax, 0
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 0
+;    push rbp
+;    mov rbp, rsp
+;
+;;    mov rbx, rdi            ; La sys_call recibe por rbx la posicion de memoria donde se guarda el caracter
+;    mov rax, 0
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 
 ;-------------------------------------------------------------------------------------
@@ -82,17 +111,18 @@ sys_read:
 ; Retorno: el pid del nuevo proceso si no hubo error, -1 si no
 ;------------------------------------------------------------------------------------
 sys_exec:
-    push rbp
-    mov rbp, rsp
-
-;    mov rbx, rdi
-;    mov rcx, rsi
-    mov rax, 2
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 2
+;    push rbp
+;    mov rbp, rsp
+;
+;;    mov rbx, rdi
+;;    mov rcx, rsi
+;    mov rax, 2
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_exit: Finaliza el proceso ejecutandose en el momento
@@ -104,15 +134,16 @@ sys_exec:
 ;   null
 ;------------------------------------------------------------------------------------
 sys_exit:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 3
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 3
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 3
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_time: Devuelve el valor para la unidad de tiempo pasado
@@ -124,16 +155,17 @@ sys_exit:
 ;   El valor para esa unidad de tiempo
 ;------------------------------------------------------------------------------------
 sys_time:
-    push rbp
-    mov rbp, rsp
-
-;    mov rbx, rdi
-    mov rax, 4
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 4
+;    push rbp
+;    mov rbp, rsp
+;
+;;    mov rbx, rdi
+;    mov rax, 4
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_mem:  Dado un arreglo de 32 bytes y una direccion de memoria, completa el arreglo con la informacion
@@ -147,17 +179,18 @@ sys_time:
 ;   Cantidad de datos que realmente se almacenaron (los restantes son NULL)
 ;------------------------------------------------------------------------------------
 sys_mem:
-    push rbp
-    mov rbp, rsp
-
-;    mov rcx, rsi
-;    mov rbx, rdi
-    mov rax, 5
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 5
+;    push rbp
+;    mov rbp, rsp
+;
+;;    mov rcx, rsi
+;;    mov rbx, rdi
+;    mov rax, 5
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_tick: Devuelve los ticks transcurridos desde que inicio la computadora
@@ -169,15 +202,16 @@ sys_mem:
 ;   Cantidad de ticks
 ;------------------------------------------------------------------------------------
 sys_tick:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 6
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 6
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 6
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_blink: Realiza un parpadeo en la pantalla
@@ -189,15 +223,16 @@ sys_tick:
 ;   0 si resulto exitoso, 1 si no
 ;------------------------------------------------------------------------------------
 sys_blink:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 7
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 7
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 7
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_clear: Limpia la terminal
@@ -209,15 +244,16 @@ sys_blink:
 ;   void
 ;------------------------------------------------------------------------------------
 sys_clear:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 9
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 9
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 9
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_regs: Devuelve el estado de los registros de la ultima vez que se realizo CTRL+S
@@ -229,16 +265,17 @@ sys_clear:
 ;   0 si nunca se hizo CTRL+S, 1 si se hizo al menos una vez
 ;------------------------------------------------------------------------------------
 sys_regs:
-    push rbp
-    mov rbp, rsp
-
-;    mov rbx, rdi
-    mov rax, 8
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 8
+;    push rbp
+;    mov rbp, rsp
+;
+;;    mov rbx, rdi
+;    mov rax, 8
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_block: Bloquea al proceso con el pid indicado (debe usarse solo para testeos)
@@ -253,15 +290,16 @@ sys_regs:
 ; desbloqueo, puede desbloquearse por otra razon.
 ;------------------------------------------------------------------------------------
 sys_block:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 10
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 10
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 10
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_unblock: Desbloquea al proceso con el pid indicado (debe usarse solo para testeos)
@@ -277,15 +315,16 @@ sys_block:
 ; Por lo tanto, debe usarse solo para testeo
 ;------------------------------------------------------------------------------------
 sys_unblock:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 13
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 13
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 13
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_waitpid: Espera a la terminacion de un proceso, posiblemente bloqueando al que
@@ -298,15 +337,16 @@ sys_unblock:
 ;   -1 si hubo error, 3 si no (FINISHED)
 ;------------------------------------------------------------------------------------
 sys_waitpid:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 11
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 11
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 11
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_yield: Libera al procesador
@@ -318,15 +358,16 @@ sys_waitpid:
 ;   -1 si hubo error, 0 si no
 ;------------------------------------------------------------------------------------
 sys_yield:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 12
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 12
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 12
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_terminate: Termina al proceso con el pid indicado
@@ -338,15 +379,16 @@ sys_yield:
 ;   -1 si hubo error, 0 si no
 ;------------------------------------------------------------------------------------
 sys_terminate:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 14
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 14
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 14
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_getpid: Devuelve el pid del proceso actual
@@ -358,15 +400,16 @@ sys_terminate:
 ;   -1 si hubo error, el pid si no hubo error (uint64_t)
 ;------------------------------------------------------------------------------------
 sys_getpid:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 16
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 16
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 16
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 ;-------------------------------------------------------------------------------------
 ; sys_nice: Cambia la prioridad del proceso con el pid indicado
 ;-------------------------------------------------------------------------------------
@@ -378,15 +421,16 @@ sys_getpid:
 ;   -1 si hubo error, el pid si no hubo error (uint64_t)
 ;------------------------------------------------------------------------------------
 sys_nice:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 15
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 15
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 15
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_get_scheduler_info: Obtinene la informacion del scheduler
@@ -399,15 +443,16 @@ sys_nice:
 ;   cantidad de procesos almacenados en el vector
 ;------------------------------------------------------------------------------------
 sys_get_scheduler_info:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 17
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 17
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 17
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_get_process_count: Obtiene la cantidad maxima de procesos cuya informacion
@@ -420,15 +465,16 @@ sys_get_scheduler_info:
 ;    fueron esperados por sus padres (es decir, los que dejaron de ser zombies)
 ;------------------------------------------------------------------------------------
 sys_get_process_count:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 18
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 18
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 18
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 
 ;-------------------------------------------------------------------------------------
@@ -441,15 +487,16 @@ sys_get_process_count:
 ;   NULL si hubo error, el inicio de la memoria reservada si no
 ;------------------------------------------------------------------------------------
 sys_mm_alloc:
-    push rbp
-    mov rbp, rsp
-
-    mov rax, 19
-    int 80h
-
-    mov rsp, rbp
-    pop rbp
-    ret
+    syscall_macro 19
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 19
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
 ;-------------------------------------------------------------------------------------
 ; sys_mm_free: Libera memoria en el heap
@@ -461,15 +508,186 @@ sys_mm_alloc:
 ;
 ;------------------------------------------------------------------------------------
 sys_mm_free:
-    push rbp
-    mov rbp, rsp
+    syscall_macro 20
+;    push rbp
+;    mov rbp, rsp
+;
+;    mov rax, 20
+;    int 80h
+;
+;    mov rsp, rbp
+;    pop rbp
+;    ret
 
-    mov rax, 20
-    int 80h
+;-------------------------------------------------------------------------------------
+; sys_pipe: Crear un pipe
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: puntero a vector de 2 enteros
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 en caso de error, 0 en caso de exito
+;------------------------------------------------------------------------------------
+sys_pipe:
+    syscall_macro 21
 
-    mov rsp, rbp
-    pop rbp
-    ret
+;-------------------------------------------------------------------------------------
+; sys_open_fifo: Crear un pipe con identificador/fifo
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: modo del fifo
+;   rsi: char * del identificador
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 en caso de error, 0 en caso de exito
+;rdi, rsi, rdx
+;------------------------------------------------------------------------------------
+sys_open_fifo:
+    syscall_macro 22
+
+;-------------------------------------------------------------------------------------
+; sys_link_pipe_named: conectarse a un fifo/pipe con identificador
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: modo del fifo
+;   rsi: char * del identificador
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 en caso de error, 0 en caso de exito
+;------------------------------------------------------------------------------------
+sys_link_pipe_named:
+    syscall_macro 23
+
+;-------------------------------------------------------------------------------------
+; sys_close_fd: cerrar el fd
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: modo del fifo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   -1 en caso de error, 0 en caso de exito
+;------------------------------------------------------------------------------------
+sys_close_fd:
+    syscall_macro 24
+
+;-------------------------------------------------------------------------------------
+; sys_write: escribir en un fd
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: fd a escribir
+;   rsi: buffer a escribir
+;   rdx: cantidad de caracteres a escribir
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   cantidad de caracteres escritos
+;------------------------------------------------------------------------------------
+;sys_write:
+;    syscall_macro 25
+
+;-------------------------------------------------------------------------------------
+; sys_read: leer de un fd
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: fd a escribir
+;   rsi: buffer donde leer
+;   rdx: cantidad de caracteres a leer
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   cantidad de caracteres leidos
+;------------------------------------------------------------------------------------
+;sys_read:
+;    syscall_macro 26
+
+;-------------------------------------------------------------------------------------
+; sys_get_info: obtener la informacion de los pipes del sistema
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: puntero a vector de estructuras donde recibir la informacion
+;   rsi: cantidad de pipes leidos
+;-------------------------------------------------------------------------------------
+; Retorno:
+;------------------------------------------------------------------------------------
+sys_get_info:
+    syscall_macro 27
+
+;-------------------------------------------------------------------------------------
+; sys_sem_open: Se conecta a un un semaforo ya creado o crea uno nuevo si no existe
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: nombre del semaforo
+;   rsi: valor inicial del semaforo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Devuelve la estructura del semaforo si existe o del creado
+;   Devuelve NULL si ocurrio algun error
+;------------------------------------------------------------------------------------
+sys_sem_open:
+    syscall_macro 28
+
+;-------------------------------------------------------------------------------------
+; sys_sem_wait: Realiza la operacion wait en el semaforo
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: estructura del semaforo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Devuelve un error_code (ver semaphores.h)
+;------------------------------------------------------------------------------------
+sys_sem_wait:
+    syscall_macro 29
+
+;-------------------------------------------------------------------------------------
+; sys_sem_post: Realiza la operacion post en el semaforo
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: estructura del semaforo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Devuelve un error_code (ver semaphores.h)
+;------------------------------------------------------------------------------------
+sys_sem_post:
+    syscall_macro 30
+
+;-------------------------------------------------------------------------------------
+; sys_sem_close: Se desconecta del semaforo
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: estructura del semaforo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Devuelve un error_code (ver semaphores.h)
+;------------------------------------------------------------------------------------
+sys_sem_close:
+    syscall_macro 31
+
+;-------------------------------------------------------------------------------------
+; sys_sem_dump: Devuelve la informacion de los semaforos activos
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: arreglo de estructuras sem_dump_t
+;   rsi: cantidad de elementos del arreglo
+;-------------------------------------------------------------------------------------
+; OJO: Luego se debe llamar a sys_sems_dump_free para liberar todos los recursos
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   Devuelve la cantidad de semaforos (elementos completados del arreglo)
+;------------------------------------------------------------------------------------
+sys_sems_dump:
+    syscall_macro 32
+
+;-------------------------------------------------------------------------------------
+; sys_sem_dump_free: Libera los recursos creados en sys_sems_dump
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: arreglo de estructuras sem_dump_t
+;   rsi: cantidad de elementos a liberar del arreglo
+;-------------------------------------------------------------------------------------
+; Retorno:
+;------------------------------------------------------------------------------------
+sys_sems_dump_free:
+    syscall_macro 33
+
+
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero
 ;-------------------------------------------------------------------------------------
@@ -566,3 +784,4 @@ get_rip:
 SECTION .bss
 	reg resb 144		    ; Guarda 8*18 lugares de memoria (para los 18 registros)
 
+;

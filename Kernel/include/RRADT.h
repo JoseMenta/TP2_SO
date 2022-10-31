@@ -4,12 +4,9 @@
 
 #ifndef TP2_SO_ROUNDROBIN_H
 #define TP2_SO_ROUNDROBIN_H
-#include <RRLevelADT.h>
-#include "../include/RRLevelADT.h"
+
 #include <stdint.h>
 #include <DS.h>
-#include "DS.h"
-#include <mm.h>
 #define PRIORITY_LEVELS 5
 //TODO: definir cuantos TT va a durar
 #define GET_QUANTUM_INTERVAL(level) (10/(level+1))

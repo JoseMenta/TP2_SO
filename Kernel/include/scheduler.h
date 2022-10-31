@@ -4,7 +4,7 @@
 #define TPE_SCHEDULER_H
 #define MAXFD 5
 #include <stdint.h>
-#include "pipe_struct.h"
+#include <pipe_struct.h>
 #include <queueADT.h>
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
@@ -24,8 +24,8 @@ typedef struct{
 typedef struct{
     char* name;
     void* start;            // Direccion de la funcion que ejecuta el programa
-    uint64_t arg_c;      // Cantidad de argumentos ingresados al programa
-    char** arg_v;            // Vector de strings con los argumentos del programa
+    uint64_t arg_c;         // Cantidad de argumentos ingresados al programa
+    char** arg_v;           // Vector de strings con los argumentos del programa
     uint8_t foreground;
 } executable_t;
 

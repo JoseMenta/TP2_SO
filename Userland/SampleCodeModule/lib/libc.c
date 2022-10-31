@@ -372,3 +372,49 @@ void* malloc(uint32_t wanted_size){
 void free(void* p){
     sys_mm_free(p);
 }
+
+int pipe(int fd[2]){
+    return sys_pipe(fd);
+}
+int open_fifo(Pipe_modes mode, char * name){
+    return sys_open_fifo(mode, name);
+}
+int link_pipe_named(Pipe_modes mode, char * name){
+    return sys_open_fifo(mode, name);
+}
+int close_fd(int fd){
+    return sys_close_fd(fd);
+}
+//int write(int fd, const char * buf, int count){
+//    return sys_write(fd, buf, count);
+//}
+//int read(int fd, char * buf, int count){
+//    return sys_read(fd, buf, count);
+//}
+void get_info(pipe_user_info * user_data, int * count){
+    sys_get_info(user_data, count);
+}
+
+sem_t sem_open(char * name, uint64_t value){
+    return sys_sem_open(name, value);
+}
+
+int8_t sem_wait(sem_t sem){
+    return sys_sem_wait(sem);
+}
+
+int8_t sem_post(sem_t sem){
+    return sys_sem_post(sem);
+}
+
+int8_t sem_close(sem_t sem){
+    return sys_sem_close(sem);
+}
+
+uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
+    return sys_sems_dump(buffer, length);
+}
+
+void sems_dump_free(sem_dump_t * buffer, uint32_t length){
+    sys_sems_dump_free(buffer, length);
+}

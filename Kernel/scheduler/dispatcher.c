@@ -1,5 +1,7 @@
 #include <dispatcher.h>
 #include "../include/mm.h"
+#include <mm.h>
+#include <stddef.h>
 #define STACK_SIZE 0x1000               // 4KB
 
 // -----------------------------------------------------------------------------

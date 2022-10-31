@@ -35,5 +35,26 @@ int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count)
 uint64_t process_count_handler();
 void* mm_alloc_handler(uint32_t wanted_size);
 void mm_free_handler(void* p);
+
+int pipe_handler(int fd[2]);
+int open_fifo_handler(Pipe_modes mode, char * name);
+int link_pipe_named_handler(Pipe_modes mode, char * name);
+int close_fd_handler(int fd);
+//int write_handler(int fd, const char * buf, int count);
+//int read_handler(int fd, char * buf, int count);
+void get_info_handler(pipe_user_info * user_data, int * count);
+
+
+// Syscalls de semaforos
+//int8_t sem_init_handler(sem_t * sem, uint64_t value, char * name);
+sem_t * sem_open_handler(char * name, uint64_t value);
+int8_t sem_wait_handler(sem_t * sem);
+int8_t sem_post_handler(sem_t * sem);
+int8_t sem_close_handler(sem_t * sem);
+uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length);
+void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length);
+
+
+
 void* syscall_dispatcher(uint64_t syscall_num);
 #endif

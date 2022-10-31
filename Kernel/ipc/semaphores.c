@@ -1,5 +1,12 @@
-#include <semaphore.h>
+#include <semaphores.h>
+#include <stringLib.h>
+#include <syscalls.h>
+#include <mm.h>
+#include <scheduler.h>
 
+// TODO: sacar
+#include "../include/semaphores.h"
+#include "../include/mm.h"
 #define FREE        0
 #define OCCUPIED    1
 
@@ -130,45 +137,40 @@ static sem_t * find_sem_by_name(char * name){
 
 
 //----------------------------------------------------------------------
-// sem_init: Crea un nuevo semaforo en la direccion de sem
+// sem_init: Crea un nuevo semaforo
 //----------------------------------------------------------------------
 // Argumentos:
-//  sem: estructura sobre el cual inicializar el semaforo
 //  value: valor inicial del semaforo
 //  name: nombre del semaforo (named semaphores)
 //----------------------------------------------------------------------
 // Retorno:
-//  Devuelve un error_code (ver semaphores.h)
+//  Devuelve la estructura del semaforo creado
+//  Devuelve NULL si hubo algun error
 //----------------------------------------------------------------------
-int8_t sem_init(sem_t * sem, uint64_t value, char * name){
-    uint64_t pid = 0, * pid_p = NULL;
+static sem_t * sem_init(char * name, uint64_t value){
+    uint64_t pid = 0, * pid_p = NULL, name_size = 0;
 
-    // Verificamos que se nos haya pasado un semaforo inicializado
+    // Creamos el semaforo
+    sem_t * sem = mm_alloc(sizeof(sem_t));
     if(sem == NULL){
-        return ERR_SEM_NOT_INIT;
-    }
-
-    // Tomamos el lock para acceder a la seccion critica
-    acquire(&sem_manager.lock);
-
-    // Verificamos que se haya inicializado el manejador de semaforos
-    if(sem_manager.semaphores == NULL){
-        if(semaphore_manager_init() == -1){
-            release(&sem_manager.lock);
-            return ERR_MM;
-        }
-    }
-
-    // Si se le indico un nombre, se verifica que no exista un semaforo con ese nombre
-    if(name != NULL && find_sem_by_name(name) != NULL){
-        release(&sem_manager.lock);
-        return ERR_NAME;
+        return NULL;
     }
 
     // Se inicializa el semaforo
     sem->value = value;
     sem->id = get_sem_id();
-    sem->name = name;
+    // Si se indico un nombre, se le asigna una copia del nombre
+    if(name != NULL){
+        name_size = strlen(name);
+        sem->name = mm_alloc((name_size + 1) * sizeof(char));
+        if(sem->name == NULL){
+            mm_free(sem);
+            return NULL;
+        }
+        strcpy(sem->name, name);
+    } else {
+        sem->name = NULL;
+    }
     sem->blocked_processes = new_queueADT((compare_function)cmp_process);
     sem->connected_processes = new_orderListADT((compare_function)cmp_process);
 
@@ -177,12 +179,14 @@ int8_t sem_init(sem_t * sem, uint64_t value, char * name){
         if(sem->connected_processes != NULL){
             free_orderListADT(sem->connected_processes);
         }
-        release(&sem_manager.lock);
-        return ERR_MM;
+        mm_free(sem->name);
+        mm_free(sem);
+        return NULL;
     } else if(sem->connected_processes == NULL){
         free_queueADT(sem->blocked_processes);
-        release(&sem_manager.lock);
-        return ERR_MM;
+        mm_free(sem->name);
+        mm_free(sem);
+        return NULL;
     }
 
     // Agregamos el proceso que creo el semaforo a la lista de procesos conectados
@@ -191,8 +195,9 @@ int8_t sem_init(sem_t * sem, uint64_t value, char * name){
     if(pid_p == NULL){
         free_queueADT(sem->blocked_processes);
         free_orderListADT(sem->connected_processes);
-        release(&sem_manager.lock);
-        return ERR_MM;
+        mm_free(sem->name);
+        mm_free(sem);
+        return NULL;
     }
 
     *pid_p = pid;
@@ -200,8 +205,9 @@ int8_t sem_init(sem_t * sem, uint64_t value, char * name){
         free_queueADT(sem->blocked_processes);
         free_orderListADT(sem->connected_processes);
         mm_free(pid_p);
-        release(&sem_manager.lock);
-        return ERR_MM;
+        mm_free(sem->name);
+        mm_free(sem);
+        return NULL;
     }
 
     // Se crea el semaforo y se guarda en la lista de semaforos
@@ -209,30 +215,28 @@ int8_t sem_init(sem_t * sem, uint64_t value, char * name){
         free_queueADT(sem->blocked_processes);
         free_orderListADT(sem->connected_processes);
         mm_free(pid_p);
-        release(&sem_manager.lock);
-        return ERR_MM;
+        mm_free(sem->name);
+        mm_free(sem);
+        return NULL;
     }
 
-    // Se libera el lock para que otro proceso pueda acceder a la seccion critica
-    release(&sem_manager.lock);
-    return OK;
+    return sem;
 }
 
 
 //----------------------------------------------------------------------
 // sem_open: Devuelve el semaforo con nombre name
+//           Si no existe, crea uno con ese nombre
 //----------------------------------------------------------------------
 // Argumentos:
 //  name: nombre del semaforo (named semaphores)
+//  value: el valor inicial del semaforo en caso de crearlo
 //----------------------------------------------------------------------
 // Retorno:
-//  Devuelve la estructura del semaforo si existe
-//  Devuelve NULL si no existe u ocurrio algun error
+//  Devuelve la estructura del semaforo si existe o del creado
+//  Devuelve NULL si ocurrio algun error
 //----------------------------------------------------------------------
-sem_t * sem_open(char * name){
-    if(name == NULL){
-        return NULL;
-    }
+sem_t * sem_open(char * name, uint64_t value){
 
     sem_t * sem = NULL;
     uint64_t pid = 0, * pid_p = NULL;
@@ -242,16 +246,19 @@ sem_t * sem_open(char * name){
 
     // Verificamos que se haya inicializado el manejador de semaforos
     if(sem_manager.semaphores == NULL){
-        semaphore_manager_init();
-        release(&sem_manager.lock);
-        return NULL;
+        if(semaphore_manager_init() == -1){
+            release(&sem_manager.lock);
+            return NULL;
+        }
     }
 
     // Buscamos el semaforo con nombre name
-    sem = find_sem_by_name(name);
+    if(name != NULL){
+        sem = find_sem_by_name(name);
+    }
 
+    // Si se encontro el semaforo, agregamos el proceso a la lista de procesos conectados si no lo estaba aun
     if(sem != NULL){
-        // Si se encontro el semaforo, agregamos el proceso a la lista de procesos conectados si no lo estaba aun
         pid = get_current_pid();
         pid_p = mm_alloc(sizeof(pid));
         if(pid_p == NULL){
@@ -267,6 +274,10 @@ sem_t * sem_open(char * name){
                 return NULL;
             }
         }
+    }
+    // Si no se encontro el semaforo, se crea uno nuevo con ese nombre
+    else {
+        sem = sem_init(name, value);
     }
 
     // Se libera el lock para que otro proceso pueda acceder a la seccion critica
@@ -378,11 +389,15 @@ int8_t sem_post(sem_t * sem){
 
     sem->value++;
 
+    // Liberamos el proximo proceso que este esperando para ejecutarse
+    // OJO: No esta garantizado que sea el primero, hay que seguir recorriendo hasta que se libere un proceso bloqueado
+    // o hasta que ya no queden procesos en la cola de bloqueados
     if(!queueADT_is_empty(sem->blocked_processes)){
-        pid_p = (uint64_t *)queueADT_get_next(sem->blocked_processes);
-        pid = *pid_p;
-        mm_free(pid_p);
-        unblock_process_handler(pid);
+        do {
+            pid_p = (uint64_t *)queueADT_get_next(sem->blocked_processes);
+            pid = *pid_p;
+            mm_free(pid_p);
+        } while(unblock_process_handler(pid) == -1 && !queueADT_is_empty(sem->blocked_processes));
     }
 
     // Se libera el lock para que otro proceso pueda acceder a la seccion critica
@@ -426,12 +441,15 @@ int8_t sem_close(sem_t * sem){
     // Quitamos el proceso de la lista de procesos conectados al semaforo
     pid_p = (uint64_t *)orderListADT_get(sem->connected_processes, &pid);
     if(pid_p != NULL){
-        orderListADT_delete(sem->connected_processes, pid_p);
+        pid_p = orderListADT_delete(sem->connected_processes, pid_p);
         mm_free(pid_p);
     }
-
+    // Si era el ultimo proceso conectado, se liberan los recursos del semaforo
     if(orderListADT_is_empty(sem->connected_processes)){
-        orderListADT_delete(sem_manager->semaphores, sem);
+        sem = orderListADT_delete(sem_manager.semaphores, sem);
+        free_queueADT(sem->blocked_processes);
+        free_orderListADT(sem->connected_processes);
+        mm_free(sem->name);
         mm_free(sem);
     }
 
@@ -517,7 +535,7 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
 
         queueADT_toBegin(curr_sem->blocked_processes);
         for(uint32_t j = 0; j < buffer[i].blocked_size; j++){
-            pid_p = &((uint64_t *)queueADT_next(curr_sem->blocked_processes))->pid;
+            pid_p = (uint64_t *)queueADT_next(curr_sem->blocked_processes);
             pid = *pid_p;
             buffer[i].blocked_processes[j] = pid;
         }
@@ -528,6 +546,14 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
             pid = *pid_p;
             buffer[i].connected_processes[j] = pid;
         }
+    }
+
+    for(uint32_t i = buff_size; i < length; i++){
+        buffer[i].name = NULL;
+        buffer[i].blocked_processes = NULL;
+        buffer[i].connected_processes = NULL;
+        buffer[i].connected_size = 0;
+        buffer[i].blocked_size = 0;
     }
 
     // Se libera el lock para que otro proceso pueda acceder a la seccion critica
@@ -549,7 +575,6 @@ void sems_dump_free(sem_dump_t * buffer, uint32_t length){
     if(buffer == NULL || sem_manager.semaphores == NULL){
         return;
     }
-    uint32_t * pid_p;
     for(uint32_t j = 0; j < length; j++){
         buffer[j].blocked_size = 0;
         buffer[j].connected_size = 0;

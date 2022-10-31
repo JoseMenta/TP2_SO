@@ -273,14 +273,16 @@ _int20:
     int 20h
     ret
 
-
+;TODO: cambiar los push si recibe mas de 2 parametros
 _syscallHandler:
     push_state_no_rax
     push rdi
     push rsi
+    push rdx
     mov rdi, rax ;pasamos el numero de la syscall
     call syscall_dispatcher
 ;    ;OJO con cuidar el estado de los registros entre llamadas a C
+    pop rdx
     pop rsi
     pop rdi
     cmp rax, 0

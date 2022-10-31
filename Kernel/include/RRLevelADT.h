@@ -5,8 +5,6 @@
 #ifndef TP2_SO_RRLEVELADT_H
 #define TP2_SO_RRLEVELADT_H
 #include <stdint.h>
-#include <stddef.h>
-#include <queueADT.h>
 #include <DS.h>
 typedef struct RRLevelCDT* RRLevelADT;
 

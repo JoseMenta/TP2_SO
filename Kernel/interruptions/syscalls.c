@@ -8,11 +8,14 @@
 #include <stdint.h>
 #include <interrupts.h>
 #include <mm.h>
+#include <pipes.h>
+#include <semaphores.h>
 //TODO: sacar
 #include "../include/scheduler.h"
 #include "../include/syscalls.h"
 #include "../include/interrupts.h"
 #include "../include/mm.h"
+#include "../include/pipes.h"
 
 //TODO: cambiar a pipes para el read y el keyboard
 
@@ -229,10 +232,60 @@ void* mm_alloc_handler(uint32_t wanted_size){
 void mm_free_handler(void* p){
     mm_free(p);
 }
+int pipe_handler(int fd[2]){
+    return pipe(fd);
+}
+int open_fifo_handler(Pipe_modes mode, char * name){
+    return open_fifo(mode, name);
+}
+int link_pipe_named_handler(Pipe_modes mode, char * name){
+    return link_pipe_named(mode, name);
+}
+int close_fd_handler(int fd){
+    return close_fd(fd);
+}
+//int write_handler(int fd, const char * buf, int count){
+//    return write(fd, buf, count)
+//}
+//int read_handler(int fd, char * buf, int count){
+//    return read(fd, buf, count);
+//}
+void get_info_handler(pipe_user_info * user_data, int * count){
+    get_info(user_data, count);
+}
+
+sem_t * sem_open_handler(char * name, uint64_t value){
+    return sem_open(name, value);
+}
+
+int8_t sem_wait_handler(sem_t * sem){
+    return sem_wait(sem);
+}
+
+int8_t sem_post_handler(sem_t * sem){
+    return sem_post(sem);
+}
+
+int8_t sem_close_handler(sem_t * sem){
+    return sem_close(sem);
+}
+
+uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length){
+    return sems_dump(buffer, length);
+}
+
+void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length){
+    sems_dump_free(buffer, length);
+}
+
+
+
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
-                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler};
+                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
+                    &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler, &read_handler, &get_info_handler,
+                    &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler};
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=21){
+    if(syscall_num<0 || syscall_num>=35){
         return NULL;
     }
     return syscalls[syscall_num];

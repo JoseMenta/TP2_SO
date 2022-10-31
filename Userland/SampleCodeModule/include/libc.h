@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
+#define MAXLOCK 5
+typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
 typedef enum {BLACK=0x00, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, DARK_GREY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, PINK, YELLOW, WHITE} formatType;
 
 typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8, YEAR = 9} timeType;
@@ -13,10 +14,19 @@ typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
 
 typedef struct{
+    char * name;
+    uint64_t pid_write_lock[MAXLOCK];
+    uint64_t pid_read_lock[MAXLOCK];
+    uint8_t index_write;
+    uint8_t index_read;
+}pipe_user_info;
+
+typedef struct{
     void * start;                   // Direccion de la funcion que ejecuta el programa
     uint64_t cant_arg;              // Cantidad de argumentos ingresados al programa
     char ** args;                   // Este es un vector que se tiene que definir aparte, antes de inicializar la estructura
 } program_t;
+
 typedef struct{
     char* name;
     void* start;            // Direccion de la funcion que ejecuta el programa
@@ -24,6 +34,7 @@ typedef struct{
     char** arg_v;            // Vector de strings con los argumentos del programa
     uint8_t foreground;
 } executable_t;
+
 typedef struct {
     char* name;
     char* desc;
@@ -39,6 +50,33 @@ typedef struct{
     process_status status;
     uint8_t foreground;
 }process_info_t;
+
+
+// SEMAFOROS -----------------------------------------------------------------------------------------------------------------
+// Codigo de errores del semaforo
+// OK: La operacion se realizo exitosamente
+// ERR_MM: Error en la alocacion de memoria
+// ERR_NAME: El nombre ya existe
+// ERR_NOT_FOUND: El semaforo buscado no existe
+// ERR_NOT_INIT: No se inicializo el manejador de semaforos
+// ERR_SEM_NOT_INIT: No se inicializo el semaforo
+// ERR_SCHEDULER: No se pudo bloquear el proceso
+typedef enum {OK = 0, ERR_MM = -1, ERR_NAME = -2, ERR_NOT_FOUND = -3, ERR_NOT_INIT = -4, ERR_SEM_NOT_INIT = -5, ERR_SCHEDULER = -6} error_code;
+
+// Manejo de semaforos
+typedef void* sem_t;
+
+// Para pasar la informacion al usuario
+typedef struct {
+    uint64_t value;                     // Valor del semaforo
+    uint64_t * blocked_processes;       // Lista de procesos detenidos por el semaforo
+    uint64_t * connected_processes;     // Procesos que utilizan el semaforo
+    uint32_t blocked_size;              // Cantidad de procesos bloqueados
+    uint32_t connected_size;            // Cantidad de procesos conectados
+    uint64_t id;                        // id del semaforo
+    char * name;                        // Nombre del semaforo
+} sem_dump_t;
+// SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
 #define CANT_PROG (8)
@@ -97,5 +135,33 @@ void throw_error(char * str);
 void pause_ticks(uint64_t ticks);
 uint8_t blink(void);
 uint8_t clear(void);
+
+int sys_pipe(int fd[2]);
+int sys_open_fifo(Pipe_modes mode, char * name);
+int sys_link_pipe_named(Pipe_modes mode, char * name);
+int sys_close_fd(int fd);
+//int sys_write(int fd, const char * buf, int count);
+//int sys_read(int fd, char * buf, int count);
+void sys_get_info(pipe_user_info * user_data, int * count);
+
+sem_t sys_sem_open(char * name, uint64_t value);
+int8_t sys_sem_wait(sem_t  sem);
+int8_t sys_sem_post(sem_t  sem);
+int8_t sys_sem_close(sem_t  sem);
+uint32_t sys_sems_dump(sem_dump_t * buffer, uint32_t length);
+void sys_sems_dump_free(sem_dump_t * buffer, uint32_t length);
+
+int pipe(int fd[2]);
+int open_fifo(Pipe_modes mode, char * name);
+int link_pipe_named(Pipe_modes mode, char * name);
+int close_fd(int fd);
+void get_info(pipe_user_info * user_data, int * count);
+sem_t sem_open(char * name, uint64_t value);
+int8_t sem_wait(sem_t sem);
+int8_t sem_post(sem_t  sem);
+int8_t sem_close(sem_t  sem);
+uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
+void sems_dump_free(sem_dump_t * buffer, uint32_t length);
+
 
 #endif //TPE_LIBC_H

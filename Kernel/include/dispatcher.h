@@ -1,9 +1,9 @@
 #ifndef TP2_SO_DISPATCHER_H
 #define TP2_SO_DISPATCHER_H
 
-#include <mm.h>
-#include <stdlib.h>
 
+
+#include <stdint.h>
 //No es necesario ponerlo si no se va a usar desde otro programa C
 //void * allocate_new_process_stack();
 

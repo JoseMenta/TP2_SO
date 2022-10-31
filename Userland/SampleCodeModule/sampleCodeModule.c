@@ -83,15 +83,19 @@ void print_scheduler_info(){
     }
 }
 int main(uint64_t arg_c, char** arg_v) {
-    char* aux[] = {"4",NULL};
-    executable_t prio_test = {"test_memory",&test_processes,1,aux,0};
+    char* aux[] = {"10000","1",NULL};
+    executable_t prio_test = {"test_sync",&test_sync,2,aux,0};
     uint64_t pid = sys_exec(&prio_test);
+//    while (1){
+//        print_scheduler_info();
+////        print_number(sys_get_process_count(),WHITE);
+//        pause_ticks(1);
+//    }
+    waitpid(pid);
     while (1){
-        print_scheduler_info();
-//        print_number(sys_get_process_count(),WHITE);
+        print_string("a",WHITE);
         pause_ticks(1);
     }
-    waitpid(pid);
 //    for(int i = 0; i<100; i++){
 //        executable_t exec = {"test", &endless_loop_print,100000,NULL,0};
 //        uint64_t  pid = sys_exec(&exec);
