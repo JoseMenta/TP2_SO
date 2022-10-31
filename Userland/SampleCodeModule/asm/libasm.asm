@@ -610,19 +610,36 @@ sys_close_fd:
 sys_get_info:
     syscall_macro 27
 
+;----------------------------------------------------------------------
+; sem_init: Crea un nuevo semaforo
+;----------------------------------------------------------------------
+; Argumentos:
+;  rdi: nombre del semaforo (named semaphores)
+;  rsi: valor inicial del semaforo
+;----------------------------------------------------------------------
+; Retorno:
+;  Devuelve la estructura del semaforo creado
+;  Devuelve NULL si hubo algun error
+;----------------------------------------------------------------------
+sys_sem_init:
+    syscall_macro 28
+
 ;-------------------------------------------------------------------------------------
-; sys_sem_open: Se conecta a un un semaforo ya creado o crea uno nuevo si no existe
+; sys_sem_open: Se conecta a un semaforo ya creado
 ;-------------------------------------------------------------------------------------
 ; Parametros:
-;   rdi: nombre del semaforo
+;   rdi: nombre del semaforo (named semaphores)
 ;   rsi: valor inicial del semaforo
+;   rdx: indica que accion realizar si no se encontro el semaforo (ver libc.h)
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve la estructura del semaforo si existe o del creado
+;   Devuelve la estructura del semaforo si existe
+;   Si mode = O_CREATE, devuelve un nuevo semaforo
+;   Si mode = O_NULL, devuelve NULL
 ;   Devuelve NULL si ocurrio algun error
 ;------------------------------------------------------------------------------------
 sys_sem_open:
-    syscall_macro 28
+    syscall_macro 29
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_wait: Realiza la operacion wait en el semaforo
@@ -631,10 +648,10 @@ sys_sem_open:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_wait:
-    syscall_macro 29
+    syscall_macro 30
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_post: Realiza la operacion post en el semaforo
@@ -643,10 +660,10 @@ sys_sem_wait:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_post:
-    syscall_macro 30
+    syscall_macro 31
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_close: Se desconecta del semaforo
@@ -655,10 +672,10 @@ sys_sem_post:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_close:
-    syscall_macro 31
+    syscall_macro 32
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump: Devuelve la informacion de los semaforos activos
@@ -673,7 +690,7 @@ sys_sem_close:
 ;   Devuelve la cantidad de semaforos (elementos completados del arreglo)
 ;------------------------------------------------------------------------------------
 sys_sems_dump:
-    syscall_macro 32
+    syscall_macro 33
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump_free: Libera los recursos creados en sys_sems_dump
@@ -685,7 +702,7 @@ sys_sems_dump:
 ; Retorno:
 ;------------------------------------------------------------------------------------
 sys_sems_dump_free:
-    syscall_macro 33
+    syscall_macro 34
 
 
 ;-------------------------------------------------------------------------------------

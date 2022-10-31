@@ -254,8 +254,12 @@ void get_info_handler(pipe_user_info * user_data, int * count){
     get_info(user_data, count);
 }
 
-sem_t * sem_open_handler(char * name, uint64_t value){
-    return sem_open(name, value);
+sem_t * sem_init_handler(char * name, uint64_t value){
+    return sem_init(name, value);
+}
+
+sem_t * sem_open_handler(char * name, uint64_t value, open_modes mode){
+    return sem_open(name, value, mode);
 }
 
 int8_t sem_wait_handler(sem_t * sem){
@@ -283,7 +287,8 @@ void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length){
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
                   &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
                     &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler, &read_handler, &get_info_handler,
-                    &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler};
+                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler};
+
 void* syscall_dispatcher(uint64_t syscall_num){
     if(syscall_num<0 || syscall_num>=35){
         return NULL;

@@ -46,8 +46,8 @@ void get_info_handler(pipe_user_info * user_data, int * count);
 
 
 // Syscalls de semaforos
-//int8_t sem_init_handler(sem_t * sem, uint64_t value, char * name);
-sem_t * sem_open_handler(char * name, uint64_t value);
+sem_t * sem_init_handler(char * name, uint64_t value);
+sem_t * sem_open_handler(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait_handler(sem_t * sem);
 int8_t sem_post_handler(sem_t * sem);
 int8_t sem_close_handler(sem_t * sem);

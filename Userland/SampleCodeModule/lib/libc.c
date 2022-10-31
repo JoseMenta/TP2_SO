@@ -395,8 +395,12 @@ void get_info(pipe_user_info * user_data, int * count){
     sys_get_info(user_data, count);
 }
 
-sem_t sem_open(char * name, uint64_t value){
-    return sys_sem_open(name, value);
+sem_t sem_init(char * name, uint64_t value){
+    return sys_sem_init(name, value);
+}
+
+sem_t sem_open(char * name, uint64_t value, open_modes mode){
+    return sys_sem_open(name, value, mode);
 }
 
 int8_t sem_wait(sem_t sem){

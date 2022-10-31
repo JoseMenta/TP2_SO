@@ -53,6 +53,7 @@ typedef struct{
 
 
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
+
 // Codigo de errores del semaforo
 // OK: La operacion se realizo exitosamente
 // ERR_MM: Error en la alocacion de memoria
@@ -62,6 +63,12 @@ typedef struct{
 // ERR_SEM_NOT_INIT: No se inicializo el semaforo
 // ERR_SCHEDULER: No se pudo bloquear el proceso
 typedef enum {OK = 0, ERR_MM = -1, ERR_NAME = -2, ERR_NOT_FOUND = -3, ERR_NOT_INIT = -4, ERR_SEM_NOT_INIT = -5, ERR_SCHEDULER = -6} error_code;
+
+// Acciones a realizar para la funcion sem_open si no se encuentra el semaforo
+// O_CREATE: Crear un nuevo semaforo
+// O_NULL: Devolver NULL
+// Si se indica cualquier otro valor, se asume O_NULL
+typedef enum {O_CREATE = 0, O_NULL} open_modes;
 
 // Manejo de semaforos
 typedef void* sem_t;
@@ -144,7 +151,8 @@ int sys_close_fd(int fd);
 //int sys_read(int fd, char * buf, int count);
 void sys_get_info(pipe_user_info * user_data, int * count);
 
-sem_t sys_sem_open(char * name, uint64_t value);
+sem_t sys_sem_init(char * name, uint64_t value);
+sem_t sys_sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sys_sem_wait(sem_t  sem);
 int8_t sys_sem_post(sem_t  sem);
 int8_t sys_sem_close(sem_t  sem);
@@ -156,7 +164,9 @@ int open_fifo(Pipe_modes mode, char * name);
 int link_pipe_named(Pipe_modes mode, char * name);
 int close_fd(int fd);
 void get_info(pipe_user_info * user_data, int * count);
-sem_t sem_open(char * name, uint64_t value);
+
+sem_t sem_init(char * name, uint64_t value);
+sem_t sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait(sem_t sem);
 int8_t sem_post(sem_t  sem);
 int8_t sem_close(sem_t  sem);

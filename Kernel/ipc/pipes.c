@@ -301,7 +301,7 @@ int64_t pipe_compare(pipe_info * elem1, pipe_info * elem2){
 pipe_info * create_info_pipe(char * name){
     pipe_info * aux = mm_alloc(sizeof(pipe_info));
 //    aux->lock = mm_alloc(sizeof (sem_t));
-    if((aux->lock=sem_open(NULL, 1)) != NULL){
+    if((aux->lock=sem_init(NULL, 1)) != NULL){
         mm_free(aux->lock);
         mm_free(aux);
         return NULL;
