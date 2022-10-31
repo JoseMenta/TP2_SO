@@ -20,7 +20,7 @@ static uint64_t new_pid = 1;
 uint64_t scheduler_ticks = 0;
 static PCB* current_process=NULL;
 #define BASE_PRIORITY 2
-#define CHECK_PID(pid) (pid>=1 && pid<new_pid && HashProcess_get(hash,pid)!=NULL)
+#define CHECK_PID(pid,elem) (pid>=1 && pid<new_pid && hashADT_get(hash,elem)!=NULL)
 //TODO: en el pid=0, guardamos al proceso default
 extern void idle_process();
 
@@ -34,7 +34,7 @@ int initialize_scheduler(){
     if(rr==NULL){
         return -1;
     }
-    hash = newHashADT();
+    hash = new_hashADT(elemType_prehash,elemType_compare_to);
     if(hash==NULL){
         return -1;
     }
@@ -55,11 +55,11 @@ int initialize_scheduler(){
     new_process->priority = BASE_PRIORITY;
     new_process->waiting_processes = NULL;
     new_process->foreground = 0; //Es de background
-    new_process->waiting_processes = new_queueADT();
+    new_process->waiting_processes = new_queueADT(elemType_compare_to);
     new_process->waiting_count = 0;
     //No se lo carga en RR, para ejecutarlo solo cuando no hay otros
 //    hash[0] = new_process;
-    HashProcess_add(hash, new_process);
+    hashADT_add(hash, new_process);
     return 0;
 }
 //devuelve el pid del proceso si no hubo error, -1 si hubo error
@@ -81,12 +81,12 @@ int create_process(executable_t* executable){
     new_process->foreground = executable->foreground;
     new_process->priority = BASE_PRIORITY;
     new_process->waiting_count = 0;
-    new_process->waiting_processes = new_queueADT(); //para despertar a los que estan esperando solo si lo estan esperando
+    new_process->waiting_processes = new_queueADT(elemType_compare_to); //para despertar a los que estan esperando solo si lo estan esperando
     //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
     //Si no, podria despertar al padre de un pipe y no tiene que ser asi
 //    hash[new_pid++]=new_process;
     new_pid++;
-    HashProcess_add(hash, new_process);
+    hashADT_add(hash, new_process);
     if( RR_add_process(rr,new_process,BASE_PRIORITY)==-1){
         return -1;
     }
@@ -95,12 +95,14 @@ int create_process(executable_t* executable){
 //Cambia el estado de un proceso a bloqueado
 //No cambia el proceso que va a seguir ejecutandose luego de la llamada
 //por lo que si se bloquea al proceso que se esta ejecutando, se debe llamar a la funcion para elegir el proceso que sigue3
-int block_process(int pid){
-    if(!CHECK_PID(pid)){
+int block_process(uint64_t pid){
+    PCB wanted;
+    wanted.pid = pid;
+    if(!CHECK_PID(pid,&wanted)){
         return -1;
     }
-//    PCB* process = hash[pid];
-    PCB* process = HashProcess_get(hash,pid);
+
+    PCB* process = hashADT_get(hash,&wanted);
     if(process->status==FINISHED || process->status == BLOCKED){
         return -1;
     }
@@ -119,12 +121,14 @@ int yield_current_process(){
     return 0;
 }
 //TODO: ver si tenemos que guardar el valor de retorno en rax, aunque creo que el wait no lo espera
-int terminate_process(int pid){
-    if(!CHECK_PID(pid)){
+int terminate_process(uint64_t pid){
+    PCB wanted;
+    wanted.pid = pid;
+    if(!CHECK_PID(pid,&wanted)){
         return -1;
     }
 //    PCB* process = hash[pid];
-    PCB* process = HashProcess_get(hash,pid);
+    PCB* process = hashADT_get(hash,&wanted);
     process->status = FINISHED;
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
     //Liberamos ahora a la memoria, pero en el caso donde esta terminando el proceso que se estaba ejecutando, hay que
@@ -143,11 +147,14 @@ int terminate_process(int pid){
 }
 //cambia la prioridad de un proceso dado su pid
 int change_process_priority(uint64_t pid, uint8_t new_priority){
-    if(!CHECK_PID(pid) || !CHECK_PRIORITY(new_priority)){
+    PCB wanted;
+    wanted.pid = pid;
+    if(!CHECK_PID(pid,&wanted) || !CHECK_PRIORITY(new_priority)){
         return -1;
     }
 //    PCB* process = hash[pid];
-    PCB* process = HashProcess_get(hash,pid);
+
+    PCB* process = hashADT_get(hash,&wanted);
     //PCB* process = HashProcess_get(myHash, pid);
     //Lo tenemos que mover a la cola de la nueva prioridad si esta en el RR o deberia estar
 //    if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
@@ -158,12 +165,15 @@ int change_process_priority(uint64_t pid, uint8_t new_priority){
     process->priority=new_priority;
     return 0;
 }
-int unblock_process(int pid){
-    if(!CHECK_PID(pid)){
+int unblock_process(uint64_t pid){
+    PCB wanted;
+    wanted.pid = pid;
+
+    if(!CHECK_PID(pid,&wanted)){
         return -1;
     }
 //    PCB* process = hash[pid];
-    PCB* process = HashProcess_get(hash,pid);
+    PCB* process = hashADT_get(hash,&wanted);
     if(process->status!=BLOCKED){
         return -1;
     }
@@ -184,9 +194,11 @@ void* scheduler(void* curr_rsp){
     }
     //Si corresponde, guardamos al proceso que se estaba ejecutando para que siga luego
     if(current_process!=NULL){
+        PCB aux;
+        aux.pid = 0;
         //si tenemos que dejarlo para mas adelante
 //        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!=hash[0]){
-        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= HashProcess_get(hash,0)){
+        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= hashADT_get(hash,&aux)){
             current_process->status = READY;
             RR_add_process(rr,current_process,current_process->priority);
         }
@@ -198,7 +210,9 @@ void* scheduler(void* curr_rsp){
         //si no hay procesos listos, debemos ejecutar al proceso default
         //Notar que no le ponemos el estado en EXECUTE para que intente salir en el proximo tt
 //        current_process = hash[0];
-        current_process = HashProcess_get(hash,0);
+        PCB aux;
+        aux.pid = 0;
+        current_process = hashADT_get(hash,&aux);
         return current_process->sp;
     }
     scheduler_ticks = 0; //reiniciamos los ticks para el nuevo proceso
@@ -208,11 +222,13 @@ void* scheduler(void* curr_rsp){
     return current_process->sp;
 }
 
-int waitPid(int pid){
-    if(!CHECK_PID(pid)){
+int waitPid(uint64_t pid){
+    PCB wanted;
+    wanted.pid = pid;
+    if(!CHECK_PID(pid,&wanted)){
         return -1;
     }
-    PCB* waited = HashProcess_get(hash,pid);
+    PCB* waited = hashADT_get(hash,&wanted);
     //Me agrego a la lista de los que estan esperando para que me despierte cuando termine
 //    if(hash[pid]->status!=FINISHED){
     if(waited->status!=FINISHED){
@@ -254,7 +270,7 @@ int waitPid(int pid){
     if(waited->waiting_count==0){
         //si soy el ultimo en hacer wait, lo saco del hash
         //TODO: sacar del hash
-        HashProcess_delete(hash,waited);
+        hashADT_delete(hash,waited);
         mm_free(waited);
     }
     //TODO: ver si llego a devolver el valor de retorno
@@ -271,10 +287,12 @@ PCB * get_current_pcb(){
 }
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count){
     //TODO: cambiar por el iterador del hash map
+    PCB wanted;
     int32_t index = 0;
     for(int i = 0; i<max_count && i<new_pid; i++){
 //        PCB* process = hash[i];
-        PCB* process = HashProcess_get(hash,i);
+        wanted.pid = i;
+        PCB* process = hashADT_get(hash,&wanted);
         if(process!=NULL){
             processInfo[index].name = process->name;
             processInfo[index].pid = process->pid;

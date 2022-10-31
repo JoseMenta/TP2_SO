@@ -2,13 +2,13 @@
 
 #ifndef TPE_SCHEDULER_H
 #define TPE_SCHEDULER_H
+#define MAXFD 5
 #include <stdint.h>
 #include "pipe_struct.h"
-
-//#include <queueADT.h>
+#include <queueADT.h>
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
-typedef struct queueCDT* queueADT;
+
 typedef struct{
     char* name;
     uint64_t pid;
@@ -41,14 +41,14 @@ typedef struct{
 int initialize_scheduler();
 int create_process(executable_t* executable);
 int yield_current_process();
-int block_process(int pid);
-int terminate_process(int pid);
+int block_process(uint64_t pid);
+int terminate_process(uint64_t pid);
 int change_process_priority(uint64_t pid, uint8_t new_priority);
-int unblock_process(int pid);
+int unblock_process(uint64_t pid);
 uint64_t get_current_pid();
 PCB * get_current_pcb();
 void* scheduler(void* curr_rsp);
-int waitPid(int pid);
+int waitPid(uint64_t pid);
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t get_process_count();
 //Inicio scheduler arqui

@@ -1,7 +1,11 @@
 #include <HashADT.h>
 #include <mm.h>
+#include <stddef.h>
 // #include <stdio.h>
 
+//TODO: sacar
+#include "../include/HashADT.h"
+#include "../include/mm.h"
 typedef struct HashCDT{
     orderListADT lists[SIZE];       // Listas del hash
     prehash_function pre_hash;      // Funcion de prehasheo

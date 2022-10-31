@@ -1,6 +1,7 @@
 //
 // Created by Jose Menta on 22/10/2022.
 //
+#include <DS.H>
 #include "../include/RRADT.h"
 #include "../include/RRLevelADT.h"
 #include "../include/mm.h"

@@ -1,8 +1,12 @@
 
 #include <orderListADT.h>
 #include <mm.h>
+#include <stddef.h>
 // #include <stdio.h>
 
+//TODO: sacar
+#include "../include/orderListADT.h"
+#include "../include/mm.h"
 typedef struct node{
     void * data;                    // Dato generico a guardar
     struct node * next;             // Proximo nodo en la lista
@@ -280,14 +284,14 @@ void * orderListADT_next(orderListADT myListADT){
     return aux;
 }
 
-
-//Para testeo
-void printList(orderListADT myListADT){
-    if(myListADT == NULL)
-        return;
-    node_t * aux = myListADT->first;
-    while(aux != NULL){
-        printf(" %d ->", *(uint32_t *)aux->data);
-        aux = aux->next;
-    }
-}
+//
+////Para testeo
+//void printList(orderListADT myListADT){
+//    if(myListADT == NULL)
+//        return;
+//    node_t * aux = myListADT->first;
+//    while(aux != NULL){
+//        printf(" %d ->", *(uint32_t *)aux->data);
+//        aux = aux->next;
+//    }
+//}

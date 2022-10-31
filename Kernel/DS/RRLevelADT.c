@@ -1,6 +1,7 @@
 //
 // Created by Jose Menta on 19/10/2022.
 //
+#include <DS.H>
 #include <RRLevelADT.h>
 #include "../include/RRLevelADT.h"
 #include <queueADT.h>
@@ -8,6 +9,8 @@
 #include <mm.h>
 #include "../include/mm.h"
 
+//TODO: sacar
+#include "../include/DS.h"
 struct RRLevelCDT {
     queueADT to_execute;
     queueADT executed;
@@ -20,8 +23,8 @@ RRLevelADT new_RRLevel(uint8_t priority, uint8_t tt_interval){
     if(ans==NULL){
         return NULL;
     }
-    ans->to_execute = new_queueADT();
-    ans->executed = new_queueADT();
+    ans->to_execute = new_queueADT(elemType_compare_to);
+    ans->executed = new_queueADT(elemType_compare_to);
     ans->priority = priority;
     ans->tt_interval = tt_interval;
     return ans;

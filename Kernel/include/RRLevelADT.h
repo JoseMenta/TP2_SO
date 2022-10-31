@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <queueADT.h>
-
+#include <DS.h>
 typedef struct RRLevelCDT* RRLevelADT;
 
 RRLevelADT new_RRLevel(uint8_t priority, uint8_t tt_interval);
