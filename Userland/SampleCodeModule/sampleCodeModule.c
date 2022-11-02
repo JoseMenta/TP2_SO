@@ -12,17 +12,18 @@
 #include "./include/primos.h"
 #include "./include/test_util.h"
 #include "./include/libc.h"
+#include "../include/programs.h"
 
 void aa(){
     while(1){
-        print_string("a",WHITE);
+        print_string("a");
         pause_ticks(1);
     }
 }
 void bb(uint64_t pid){
     waitpid(pid);
     for(int i = 0; i<10; i++){
-        print_number( getpid(),WHITE);
+        print_number( getpid());
         pause_ticks(1);
     }
     return;
@@ -63,27 +64,27 @@ void print_scheduler_info(){
     uint64_t processes = sys_get_process_count();//OJO si son muchos!!!!
     process_info_t aux[8];
     processes = sys_get_scheduler_info(aux,processes);
-    print_string("\n",WHITE);//aca se rompe con new_pid = 71
+    print_string("\n");//aca se rompe con new_pid = 71
     char buf[20];
     for(int i = 0; i<processes; i++){
-        print_number(aux[i].pid,WHITE);
-        print_string(" ",WHITE);
-        print_string(aux[i].name,WHITE);
-        print_string(" ",WHITE);
-        print_string(status[aux[i].status],WHITE);
-        print_string(" ",WHITE);
-        print_number(aux[i].priority,WHITE);
-        print_string(" ",WHITE);
-        print_string(to_hex(buf,aux[i].bp),WHITE);
-        print_string(" ",WHITE);
-        print_string(to_hex(buf,aux[i].sp),WHITE);
-        print_string(" ",WHITE);
-        print_number(aux[i].foreground,WHITE);
-        print_string("\n",WHITE);
+        print_number(aux[i].pid);
+        print_string(" ");
+        print_string(aux[i].name);
+        print_string(" ");
+        print_string(status[aux[i].status]);
+        print_string(" ");
+        print_number(aux[i].priority);
+        print_string(" ");
+        print_string(to_hex(buf,aux[i].bp));
+        print_string(" ");
+        print_string(to_hex(buf,aux[i].sp));
+        print_string(" ");
+        print_number(aux[i].foreground);
+        print_string("\n");
     }
 }
 int main(uint64_t arg_c, char** arg_v) {
-//    bash(arg_c,arg_v);
+    bash(arg_c,arg_v);
 //    char* aux[] = {"4","1",NULL};
 //    executable_t prio_test = {"test_sync",&test_processes,1,aux,0};
 //    uint64_t pid = sys_exec(&prio_test);
@@ -94,8 +95,8 @@ int main(uint64_t arg_c, char** arg_v) {
 //        write_pipe(1,"a",2);
 //        pause_ticks(1);
 //    }
-    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
-    uint64_t pid = sys_exec(&pipes_test);
+//    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
+//    uint64_t pid = sys_exec(&pipes_test);
 
 /*
     char* aux[] = {"100","1",NULL};
@@ -108,9 +109,9 @@ int main(uint64_t arg_c, char** arg_v) {
 //    }
 */
 
-    waitpid(pid);
+//    waitpid(pid);
     while (1){
-        print_string("a",WHITE);
+        print_string("a");
         pause_ticks(1);
     }
 //    for(int i = 0; i<100; i++){

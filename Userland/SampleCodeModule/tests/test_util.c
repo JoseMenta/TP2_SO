@@ -70,7 +70,7 @@ void endless_loop_print(uint64_t wait){
 
     while(1){
 //        printf("%d ",pid);
-        print_number(pid,WHITE);
+        print_number(pid);
         bussy_wait(wait);
     }
 }

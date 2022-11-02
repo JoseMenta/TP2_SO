@@ -28,7 +28,7 @@ void test_prio(){
     }
     bussy_wait(WAIT);
     bussy_wait(WAIT);
-    print_string("\nCHANGING PRIORITIES...\n",WHITE);
+    print_string("\nCHANGING PRIORITIES...\n");
 //    printf("\nCHANGING PRIORITIES...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
@@ -37,21 +37,21 @@ void test_prio(){
     }
     bussy_wait(WAIT);
     bussy_wait(WAIT);
-    print_string("\nBLOCKING...\n",WHITE);
+    print_string("\nBLOCKING...\n");
 //    printf("\nBLOCKING...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
         block_process(pids[i]);
 //        my_block(pids[i]);
     }
-    print_string("CHANGING PRIORITIES WHILE BLOCKED...\n",WHITE);
+    print_string("CHANGING PRIORITIES WHILE BLOCKED...\n");
 //    printf("CHANGING PRIORITIES WHILE BLOCKED...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
         nice(pids[i],MEDIUM);
 //        my_nice(pids[i], MEDIUM);
     }
-    print_string("UNBLOCKING...\n",WHITE);
+    print_string("UNBLOCKING...\n");
 //    printf("UNBLOCKING...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
@@ -61,7 +61,7 @@ void test_prio(){
 
     bussy_wait(WAIT);
     bussy_wait(WAIT);
-    print_string("\nKILLING...\n",WHITE);
+    print_string("\nKILLING...\n");
 //    printf("\nKILLING...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {

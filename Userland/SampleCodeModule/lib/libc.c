@@ -26,21 +26,11 @@ front_program_t programs[CANT_PROG] = {
 
 void number_to_string(uint64_t number, char * str);
 
-// Funcion para comparacion de string
-uint64_t strcmp(const char *X, const char *Y)
-{
-    while (*X)
-    {
-        if (*X != *Y) {
-            break;
-        }
-        X++;
-        Y++;
-    }
-    return *(const unsigned char*)X - *(const unsigned char*)Y;
-}
 
-// Function para implementar strcpy localmente
+
+//---------------------------------------------------------------------------------
+// strcpy: implementacion local de strcpy
+//---------------------------------------------------------------------------------
 char* strcpy(char* destination, const char* source){
     if (destination == NULL) {
         return NULL;
@@ -56,7 +46,9 @@ char* strcpy(char* destination, const char* source){
     return ptr;
 }
 
-//Funcion para strlen
+//---------------------------------------------------------------------------------
+// strlen: implementacion local de strlen
+//---------------------------------------------------------------------------------
 unsigned int strlen(const char *s)
 {
     unsigned int count = 0;
@@ -69,6 +61,21 @@ unsigned int strlen(const char *s)
 }
 
 //---------------------------------------------------------------------------------
+// strcmp: implementacion local de strcmp
+//---------------------------------------------------------------------------------
+uint64_t strcmp(const char *X, const char *Y)
+{
+    while (*X){
+        if (*X != *Y) {
+            break;
+        }
+        X++;
+        Y++;
+    }
+    return *(const unsigned char*)X - *(const unsigned char*)Y;
+}
+
+//---------------------------------------------------------------------------------
 // getChar: lectura de un caracter con sys_call de lectura
 //---------------------------------------------------------------------------------
 // Argumentos:
@@ -78,11 +85,30 @@ unsigned int strlen(const char *s)
 //      caracter leido o 0 si no se leyo un caracter
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
-    char c[2];
-    int ret = read(0, c, 2);
-    if(ret == 0) //Si no leyo caracteres
+    char c;
+    int ret = read(0, &c, 1);
+    if(ret == 0){
         return 0;
-    return c[0];
+    } //Si no leyo caracteres
+    return c;
+}
+
+//---------------------------------------------------------------------------------
+// getChar_fd: lectura de un caracter del fd con sys_call de lectura
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      fd: fd del que se quiere leer
+//---------------------------------------------------------------------------------
+// Retorno:
+//      caracter leido o 0 si no se leyo un caracter
+//---------------------------------------------------------------------------------
+uint8_t get_char_fd(int fd){
+    char c;
+    int ret = read(fd, &c, 1);
+    if(ret == 0){
+        return 0;
+    } //Si no leyo caracteres
+    return c;
 }
 
 
@@ -99,6 +125,39 @@ uint8_t get_char(void){
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
 uint32_t get_line(char* buf, uint32_t max_len){
+    int read = 0;
+    char c;
+    for(; (c = get_char()) != '\n' && read<max_len; read++){
+        buf[read]=c;
+    }
+    buf[read] = '\n';
+    return read;
+}
+
+//---------------------------------------------------------------------------------
+// get_line_fd: lectura de una linea (hasta \n) de fd e imprime en pantalla a medida que lee
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      fd: de donde se quiere leer
+//      buf: el buffer donde se guarda el resultado
+//      max_len: la longitud maxima de caracteres que se puede guardar (incluyendo el \0)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      La cantidad de caracteres leidos (incluyendo a \n), sin incluir \0
+//      Devuelve a la linea o max_len caracteres, lo que ocurra antes
+//      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
+//---------------------------------------------------------------------------------
+uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
+    int read = 0;
+    char c;
+    for(; (c = get_char_fd(fd)) != '\n' && read<max_len; read++){
+        buf[read]=c;
+    }
+    buf[read] = '\n';
+    return read;
+}
+/*
+uint32_t get_line(char* buf, uint32_t max_len){
     uint32_t curr = 0;
     int finished = 0;
 //    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
@@ -106,7 +165,7 @@ uint32_t get_line(char* buf, uint32_t max_len){
         long aux = 0;
         //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
         aux = read(STDIN,buf,(max_len-curr));
-        write(STDOUT,buf,aux);
+        //write(STDOUT,buf,aux);
         for(uint32_t i = curr; i<curr+aux && !finished; i++){
             if(buf[i]=='\n'){
                 buf[i+1]='\0';
@@ -123,6 +182,7 @@ uint32_t get_line(char* buf, uint32_t max_len){
     } while (!finished);
     return curr;
 }
+*/
 
 //---------------------------------------------------------------------------------
 // printString: imprime un String
@@ -133,8 +193,22 @@ uint32_t get_line(char* buf, uint32_t max_len){
 // Retorno:
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
-uint8_t print_string(const char * s1, formatType format){
+uint8_t print_string(const char * s1){
     return write(STDOUT, s1, strlen(s1));
+}
+
+//---------------------------------------------------------------------------------
+// printString_fd: imprime un String en fd
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      void printString(char * s1)
+//      fd: a donde se quiere imprimir
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_string_fd(const char * s1, int fd){
+    return write(fd, s1, strlen(s1));
 }
 
 //---------------------------------------------------------------------------------
@@ -146,10 +220,26 @@ uint8_t print_string(const char * s1, formatType format){
 // Retorno:
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
-uint8_t print_number(uint64_t number, formatType format){
+uint8_t print_number(uint64_t number){
     char str[MAX_NUMBER_LENGTH];
     number_to_string(number, str);
-    return print_string(str, format);
+    return print_string(str);
+}
+
+//---------------------------------------------------------------------------------
+// printNumber_fd: imprime un Numero en fd
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      void printString(int number, int format)
+//      fd: donde se quiere imprimir
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_number_fd(uint64_t number, int fd){
+    char str[MAX_NUMBER_LENGTH];
+    number_to_string(number, str);
+    return print_string_fd(str, fd);
 }
 
 //---------------------------------------------------------------------------------
@@ -204,25 +294,6 @@ void number_to_string(uint64_t num, char * str){
     str[i] = '\0';
 }
 
-
-//---------------------------------------------------------------------------------
-// strcmp: comparar dos string
-//---------------------------------------------------------------------------------
-// Argumentos:
-//   s1: El primer string
-//   s2: El segundo string
-//---------------------------------------------------------------------------------
-// Retorno
-//   s1 - s2 =>
-//   s1 = s2 retorno 0
-//   s1 > s2 retorno positivo
-//   s1 < s2 retorno negativo
-//---------------------------------------------------------------------------------
-uint64_t strcmp(const char* s1, const char* s2){
-    int i;
-    for(i=0; s1[i]!='\0' && s2[i]!='\0' && s1[i]==s2[i]; i++);
-    return s1[i]-s2[i];
-}
 
 //---------------------------------------------------------------------------------
 // get_program: Devuelve el programa asociado al string str
@@ -378,7 +449,8 @@ void throw_error(char * str){
     // print_string(str, STDERR);
     // print_string("\n\n", WHITE);
 //    exit();
-    sys_exit();
+//TODO: revisar de hacer un error expulsivo y otro no quizas
+    //sys_exit();
 }
 
 //---------------------------------------------------------------------------------

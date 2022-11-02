@@ -20,19 +20,13 @@ void primos(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=0){
         throw_error("Error: el programa no recibe argumentos");
     }
-    char buff[10];
-    char c;
-    for(int i=0; i<10 && (c = get_char()); i++){
-        buff[i] = c;
-    }
-    write(STDIN, buff, 11);
    for(uint64_t i=FIRST_PRIME; i<=10 ; i++){
         if(is_prime(i)){
             //TODO: revisar cuando se pasan valores mayores a 4, pues se reinician los ticks en el scheduler
            pause_ticks(1);
 //            yield();
-           print_number(i, WHITE);
-           print_string(" ", WHITE);
+           print_number(i);
+           print_string(" ");
         }
    }
 //   exit();

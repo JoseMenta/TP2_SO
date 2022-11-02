@@ -67,7 +67,7 @@ void write_pipe_name(){
 void read_pipe_name(){
     int fd = link_pipe_named(O_RDWR, "PorFavor");
     char buf[20];
-    read_pipe(fd, buf, 20);
+    read(fd, buf, 20);
     write(1, buf, 20);
     close_fd(fd);
     return;
@@ -91,7 +91,7 @@ void first_read_name(){
 void write_pipe_name2(){
     int fd = link_pipe_named(O_RDWR, "PorFavor2");
     write(fd, "con Nombre\n", 20);
-    write_pipe(fd, "con Nombre2\n", 20);
+    write(fd, "con Nombre2\n", 20);
     close_fd(fd);
     return;
 }
@@ -99,7 +99,7 @@ void write_pipe_name2(){
 void read_pipe_name2(){
     int fd = open_fifo(O_RDWR, "PorFavor2");
     char buf[30];
-    read_pipe(fd, buf, 30);
+    read(fd, buf, 30);
     write(1, buf, 30);
     close_fd(fd);
     return;
@@ -111,22 +111,22 @@ void read_pipe_name2(){
 //-----------------------------------------------------------------------------------------
 void stdin_test(){
     char buff[20];
-    char aux[2];
+    char c;
     write(1, "Ingresar texto: ", 20);
-    for(int i=0; aux[0]!='\n'; i++){
-        read_pipe(0, aux, 1);
-        buff[i]=aux[0];
+    int i=0;
+    for(; (c = get_char()) != '\n' && i<20; i++){
+        buff[i]=c;
     }
-    write_pipe(1, buff, 10);
+    buff[i]='\0';
+    write(1, buff, 10);
 
-    aux[0]='\0';
-
-    write_pipe(1, "\nIngresar texto: ", 20);
-    for(int i=0; aux[0]!='\n'; i++){
-        read_pipe(0, aux, 1);
-        buff[i]=aux[0];
+    char buff2[20];
+    write(1, "\nIngresar texto: ", 20);
+    i=0;
+    for(; (c = get_char()) != '\n' && i<20; i++){
+        buff2[i]=c;
     }
-    write_pipe(1, buff, 10);
+    write(1, buff2, 10);
     return;
 }
 
@@ -177,7 +177,7 @@ void write_pipe_common(){
 
 void read_pipe_common(){
     char buf[20];
-    read_pipe(0, buf, 20);
+    read(0, buf, 20);
     write(1, buf, 20);
     return;
 }

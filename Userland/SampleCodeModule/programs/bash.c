@@ -30,14 +30,16 @@ void copy_token(char * token, int * start_token, int end_token);
 //---------------------------------------------------------------------------------
 void bash(uint64_t arg_c, char ** arg_v){
     if(arg_c!=0){
+        write(1, "error", 100);
         throw_error("Error: el programa no recibe argumentos");
     }
-    write(STDOUT, "Bienvenido!\nQue modulo desea correr?\n$ ", MAX_BUFFER_SIZE);
+    print_string("Bienvenido!\nQue modulo desea correr?\n");
     // print_string("Bienvenido!\nQue modulo desea correr?\n$ ",WHITE);
     while(1){
+        print_string("$");
         int len = get_line(buffer,MAX_BUFFER_SIZE);
         if(len==MAX_BUFFER_SIZE-1 && buffer[len-1]=='\n'){
-            write(STDOUT,"No fue posible leer lo ingresado, por favor intente nuevamente",MAX_BUFFER_SIZE);
+            print_string("No fue posible leer lo ingresado, por favor intente nuevamente\n$");
         }else{
             analyze_buffer();
         }
@@ -60,7 +62,7 @@ void analyze_buffer(void) {
     int new_token = str_tok(buffer + prev_token, ' ');
     // Si no se ingreso texto, solo ENTER, no se hace nada
     if(new_token == 0){
-        write(STDOUT, "\n", MAX_BUFFER_SIZE);
+        print_string("\n");
         // print_string("\n", WHITE);
         return;
     }
@@ -76,7 +78,7 @@ void analyze_buffer(void) {
             clear();
             return;
         } else {
-            write(STDERR, "\nERROR: expresion invalida\n", MAX_BUFFER_SIZE);
+            throw_error("ERROR: expresion invalida");
             // print_string("\nERROR: expresion invalida\n", RED);
             clean_buffer();
             return;
@@ -88,7 +90,7 @@ void analyze_buffer(void) {
     // Si no se encontro programa, entonces no es un string valido
     if (program_a == NULL) {
         // Lanzar error: El primer string es un programa valido
-        write(STDERR, "\nERROR: programa invalido\n", MAX_BUFFER_SIZE);
+        throw_error("ERROR: programa invalido");
         // print_string("\nERROR: programa invalido\n", RED);
         return;
     }
@@ -127,7 +129,7 @@ void analyze_buffer(void) {
         new_token = str_tok(buffer+prev_token+1, ' ');
         //si no hay un pipe, tengo que ejecutar uno solo
         if(new_token!=0){
-            write(STDERR,"\nERROR: Programa de consola derecha ausente\n",MAX_BUFFER_SIZE);
+            throw_error("ERROR: Programa de consola derecha ausente");
             clean_buffer();
             return;
         }
@@ -147,7 +149,7 @@ void analyze_buffer(void) {
     new_token = str_tok(buffer+prev_token+1, ' ');
     if(new_token == 0){
         // Lanzar error: Hubo un pipe pero no hubo un string despues de él
-        write(STDERR,"\nERROR: Programa a la derecha del pipe ausente\n",MAX_BUFFER_SIZE);
+        throw_error("ERROR: Programa a la derecha del pipe ausente");
 //        print_string("\nERROR: Programa de consola derecha ausente\n", RED);
         clean_buffer();
         return;
@@ -160,7 +162,7 @@ void analyze_buffer(void) {
     // Si no lo es lanza error
     if (program_b == NULL) {
         // Lanzar error: Programa invalido
-        write(STDERR, "\nERROR: programa para consola derecha invalido\n", MAX_BUFFER_SIZE);
+        throw_error("ERROR: programa para consola derecha invalido");
         // print_string("\nERROR: programa para consola derecha invalido\n", RED);
         clean_buffer();
         return;

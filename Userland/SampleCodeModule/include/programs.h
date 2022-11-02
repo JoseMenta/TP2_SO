@@ -7,7 +7,7 @@
 
 #define COUNT_REGS (18)
 
-
+void bash(uint64_t arg_c, char ** arg_v);
 
 typedef uint8_t (* time_func) ();
 

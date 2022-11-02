@@ -18,18 +18,18 @@ void printmem(uint64_t arg_c, const char** arg_v){
     uint8_t mem_arr[32] = {0};
     sys_mem(init_dir, mem_arr);
     char str[21] = {0};                                                             // 2^64 tiene 20 digitos mas el "\0"
-    print_string("Datos almacenados a partir de la direccion 0x", WHITE);
-    print_string(to_hex(str, init_dir), WHITE);
-    print_string(":\n", WHITE);
+    print_string("Datos almacenados a partir de la direccion 0x");
+    print_string(to_hex(str, init_dir));
+    print_string(":\n");
     for(int i = 0; i < MAX_MEMORY_SIZE; i++){
-        print_string("0x", WHITE);
-        print_string(to_hex(str, init_dir + i), WHITE);
-        print_string(": ", WHITE);
-        print_string("0x", WHITE);
-        print_string(to_hex(str, mem_arr[i]), WHITE);
-        (i%2==0)? print_string("\t", WHITE): print_string("\n", WHITE);
+        print_string("0x");
+        print_string(to_hex(str, init_dir + i));
+        print_string(": ");
+        print_string("0x");
+        print_string(to_hex(str, mem_arr[i]));
+        (i%2==0)? print_string("\t"): print_string("\n");
     }
-    print_string("\n", WHITE);
+    print_string("\n");
     sys_exit();
 }
 

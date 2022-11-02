@@ -75,15 +75,14 @@ int32_t read_handler(int fd, char * buf, int count) {
 //  format: el color de la letra que se desea usar
 //----------------------------------------------------------------------
 int32_t write_handler(int fd, const char * str, int count){
+    return write(fd, str, count);        // Imprime por pantalla
+}
 //    if(process_array_is_empty()){
 //        //No se cargaron procesos, por default imprime en LEFT
 //        positionType position = ALL;
 //        print(str, format, position);
 //        return 0;
 //    }
-    return write(fd, str, count);        // Imprime por pantalla
-    return 0;
-}
 //----------------------------------------------------------------------
 // exit_handler: termina el proceso que lo llama
 //----------------------------------------------------------------------

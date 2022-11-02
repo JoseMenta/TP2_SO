@@ -90,10 +90,9 @@ typedef struct {
 
 //#define NULL ((void*)0)
 #define CANT_PROG (13)
-#define STDOUT WHITE
-#define STDERR RED
+#define STDOUT 1
 
-int strcmp(const char *X, const char *Y);
+uint64_t strcmp(const char *X, const char *Y);
 char* strcpy(char* destination, const char* source);
 unsigned int strlen(const char *s);
 
@@ -124,8 +123,8 @@ int sys_dup(int oldfd);
 void * get_program(const char * str);
 char* get_program_name(void* program);
 uint8_t get_char(void);
-uint8_t print_string(const char * s1, formatType format);
-uint8_t print_number(uint64_t number, formatType format);
+uint8_t print_string(const char * s1);
+uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);
 uint64_t uintToBase(uint64_t value, char * buffer, uint64_t base);

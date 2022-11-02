@@ -35,7 +35,7 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
     if (use_sem)
 //        if (!my_sem_open(SEM_ID, 1)){
         if((sem=sem_open(SEM_ID,1, O_NULL))==NULL){
-            print_string("test_sync: ERROR opening semaphore\n",WHITE);
+            print_string("test_sync: ERROR opening semaphore\n");
 //            printf("test_sync: ERROR opening semaphore\n");
             return -1;
         }
@@ -71,7 +71,7 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
 
     sem_t sem;
     if((sem = sem_init(SEM_ID, 1)) == NULL){
-        print_string("test_sync: ERROR opening semaphore\n",WHITE);
+        print_string("test_sync: ERROR opening semaphore\n");
         return -1;
     }
 
@@ -96,13 +96,13 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
 
     sem_close(sem);
 
-    print_string("Final value: ",WHITE);
+    print_string("Final value: ");
 //    if(global<0){
 //        print_string("Negativo!",WHITE);
 //        global = -global;
 //    }
-    print_number(global,WHITE);
-    print_string("\n",WHITE);
+    print_number(global);
+    print_string("\n");
 //    printf("Final value: %d\n", global);
 
     return 0;

@@ -38,7 +38,6 @@ int pipe_initialize(){
     console_pipe = create_info_pipe("CONSOLE\0");
     console_pipe_restrict = create_restrict_pipe(CONSOLE, console_pipe);
     error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
-    //TODO: ver de sacar pero falla
     /*
     get_current_pcb()->fd[0] = console_pipe_restrict;
     get_current_pcb()->fd[1] = console_pipe_restrict;
