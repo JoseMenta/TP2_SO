@@ -10,8 +10,8 @@ typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8
 #define MAX_MEM_ADDRESS 0xFFFFFFFF8                             // A partir de la proxima direccion, falla (suponemos que es un seg fault)
 //#define NULL 0
 
-int32_t read_handler(char * str);                               // Lee por pantalla el siguiente caracter y lo copia en str
-int32_t write_handler(const char* str, formatType format);      // Escribe el string str por pantalla con el formato format
+int32_t read_handler(int fd, char * buf, int count);            // Lee por pantalla el siguiente caracter y lo copia en str
+int32_t write_handler(int fd, const char * str, int count);             // Escribe el string str por pantalla con el formato format
 //int32_t exec_handler(uint8_t cant, const executable_t* programas);                    // Agrega un nuevo proceso al arreglo de procesos
 int32_t exec_handler(executable_t* executable);
 int32_t exit_handler();                                         // Finaliza un proceso con codigo de error

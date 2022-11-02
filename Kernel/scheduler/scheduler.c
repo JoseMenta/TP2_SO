@@ -9,6 +9,7 @@
 #include <video_driver.h>
 #include <HashADT.h>
 #include <pipes.h>
+#include <stringLib.h>
 //TODO: sacar
 #include "../include/queueADT.h"
 #include "../include/video_driver.h"
@@ -16,7 +17,7 @@
 #include "../include/dispatcher.h"
 #include "../include/HashADT.h"
 #include "../include/pipes.h"
-
+#include "../include/stringLib.h"
 static RRADT rr = NULL;
 static uint64_t new_pid = 1;
 uint64_t scheduler_ticks = 0;
@@ -58,6 +59,8 @@ int initialize_scheduler(){
     new_process->bp = bp;
     new_process->name = "Idle process";
     new_process->sp = sp;
+    new_process->arg_c = 0;
+    new_process->arg_v = NULL;
     new_process->pid = 0;
     new_process->status = READY; //ESTO ES FUNDAMENTAL PARA QUE SIEMPRE QUE LLEGA EL TT INTENTE SACARLO
     new_process->priority = BASE_PRIORITY;
@@ -78,7 +81,19 @@ int create_process(executable_t* executable){
     }
     void* bp; //para guardar las direcciones donde se ubica el stack del proceso
     void* sp;
-    if(create_new_process_context(executable->arg_c,executable->arg_v,executable->start,&bp,&sp)==-1){
+    new_process->arg_c = executable->arg_c;
+    //Para que otro no cambie los argumentos si pasa una zona de memoria local
+    char** arg_v = executable->arg_v;
+    if(executable->arg_c!=0){
+        arg_v = mm_alloc(executable->arg_c*sizeof (char*));
+        for(int i = 0;i<executable->arg_c; i++){
+            char* aux = mm_alloc(strlen(executable->arg_v[i])*sizeof (char));
+            strcpy(aux,executable->arg_v[i]);
+            arg_v[i] = aux;
+        }
+    }
+    new_process->arg_v = arg_v;
+    if(create_new_process_context(new_process->arg_c,new_process->arg_v,executable->start,&bp,&sp)==-1){
         return -1;
     }
     new_process->bp = bp;
@@ -179,6 +194,12 @@ int terminate_process(uint64_t pid){
         unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
     }
     free_queueADT(process->waiting_processes);
+    for(int i = 0; i<process->arg_c; i++){
+        mm_free(process->arg_v[i]);
+    }
+    if(process->arg_c!=0){
+        mm_free(process->arg_v);
+    }
     return 0;
 }
 //cambia la prioridad de un proceso dado su pid

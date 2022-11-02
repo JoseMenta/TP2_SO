@@ -53,8 +53,9 @@ int32_t read_handler(char* str){
 // Retorno:
 //  1 o 0 segun leyo o no un caracter
 //----------------------------------------------------------------------
-int32_t read_handler(char* str){
-    read(1, str, 2);
+int32_t read_handler(int fd, char * buf, int count) {
+    return read(fd, buf, count);
+}
     /*
     pipe_info * console_pipe = get_pipe_console();
     if(console_pipe->index_write == console_pipe->index_read){
@@ -65,7 +66,6 @@ int32_t read_handler(char* str){
         return 1;
     }
      */
-}
 
 //----------------------------------------------------------------------
 // write_handler: imprime un string en la pantalla del proceso que lo llama
@@ -74,14 +74,14 @@ int32_t read_handler(char* str){
 //  str: el string que se desea imprimor
 //  format: el color de la letra que se desea usar
 //----------------------------------------------------------------------
-int32_t write_handler(const char * str, formatType format){
+int32_t write_handler(int fd, const char * str, int count){
 //    if(process_array_is_empty()){
 //        //No se cargaron procesos, por default imprime en LEFT
 //        positionType position = ALL;
 //        print(str, format, position);
 //        return 0;
 //    }
-    print(str, format, ALL);        // Imprime por pantalla
+    return write(fd, str, count);        // Imprime por pantalla
     return 0;
 }
 //----------------------------------------------------------------------

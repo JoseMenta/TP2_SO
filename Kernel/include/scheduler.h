@@ -9,6 +9,7 @@
 #include <queueADT.h>
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
+enum {STDIN=0, STDOUT, STDERR};
 
 typedef struct{
     char* name;
@@ -21,6 +22,8 @@ typedef struct{
     queueADT waiting_processes;
     uint64_t waiting_count;
     uint8_t foreground;
+    uint64_t arg_c;
+    char** arg_v;
 }PCB;
 typedef struct{
     char* name;

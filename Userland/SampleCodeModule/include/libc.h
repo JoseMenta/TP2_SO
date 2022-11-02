@@ -6,6 +6,7 @@
 #include <stddef.h>
 #define DEFAULTFD 3
 #define MAXLOCK 5
+
 typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
 typedef enum {BLACK=0x00, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, DARK_GREY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, PINK, YELLOW, WHITE} formatType;
 
@@ -92,8 +93,12 @@ typedef struct {
 #define STDOUT WHITE
 #define STDERR RED
 
-int32_t sys_write(const char * string, formatType format);
-int32_t sys_read(char * c);
+int strcmp(const char *X, const char *Y);
+char* strcpy(char* destination, const char* source);
+unsigned int strlen(const char *s);
+
+int32_t sys_write(int fd, const char * buf, int count);
+int32_t sys_read(int fd, char * buf, int count);
 int32_t sys_exec(executable_t* executable);
 uint8_t sys_exit(void);
 uint8_t sys_time(timeType time_unit);
@@ -170,8 +175,8 @@ int open_fifo(Pipe_modes mode, char * name);
 int link_pipe_named(Pipe_modes mode, char * name);
 int close_fd(int fd);
 void get_info(pipe_user_info * user_data, int * count);
-int write_pipe(int fd, const char * buf, int count);
-int read_pipe(int fd, char * buf, int count);
+int write(int fd, const char * buf, int count);
+int read(int fd, char * buf, int count);
 
 sem_t sem_init(char * name, uint64_t value);
 sem_t sem_open(char * name, uint64_t value, open_modes mode);

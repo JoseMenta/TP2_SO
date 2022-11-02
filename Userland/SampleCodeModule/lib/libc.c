@@ -4,6 +4,9 @@
 //TODO: sacar
 #include "../include/libc.h"
 #include "../include/os_tests.h"
+
+#define MAX_NUMBER_LENGTH 21
+
 front_program_t programs[CANT_PROG] = {
         {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
         {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
@@ -23,6 +26,48 @@ front_program_t programs[CANT_PROG] = {
 
 void number_to_string(uint64_t number, char * str);
 
+// Funcion para comparacion de string
+uint64_t strcmp(const char *X, const char *Y)
+{
+    while (*X)
+    {
+        if (*X != *Y) {
+            break;
+        }
+        X++;
+        Y++;
+    }
+    return *(const unsigned char*)X - *(const unsigned char*)Y;
+}
+
+// Function para implementar strcpy localmente
+char* strcpy(char* destination, const char* source){
+    if (destination == NULL) {
+        return NULL;
+    }
+    char *ptr = destination;
+    while (*source != '\0')
+    {
+        *destination = *source;
+        destination++;
+        source++;
+    }
+    *destination = '\0';
+    return ptr;
+}
+
+//Funcion para strlen
+unsigned int strlen(const char *s)
+{
+    unsigned int count = 0;
+    while(*s!='\0')
+    {
+        count++;
+        s++;
+    }
+    return count;
+}
+
 //---------------------------------------------------------------------------------
 // getChar: lectura de un caracter con sys_call de lectura
 //---------------------------------------------------------------------------------
@@ -34,7 +79,7 @@ void number_to_string(uint64_t number, char * str);
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
-    int ret = sys_read(c);
+    int ret = read(0, c, 2);
     if(ret == 0) //Si no leyo caracteres
         return 0;
     return c[0];
@@ -53,31 +98,31 @@ uint8_t get_char(void){
 //      Devuelve a la linea o max_len caracteres, lo que ocurra antes
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
-//uint32_t get_line(char* buf, uint32_t max_len){
-//    uint32_t curr = 0;
-//    int finished = 0;
-////    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
-//    do{
-//        long aux = 0;
-//        //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
-//        aux = sys_read(STDIN,buf,(max_len-curr));
-//        sys_write(STDOUT,buf,aux);
-//        for(uint32_t i = curr; i<curr+aux && !finished; i++){
-//            if(buf[i]=='\n'){
-//                buf[i+1]='\0';
-//                curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
-//                finished = 1;
-//            }
-//        }
-//        if(!finished){
-//            curr+=aux;
-//            if(curr+1==max_len){//aux<=max_len-curr => aux+curr<=max_len
-//                finished=1;
-//            }
-//        }
-//    } while (!finished);
-//    return curr;
-//}
+uint32_t get_line(char* buf, uint32_t max_len){
+    uint32_t curr = 0;
+    int finished = 0;
+//    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
+    do{
+        long aux = 0;
+        //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
+        aux = read(STDIN,buf,(max_len-curr));
+        write(STDOUT,buf,aux);
+        for(uint32_t i = curr; i<curr+aux && !finished; i++){
+            if(buf[i]=='\n'){
+                buf[i+1]='\0';
+                curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
+                finished = 1;
+            }
+        }
+        if(!finished){
+            curr+=aux;
+            if(curr+1==max_len){//aux<=max_len-curr => aux+curr<=max_len
+                finished=1;
+            }
+        }
+    } while (!finished);
+    return curr;
+}
 
 //---------------------------------------------------------------------------------
 // printString: imprime un String
@@ -89,7 +134,7 @@ uint8_t get_char(void){
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
 uint8_t print_string(const char * s1, formatType format){
-    return sys_write(s1, format);
+    return write(STDOUT, s1, strlen(s1));
 }
 
 //---------------------------------------------------------------------------------
@@ -102,7 +147,7 @@ uint8_t print_string(const char * s1, formatType format){
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
 uint8_t print_number(uint64_t number, formatType format){
-    char str[21];
+    char str[MAX_NUMBER_LENGTH];
     number_to_string(number, str);
     return print_string(str, format);
 }
@@ -198,14 +243,14 @@ void* get_program(const char * str){
     return NULL;
 }
 
-//char* get_program_name(void* program){
-//    for(int i = 0; i<CANT_PROG; i++){
-//        if(programs[i].start == program){
-//            return programs[i].name;
-//        }
-//    }
-//    return NULL;
-//}
+char* get_program_name(void* program){
+    for(int i = 0; i<CANT_PROG; i++){
+        if(programs[i].start == program){
+            return programs[i].name;
+        }
+    }
+    return NULL;
+}
 //-----------------------------------------------------------------------
 // uintToBase: Convierte un entero en la base indica por parametro en un string
 //-----------------------------------------------------------------------
@@ -325,9 +370,13 @@ uint64_t str_tok(char * buffer, char sep){
 //   - void
 //---------------------------------------------------------------------------------
 void throw_error(char * str){
-    print_string("\n", WHITE);
-    print_string(str, STDERR);
-    print_string("\n\n", WHITE);
+    uint64_t size = strlen(str);
+    write(STDERR, "\n", 1);
+    write(STDERR, str, size);
+    write(STDERR, "\n\n", 2);
+    // print_string("\n", WHITE);
+    // print_string(str, STDERR);
+    // print_string("\n\n", WHITE);
 //    exit();
     sys_exit();
 }
@@ -436,11 +485,11 @@ int link_pipe_named(Pipe_modes mode, char * name){
 int close_fd(int fd){
     return sys_close_fd(fd);
 }
-int write_pipe(int fd, const char * buf, int count){
-    return sys_write_pipe(fd, buf, count);
+int write(int fd, const char * buf, int count){
+    return sys_write(fd, buf, count);
 }
-int read_pipe(int fd, char * buf, int count){
-    return sys_read_pipe(fd, buf, count);
+int read(int fd, char * buf, int count){
+    return sys_read(fd, buf, count);
 }
 void get_info(pipe_user_info * user_data, int * count){
     sys_get_info(user_data, count);

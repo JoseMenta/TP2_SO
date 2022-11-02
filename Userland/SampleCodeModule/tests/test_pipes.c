@@ -27,7 +27,7 @@ void full_pipes(){
     }
     pipe(fd);
     if (fd[0] == -1 && fd[1] == -1){
-        write_pipe(1, "OK\n", 3);
+        write(1, "OK\n", 3);
     }
     return;
 }
@@ -37,7 +37,7 @@ void full_pipes(){
 //      probar la impresion diferente de errores
 //-----------------------------------------------------------------------------------------
 void error_test(){
-    write_pipe(2, "Error\n", 10);
+    write(2, "Error\n", 10);
     return;
 }
 
@@ -59,7 +59,7 @@ void first_write_name(){
 
 void write_pipe_name(){
     int fd = open_fifo(O_RDWR, "PorFavor");
-    write_pipe(fd, "con Nombre\n", 20);
+    write(fd, "con Nombre\n", 20);
     close_fd(fd);
     return;
 }
@@ -68,7 +68,7 @@ void read_pipe_name(){
     int fd = link_pipe_named(O_RDWR, "PorFavor");
     char buf[20];
     read_pipe(fd, buf, 20);
-    write_pipe(1, buf, 20);
+    write(1, buf, 20);
     close_fd(fd);
     return;
 }
@@ -90,7 +90,7 @@ void first_read_name(){
 
 void write_pipe_name2(){
     int fd = link_pipe_named(O_RDWR, "PorFavor2");
-    write_pipe(fd, "con Nombre\n", 20);
+    write(fd, "con Nombre\n", 20);
     write_pipe(fd, "con Nombre2\n", 20);
     close_fd(fd);
     return;
@@ -100,7 +100,7 @@ void read_pipe_name2(){
     int fd = open_fifo(O_RDWR, "PorFavor2");
     char buf[30];
     read_pipe(fd, buf, 30);
-    write_pipe(1, buf, 30);
+    write(1, buf, 30);
     close_fd(fd);
     return;
 }
@@ -112,7 +112,7 @@ void read_pipe_name2(){
 void stdin_test(){
     char buff[20];
     char aux[2];
-    write_pipe(1, "Ingresar texto: ", 20);
+    write(1, "Ingresar texto: ", 20);
     for(int i=0; aux[0]!='\n'; i++){
         read_pipe(0, aux, 1);
         buff[i]=aux[0];
@@ -171,13 +171,13 @@ void first_read_common(){
 
 
 void write_pipe_common(){
-    write_pipe(1, "Comun\n", 20);
+    write(1, "Comun\n", 20);
     return;
 }
 
 void read_pipe_common(){
     char buf[20];
     read_pipe(0, buf, 20);
-    write_pipe(1, buf, 20);
+    write(1, buf, 20);
     return;
 }

@@ -16,9 +16,9 @@ void help(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=0){
         throw_error("Error: el programa no recibe argumentos");
     }
-    print_string("Programas disponibles:\n", WHITE);
+    write(STDOUT,  "Programas disponibles:\n", 50);
     for(int i = 0; i<CANT_PROG;i++){
-        print_string(programs[i].desc,WHITE);
+        write(STDOUT, programs[i].desc, 50);
     }
     sys_exit();
 }
