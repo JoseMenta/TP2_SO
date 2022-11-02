@@ -3,7 +3,7 @@
 #define TP2_SO_PIPE_STRUCT_H
 #include <stdint.h>
 #include <semaphores.h>
-typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
+typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR, CONSOLE, CONSOLE_ERR} Pipe_modes;
 #define PIPESIZE 30
 #define MAXLOCK 5
 

@@ -7,8 +7,8 @@
 #include "../include/libc.h"
 #include "../include/test_util.h"
 
-#define SEM_ID "sem"
-#define TOTAL_PAIR_PROCESSES 2
+#define SEM_ID "/sem"
+#define TOTAL_PAIR_PROCESSES 5
 
 int64_t global;  //shared memory
 
@@ -34,7 +34,7 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
     sem_t sem;
     if (use_sem)
 //        if (!my_sem_open(SEM_ID, 1)){
-        if((sem=sem_open(SEM_ID,1))==NULL){
+        if((sem=sem_open(SEM_ID,1, O_NULL))==NULL){
             print_string("test_sync: ERROR opening semaphore\n",WHITE);
 //            printf("test_sync: ERROR opening semaphore\n");
             return -1;
@@ -69,7 +69,13 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
     char * argvDec[] = {argv[0], "-1", argv[1], NULL};
     char * argvInc[] = {argv[0], "1", argv[1], NULL};
 
-    global = 0;
+    sem_t sem;
+    if((sem = sem_init(SEM_ID, 1)) == NULL){
+        print_string("test_sync: ERROR opening semaphore\n",WHITE);
+        return -1;
+    }
+
+    global = 1398480;
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
@@ -87,11 +93,14 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
         waitpid(pids[i+TOTAL_PAIR_PROCESSES]);
 //        my_wait(pids[i + TOTAL_PAIR_PROCESSES]);
     }
+
+    sem_close(sem);
+
     print_string("Final value: ",WHITE);
-    if(global<0){
-        print_string("Negativo!",WHITE);
-        global = -global;
-    }
+//    if(global<0){
+//        print_string("Negativo!",WHITE);
+//        global = -global;
+//    }
     print_number(global,WHITE);
     print_string("\n",WHITE);
 //    printf("Final value: %d\n", global);

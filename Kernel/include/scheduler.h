@@ -2,7 +2,8 @@
 
 #ifndef TPE_SCHEDULER_H
 #define TPE_SCHEDULER_H
-#define MAXFD 5
+#define MAXFD 11
+#define DEFAULTFD 3
 #include <stdint.h>
 #include <pipe_struct.h>
 #include <queueADT.h>
@@ -27,6 +28,7 @@ typedef struct{
     uint64_t arg_c;         // Cantidad de argumentos ingresados al programa
     char** arg_v;           // Vector de strings con los argumentos del programa
     uint8_t foreground;
+    int * fds;
 } executable_t;
 
 typedef struct{

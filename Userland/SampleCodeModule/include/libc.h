@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
+#define DEFAULTFD 3
 #define MAXLOCK 5
 typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
 typedef enum {BLACK=0x00, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, DARK_GREY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, PINK, YELLOW, WHITE} formatType;
@@ -34,6 +34,7 @@ typedef struct{
     uint64_t arg_c;      // Cantidad de argumentos ingresados al programa
     char** arg_v;            // Vector de strings con los argumentos del programa
     uint8_t foreground;
+    int * fds;
 } executable_t;
 
 typedef struct {
@@ -54,6 +55,7 @@ typedef struct{
 
 
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
+
 // Codigo de errores del semaforo
 // OK: La operacion se realizo exitosamente
 // ERR_MM: Error en la alocacion de memoria
@@ -63,6 +65,12 @@ typedef struct{
 // ERR_SEM_NOT_INIT: No se inicializo el semaforo
 // ERR_SCHEDULER: No se pudo bloquear el proceso
 typedef enum {OK = 0, ERR_MM = -1, ERR_NAME = -2, ERR_NOT_FOUND = -3, ERR_NOT_INIT = -4, ERR_SEM_NOT_INIT = -5, ERR_SCHEDULER = -6} error_code;
+
+// Acciones a realizar para la funcion sem_open si no se encuentra el semaforo
+// O_CREATE: Crear un nuevo semaforo
+// O_NULL: Devolver NULL
+// Si se indica cualquier otro valor, se asume O_NULL
+typedef enum {O_CREATE = 0, O_NULL} open_modes;
 
 // Manejo de semaforos
 typedef void* sem_t;
@@ -105,6 +113,8 @@ int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
 void* sys_mm_alloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
+int sys_dup2(int oldfd, int newfd);
+int sys_dup(int oldfd);
 
 void * get_program(const char * str);
 char* get_program_name(void* program);
@@ -143,11 +153,12 @@ int sys_pipe(int fd[2]);
 int sys_open_fifo(Pipe_modes mode, char * name);
 int sys_link_pipe_named(Pipe_modes mode, char * name);
 int sys_close_fd(int fd);
-//int sys_write(int fd, const char * buf, int count);
-//int sys_read(int fd, char * buf, int count);
+int sys_write_pipe(int fd, const char * buf, int count);
+int sys_read_pipe(int fd, char * buf, int count);
 void sys_get_info(pipe_user_info * user_data, int * count);
 
-sem_t sys_sem_open(char * name, uint64_t value);
+sem_t sys_sem_init(char * name, uint64_t value);
+sem_t sys_sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sys_sem_wait(sem_t  sem);
 int8_t sys_sem_post(sem_t  sem);
 int8_t sys_sem_close(sem_t  sem);
@@ -159,12 +170,17 @@ int open_fifo(Pipe_modes mode, char * name);
 int link_pipe_named(Pipe_modes mode, char * name);
 int close_fd(int fd);
 void get_info(pipe_user_info * user_data, int * count);
-sem_t sem_open(char * name, uint64_t value);
+int write_pipe(int fd, const char * buf, int count);
+int read_pipe(int fd, char * buf, int count);
+
+sem_t sem_init(char * name, uint64_t value);
+sem_t sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait(sem_t sem);
 int8_t sem_post(sem_t  sem);
 int8_t sem_close(sem_t  sem);
 uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free(sem_dump_t * buffer, uint32_t length);
-
+int dup_handler(int oldfd);
+int dup2(int oldfd, int newfd);
 
 #endif //TPE_LIBC_H

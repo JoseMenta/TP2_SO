@@ -16,6 +16,12 @@
 // ERR_SCHEDULER: No se pudo bloquear el proceso
 typedef enum {OK = 0, ERR_MM = -1, ERR_NAME = -2, ERR_NOT_FOUND = -3, ERR_NOT_INIT = -4, ERR_SEM_NOT_INIT = -5, ERR_SCHEDULER = -6} error_code;
 
+// Acciones a realizar para la funcion sem_open si no se encuentra el semaforo
+// O_CREATE: Crear un nuevo semaforo
+// O_NULL: Devolver NULL
+// Si se indica cualquier otro valor, se asume O_NULL
+typedef enum {O_CREATE = 0, O_NULL} open_modes;
+
 // Manejo de semaforos
 typedef struct {
     uint64_t value;                     // Valor del semaforo
@@ -36,7 +42,8 @@ typedef struct {
     char * name;                        // Nombre del semaforo
 } sem_dump_t;
 
-sem_t * sem_open(char * name, uint64_t value);
+sem_t * sem_init(char * name, uint64_t value);
+sem_t * sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait(sem_t * sem);
 int8_t sem_post(sem_t * sem);
 int8_t sem_close(sem_t * sem);

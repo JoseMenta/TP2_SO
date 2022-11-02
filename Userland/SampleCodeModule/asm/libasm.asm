@@ -28,8 +28,8 @@ GLOBAL sys_open_fifo
 GLOBAL sys_open_fifo
 GLOBAL sys_link_pipe_named
 GLOBAL sys_close_fd
-GLOBAL sys_write
-GLOBAL sys_read
+GLOBAL sys_write_pipe
+GLOBAL sys_read_pipe
 GLOBAL sys_get_info
 GLOBAL sys_sem_init
 GLOBAL sys_sem_open
@@ -38,6 +38,8 @@ GLOBAL sys_sem_post
 GLOBAL sys_sem_close
 GLOBAL sys_sems_dump
 GLOBAL sys_sems_dump_free
+GLOBAL sys_dup2
+GLOBAL sys_dup
 
 EXTERN print_string
 
@@ -581,8 +583,8 @@ sys_close_fd:
 ; Retorno:
 ;   cantidad de caracteres escritos
 ;------------------------------------------------------------------------------------
-;sys_write:
-;    syscall_macro 25
+sys_write_pipe:
+    syscall_macro 25
 
 ;-------------------------------------------------------------------------------------
 ; sys_read: leer de un fd
@@ -595,8 +597,8 @@ sys_close_fd:
 ; Retorno:
 ;   cantidad de caracteres leidos
 ;------------------------------------------------------------------------------------
-;sys_read:
-;    syscall_macro 26
+sys_read_pipe:
+    syscall_macro 26
 
 ;-------------------------------------------------------------------------------------
 ; sys_get_info: obtener la informacion de los pipes del sistema
@@ -610,19 +612,36 @@ sys_close_fd:
 sys_get_info:
     syscall_macro 27
 
+;----------------------------------------------------------------------
+; sem_init: Crea un nuevo semaforo
+;----------------------------------------------------------------------
+; Argumentos:
+;  rdi: nombre del semaforo (named semaphores)
+;  rsi: valor inicial del semaforo
+;----------------------------------------------------------------------
+; Retorno:
+;  Devuelve la estructura del semaforo creado
+;  Devuelve NULL si hubo algun error
+;----------------------------------------------------------------------
+sys_sem_init:
+    syscall_macro 28
+
 ;-------------------------------------------------------------------------------------
-; sys_sem_open: Se conecta a un un semaforo ya creado o crea uno nuevo si no existe
+; sys_sem_open: Se conecta a un semaforo ya creado
 ;-------------------------------------------------------------------------------------
 ; Parametros:
-;   rdi: nombre del semaforo
+;   rdi: nombre del semaforo (named semaphores)
 ;   rsi: valor inicial del semaforo
+;   rdx: indica que accion realizar si no se encontro el semaforo (ver libc.h)
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve la estructura del semaforo si existe o del creado
+;   Devuelve la estructura del semaforo si existe
+;   Si mode = O_CREATE, devuelve un nuevo semaforo
+;   Si mode = O_NULL, devuelve NULL
 ;   Devuelve NULL si ocurrio algun error
 ;------------------------------------------------------------------------------------
 sys_sem_open:
-    syscall_macro 28
+    syscall_macro 29
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_wait: Realiza la operacion wait en el semaforo
@@ -631,10 +650,10 @@ sys_sem_open:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_wait:
-    syscall_macro 29
+    syscall_macro 30
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_post: Realiza la operacion post en el semaforo
@@ -643,10 +662,10 @@ sys_sem_wait:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_post:
-    syscall_macro 30
+    syscall_macro 31
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_close: Se desconecta del semaforo
@@ -655,10 +674,10 @@ sys_sem_post:
 ;   rdi: estructura del semaforo
 ;-------------------------------------------------------------------------------------
 ; Retorno:
-;   Devuelve un error_code (ver semaphores.h)
+;   Devuelve un error_code (ver libc.h)
 ;------------------------------------------------------------------------------------
 sys_sem_close:
-    syscall_macro 31
+    syscall_macro 32
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump: Devuelve la informacion de los semaforos activos
@@ -673,7 +692,7 @@ sys_sem_close:
 ;   Devuelve la cantidad de semaforos (elementos completados del arreglo)
 ;------------------------------------------------------------------------------------
 sys_sems_dump:
-    syscall_macro 32
+    syscall_macro 33
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump_free: Libera los recursos creados en sys_sems_dump
@@ -685,8 +704,32 @@ sys_sems_dump:
 ; Retorno:
 ;------------------------------------------------------------------------------------
 sys_sems_dump_free:
-    syscall_macro 33
+    syscall_macro 34
 
+;-------------------------------------------------------------------------------------
+; sys_dup2: Duplicar la referencia de un fd en otro
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: fd que se quiere duplicar
+;   rsi: nuevo fd a referenciar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   el nuevo fd a referenciar
+;------------------------------------------------------------------------------------
+sys_dup2:
+    syscall_macro 35
+
+;-------------------------------------------------------------------------------------
+; sys_dup: Duplicar la referencia de un fd en el proximo fd libre
+;-------------------------------------------------------------------------------------
+; Parametros:
+;   rdi: fd que se quiere duplicar
+;-------------------------------------------------------------------------------------
+; Retorno:
+;   el nuevo fd donde se compio la referencia
+;------------------------------------------------------------------------------------
+sys_dup:
+    syscall_macro 36
 
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero

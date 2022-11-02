@@ -136,18 +136,9 @@ static sem_t * find_sem_by_name(char * name){
 }
 
 
-//----------------------------------------------------------------------
-// sem_init: Crea un nuevo semaforo
-//----------------------------------------------------------------------
-// Argumentos:
-//  value: valor inicial del semaforo
-//  name: nombre del semaforo (named semaphores)
-//----------------------------------------------------------------------
-// Retorno:
-//  Devuelve la estructura del semaforo creado
-//  Devuelve NULL si hubo algun error
-//----------------------------------------------------------------------
-static sem_t * sem_init(char * name, uint64_t value){
+// Devuelve un nuevo semaforo con el nombre name y con el valor inicial value
+static sem_t * create_semaphore(char * name, uint64_t value){
+
     uint64_t pid = 0, * pid_p = NULL, name_size = 0;
 
     // Creamos el semaforo
@@ -159,8 +150,14 @@ static sem_t * sem_init(char * name, uint64_t value){
     // Se inicializa el semaforo
     sem->value = value;
     sem->id = get_sem_id();
-    // Si se indico un nombre, se le asigna una copia del nombre
+
     if(name != NULL){
+        // Se verifica que no exista un semaforo con ese nombre
+        if(find_sem_by_name(name) != NULL){
+            mm_free(sem);
+            return NULL;
+        }
+
         name_size = strlen(name);
         sem->name = mm_alloc((name_size + 1) * sizeof(char));
         if(sem->name == NULL){
@@ -225,18 +222,54 @@ static sem_t * sem_init(char * name, uint64_t value){
 
 
 //----------------------------------------------------------------------
+// sem_init: Crea un nuevo semaforo
+//----------------------------------------------------------------------
+// Argumentos:
+//  value: valor inicial del semaforo
+//  name: nombre del semaforo (named semaphores)
+//----------------------------------------------------------------------
+// Retorno:
+//  Devuelve la estructura del semaforo creado
+//  Devuelve NULL si hubo algun error
+//----------------------------------------------------------------------
+sem_t * sem_init(char * name, uint64_t value){
+
+    sem_t * sem;
+
+    // Tomamos el lock para acceder a la seccion critica
+    acquire(&sem_manager.lock);
+
+    // Verificamos que se haya inicializado el manejador de semaforos
+    if(sem_manager.semaphores == NULL){
+        if(semaphore_manager_init() == -1){
+            release(&sem_manager.lock);
+            return NULL;
+        }
+    }
+
+    sem = create_semaphore(name, value);
+
+    // Se libera el lock para que otro proceso pueda acceder a la seccion critica
+    release(&sem_manager.lock);
+    return sem;
+}
+
+
+//----------------------------------------------------------------------
 // sem_open: Devuelve el semaforo con nombre name
-//           Si no existe, crea uno con ese nombre
 //----------------------------------------------------------------------
 // Argumentos:
 //  name: nombre del semaforo (named semaphores)
 //  value: el valor inicial del semaforo en caso de crearlo
+//  mode: indica que accion realizar si no se encontro el semaforo
 //----------------------------------------------------------------------
 // Retorno:
-//  Devuelve la estructura del semaforo si existe o del creado
+//  Devuelve la estructura del semaforo si existe
+//  Si mode = O_CREATE, devuelve un nuevo semaforo
+//  Si mode = O_NULL, devuelve NULL
 //  Devuelve NULL si ocurrio algun error
 //----------------------------------------------------------------------
-sem_t * sem_open(char * name, uint64_t value){
+sem_t * sem_open(char * name, uint64_t value, open_modes mode){
 
     sem_t * sem = NULL;
     uint64_t pid = 0, * pid_p = NULL;
@@ -275,15 +308,15 @@ sem_t * sem_open(char * name, uint64_t value){
             }
         }
     }
-    // Si no se encontro el semaforo, se crea uno nuevo con ese nombre
-    else {
-        sem = sem_init(name, value);
+    // Si no se encontro el semaforo, se crea uno nuevo con ese nombre si mode = O_CREATE
+    else if (mode == O_CREATE) {
+        sem = create_semaphore(name, value);
     }
 
     // Se libera el lock para que otro proceso pueda acceder a la seccion critica
     release(&sem_manager.lock);
 
-    // Devolvemos el resultado (el semaforo si existe, NULL si no)
+    // Devolvemos el resultado
     return sem;
 }
 
@@ -444,6 +477,7 @@ int8_t sem_close(sem_t * sem){
         pid_p = orderListADT_delete(sem->connected_processes, pid_p);
         mm_free(pid_p);
     }
+
     // Si era el ultimo proceso conectado, se liberan los recursos del semaforo
     if(orderListADT_is_empty(sem->connected_processes)){
         sem = orderListADT_delete(sem_manager.semaphores, sem);

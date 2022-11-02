@@ -12,7 +12,6 @@
 #include "./include/primos.h"
 #include "./include/test_util.h"
 #include "./include/libc.h"
-#include "../include/bash.h"
 
 void aa(){
     while(1){
@@ -93,7 +92,7 @@ int main(uint64_t arg_c, char** arg_v) {
 //    print_string(aux2,WHITE);
 //    while (1){
 //        print_scheduler_info();
-////        print_string("a",WHITE);
+////        print_number(sys_get_process_count(),WHITE);
 //        pause_ticks(1);
 //    }
 //    pause_ticks(200);
