@@ -28,6 +28,9 @@ extern void idle_process();
 //static PCB* hash[6000]={0};
 static HashADT hash = NULL;
 
+//TODO: crear con malloc los strings para los argumentos, para no tener problemas de referenciar memoria local
+//Liberarlos cuando se termina el proceso
+
 //inicializa las estructuras que va a utilizar el scheduler
 int initialize_scheduler(){
     rr = new_RR();

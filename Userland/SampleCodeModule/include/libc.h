@@ -12,6 +12,7 @@ typedef enum {BLACK=0x00, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, DA
 typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8, YEAR = 9} timeType;
 
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;
+enum {STDIN=0, STDOUT, STDERR};
 
 typedef struct{
     char * name;
@@ -79,7 +80,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (8)
+#define CANT_PROG (13)
 #define STDOUT WHITE
 #define STDERR RED
 
@@ -106,6 +107,7 @@ void* sys_mm_alloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
 
 void * get_program(const char * str);
+char* get_program_name(void* program);
 uint8_t get_char(void);
 uint8_t print_string(const char * s1, formatType format);
 uint8_t print_number(uint64_t number, formatType format);
@@ -133,6 +135,7 @@ uint64_t* get_registers(void);
 uint64_t str_tok(char * buffer, char sep);
 void throw_error(char * str);
 void pause_ticks(uint64_t ticks);
+uint32_t get_line(char* buf, uint32_t max_len);
 uint8_t blink(void);
 uint8_t clear(void);
 

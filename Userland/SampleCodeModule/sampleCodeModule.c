@@ -12,6 +12,7 @@
 #include "./include/primos.h"
 #include "./include/test_util.h"
 #include "./include/libc.h"
+#include "../include/bash.h"
 
 void aa(){
     while(1){
@@ -83,15 +84,21 @@ void print_scheduler_info(){
     }
 }
 int main(uint64_t arg_c, char** arg_v) {
-    char* aux[] = {"10000","1",NULL};
-    executable_t prio_test = {"test_sync",&test_sync,2,aux,0};
-    uint64_t pid = sys_exec(&prio_test);
+//    bash(arg_c,arg_v);
+//    char* aux[] = {"4","1",NULL};
+//    executable_t prio_test = {"test_sync",&test_processes,1,aux,0};
+//    uint64_t pid = sys_exec(&prio_test);
+//    char aux2[20];
+//    snprintf(aux2,10,"%d",1);
+//    print_string(aux2,WHITE);
 //    while (1){
 //        print_scheduler_info();
-////        print_number(sys_get_process_count(),WHITE);
+////        print_string("a",WHITE);
 //        pause_ticks(1);
 //    }
-    waitpid(pid);
+//    pause_ticks(200);
+//    print_scheduler_info();
+//    waitpid(pid);
     while (1){
         print_string("a",WHITE);
         pause_ticks(1);

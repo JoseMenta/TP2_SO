@@ -1,16 +1,22 @@
 #include <libc.h>
 #include <programs.h>
+#include <os_tests.h>
 //TODO: sacar
 #include "../include/libc.h"
+#include "../include/os_tests.h"
 front_program_t programs[CANT_PROG] = {
-        {"help","\thelp: Despliega los distintos comandos disponibles\n",help},
-        {"div0","\tdiv0: Genera una excepcion por division por cero\n",zero_division_exc},
-        {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",invalid_opcode_exc},
-        {"inforeg","\tinforeg: Imprime el valor los registros guardados en un momento con la combinacion Control+s\n",inforeg},
-        {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",printmem},
-        {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",tiempo},
-        {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",primos},
-        {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",fibonacci}
+        {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
+        {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
+        {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",&invalid_opcode_exc},
+        {"inforeg","\tinforeg: Imprime el valor los registros guardados en un momento con la combinacion Control+s\n",&inforeg},
+        {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",&printmem},
+        {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
+        {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",&primos},
+        {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",&fibonacci},
+        {"test_processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
+        {"test_prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
+        {"test_sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
+        {"test_mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
 };
 
 
@@ -35,6 +41,43 @@ uint8_t get_char(void){
 }
 
 
+//---------------------------------------------------------------------------------
+// getLine: lectura de una linea (hasta \n) de STDIN e imprime en pantalla a medida que lee
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      buf: el buffer donde se guarda el resultado
+//      max_len: la longitud maxima de caracteres que se puede guardar (incluyendo el \0)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      La cantidad de caracteres leidos (incluyendo a \n), sin incluir \0
+//      Devuelve a la linea o max_len caracteres, lo que ocurra antes
+//      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
+//---------------------------------------------------------------------------------
+//uint32_t get_line(char* buf, uint32_t max_len){
+//    uint32_t curr = 0;
+//    int finished = 0;
+////    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
+//    do{
+//        long aux = 0;
+//        //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
+//        aux = sys_read(STDIN,buf,(max_len-curr));
+//        sys_write(STDOUT,buf,aux);
+//        for(uint32_t i = curr; i<curr+aux && !finished; i++){
+//            if(buf[i]=='\n'){
+//                buf[i+1]='\0';
+//                curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
+//                finished = 1;
+//            }
+//        }
+//        if(!finished){
+//            curr+=aux;
+//            if(curr+1==max_len){//aux<=max_len-curr => aux+curr<=max_len
+//                finished=1;
+//            }
+//        }
+//    } while (!finished);
+//    return curr;
+//}
 
 //---------------------------------------------------------------------------------
 // printString: imprime un String
@@ -155,6 +198,14 @@ void* get_program(const char * str){
     return NULL;
 }
 
+//char* get_program_name(void* program){
+//    for(int i = 0; i<CANT_PROG; i++){
+//        if(programs[i].start == program){
+//            return programs[i].name;
+//        }
+//    }
+//    return NULL;
+//}
 //-----------------------------------------------------------------------
 // uintToBase: Convierte un entero en la base indica por parametro en un string
 //-----------------------------------------------------------------------
@@ -259,7 +310,7 @@ uint8_t get_secs(void){
 //---------------------------------------------------------------------------------
 uint64_t str_tok(char * buffer, char sep){
     uint64_t i=0;
-    for(; buffer[i]!=sep && buffer[i]!='\0'; i++);
+    for(; buffer[i]!=sep && buffer[i]!='\0' && buffer[i]!='\n'; i++);
     return i;
 }
 

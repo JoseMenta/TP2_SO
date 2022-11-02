@@ -223,10 +223,10 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
 
     initialize_scheduler();
     executable_t exec;
-    char* aux[]={"Hello",NULL};
-    exec.arg_c=2;
+    char* aux[]={NULL};
+    exec.arg_c=0;
     exec.arg_v=aux;
-    exec.name = "Process 1";
+    exec.name = "Shell";
     exec.foreground = 1;
     exec.start=sampleCodeModuleAddress;
     create_process(&exec);
