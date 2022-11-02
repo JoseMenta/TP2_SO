@@ -25,7 +25,7 @@ static PCB* current_process=NULL;
 #define CHECK_PID(pid,elem) (pid>=1 && pid<new_pid && hashADT_get(hash,elem)!=NULL)
 //TODO: en el pid=0, guardamos al proceso default
 extern void idle_process();
-
+static pipe_restrict * default_fds[3];
 //hasta que no este listo el hash, uso un arreglo para guardar a los procesos
 //static PCB* hash[6000]={0};
 static HashADT hash = NULL;
@@ -39,6 +39,9 @@ int initialize_scheduler(){
     if(rr==NULL){
         return -1;
     }
+    default_fds[0] = get_pipe_console_restrict();
+    default_fds[1] = get_pipe_console_restrict();
+    default_fds[2] = get_error_pipe_console();
     hash = new_hashADT(elemType_prehash,elemType_compare_to);
     if(hash==NULL){
         return -1;
@@ -101,10 +104,14 @@ int create_process(executable_t* executable){
     } else{
         int i;
         for(i=0; i<DEFAULTFD; i++){
-            new_process->fd[i] = current_process->fd[executable->fds[i]];
-            if(new_process->fd[i] != NULL){
-                new_process->fd[i]->count_access++;
-                new_process->fd[i]->info->count_access++;
+            if(executable->fds[i]==-1){
+                new_process->fd[i] = default_fds[i];
+            }else {
+                new_process->fd[i] = current_process->fd[executable->fds[i]];
+                if (new_process->fd[i] != NULL) {
+                    new_process->fd[i]->count_access++;
+                    new_process->fd[i]->info->count_access++;
+                }
             }
         }
         for(; i<MAXFD; i++){

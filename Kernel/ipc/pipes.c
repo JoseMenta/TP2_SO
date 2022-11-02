@@ -39,12 +39,14 @@ int pipe_initialize(){
     console_pipe_restrict = create_restrict_pipe(CONSOLE, console_pipe);
     error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
     //TODO: ver de sacar pero falla
+    /*
     get_current_pcb()->fd[0] = console_pipe_restrict;
     get_current_pcb()->fd[1] = console_pipe_restrict;
     get_current_pcb()->fd[2] = error_pipe_restrict;
     for(int i=3; i<MAXFD; i++){
         get_current_pcb()->fd[i] = NULL;
     }
+     */
 }
 
 //-----------------------------------------------------------------------------------------
