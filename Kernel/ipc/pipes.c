@@ -3,12 +3,17 @@
 #include <orderListADT.h>
 #include <scheduler.h>
 #include <syscalls.h>
+#include <video_driver.h>
 
 //TODO: sacar
 #include "../include/syscalls.h"
 #include "../include/semaphores.h"
 #include "../include/mm.h"
-static orderListADT pipes_list = NULL;
+#include "../include/video_driver.h"
+orderListADT pipes_list = NULL;
+static pipe_info * console_pipe = NULL;
+static pipe_restrict * console_pipe_restrict = NULL;
+static pipe_restrict * error_pipe_restrict = NULL;
 
 int64_t pipe_compare(pipe_info * elem1, pipe_info * elem2);
 pipe_restrict * create_restrict_pipe(Pipe_modes mode, pipe_info * info);
@@ -17,6 +22,55 @@ int get_next_fd();
 int index_lock_pid(const uint64_t array[MAXLOCK]);
 
 
+//-----------------------------------------------------------------------------------------
+//pipe_initialize: Inicializar el manejo de los pipes
+//-----------------------------------------------------------------------------------------
+//Argumentos:
+//-----------------------------------------------------------------------------------------
+//Retorno:
+//  -1 en caso de error, 0 en caso de exito
+//-----------------------------------------------------------------------------------------
+int pipe_initialize(){
+    pipes_list = new_orderListADT((compare_function)pipe_compare);
+    if(pipes_list == NULL){
+        return -1;
+    }
+    console_pipe = create_info_pipe("CONSOLE\0");
+    console_pipe_restrict = create_restrict_pipe(CONSOLE, console_pipe);
+    error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
+    //TODO: ver de sacar pero falla
+    get_current_pcb()->fd[0] = console_pipe_restrict;
+    get_current_pcb()->fd[1] = console_pipe_restrict;
+    get_current_pcb()->fd[2] = error_pipe_restrict;
+    for(int i=3; i<MAXFD; i++){
+        get_current_pcb()->fd[i] = NULL;
+    }
+}
+
+//-----------------------------------------------------------------------------------------
+//pipe_end: Finalizar el manejo de los pipes
+//-----------------------------------------------------------------------------------------
+//Argumentos:
+//-----------------------------------------------------------------------------------------
+//Retorno:
+//-----------------------------------------------------------------------------------------
+int pipe_terminated(){
+    free_orderListADT(pipes_list);
+    mm_free(console_pipe);
+}
+
+//-----------------------------------------------------------------------------------------
+//Obtener las variables globales, para que sean static
+//-----------------------------------------------------------------------------------------
+pipe_info * get_pipe_console(){
+    return console_pipe;
+}
+pipe_restrict * get_error_pipe_console(){
+    return error_pipe_restrict;
+}
+pipe_restrict * get_pipe_console_restrict(){
+    return console_pipe_restrict;
+}
 
 //-----------------------------------------------------------------------------------------
 //pipe: Crea de un pipe
@@ -28,9 +82,6 @@ int index_lock_pid(const uint64_t array[MAXLOCK]);
 //  -1 en caso de error, 0 en caso de exito
 //-----------------------------------------------------------------------------------------
 int pipe(int fd[2]){
-    if(pipes_list == NULL)
-        pipes_list = new_orderListADT((compare_function)pipe_compare);
-
     pipe_info * info = create_info_pipe(NULL);
     if(info == NULL){
         return -1;
@@ -39,6 +90,7 @@ int pipe(int fd[2]){
     //Modo lectura en el primer fd
     fd[0] = get_next_fd();
     if(fd[0] == -1){
+        fd[1] = -1;
         mm_free(info);
         return -1;
     }
@@ -71,16 +123,16 @@ int pipe(int fd[2]){
 //  fd de donde se referencia el fifo, -1 en caso de error
 //-----------------------------------------------------------------------------------------
 int open_fifo(Pipe_modes mode, char * name){
-    if(pipes_list == NULL)
-        pipes_list = new_orderListADT((compare_function)pipe_compare);
 
     pipe_info * info = create_info_pipe(name);
     if(info == NULL){
+        print("fallo info", WHITE, ALL);
         return -1;
     }
     //Un fifo admite cualquiera de los 3 modos
     int fd = get_next_fd();
     if(fd==-1){
+        print("fallo fd", WHITE, ALL);
         mm_free(info);
         return -1;
     }
@@ -113,6 +165,7 @@ int link_pipe_named(Pipe_modes mode, char * name){
     if(info == NULL){
         return -1;
     }
+
     get_current_pcb()->fd[fd] = create_restrict_pipe(mode, info);
     info->count_access++;
     return fd;
@@ -133,7 +186,8 @@ int close_fd(int fd){
 
     pipe_mode->count_access--;
     pipe_mode->info->count_access--;
-    if(pipe_mode->info->count_access == 0){
+    //Libero si no tengo a nadie apuntandolo y si no queda nada por leer
+    if(pipe_mode->info->count_access == 0 && pipe_mode->info->index_write == pipe_mode->info->index_read){
         orderListADT_delete(pipes_list, pipe_mode->info);
         sem_close(pipe_mode->info->lock);
         mm_free(pipe_mode->info);
@@ -162,6 +216,14 @@ int write(int fd, const char * buf, int count){
 
     if(pipe_mode->mode==O_RDONLY)
         return -1;
+    if(pipe_mode->mode==CONSOLE){
+        print(buf, WHITE, ALL);
+        return 0;
+    }
+    if(pipe_mode->mode==CONSOLE_ERR){
+        print(buf, RED, ALL);
+        return 0;
+    }
 
     int write;
     //lock del mutex del pipe
@@ -200,6 +262,27 @@ int write(int fd, const char * buf, int count){
     return write;
 }
 
+int write_keyboard(const char * buf, int count){
+    int write;
+
+    sem_wait(console_pipe->lock);
+    for(write=0; write<count && buf[write] != '\0'; write++){
+        //Si la distancia es el tamaño del buffer => en el proximo pisaria informacion
+        if(console_pipe->index_write != console_pipe->index_read + PIPESIZE){
+            console_pipe->buff[console_pipe->index_write++ % PIPESIZE] = buf[write];
+        }
+    }
+
+    //Desperta a todos los lectores que se habian bloqueado
+    for(int i=0; i<MAXLOCK && console_pipe->pid_read_lock[i] != 0; i++){
+        unblock_process_handler(console_pipe->pid_read_lock[i]);
+        console_pipe->pid_read_lock[i] = 0;
+    }
+
+    sem_post(console_pipe->lock);
+    return write;
+}
+
 
 //-----------------------------------------------------------------------------------------
 //read: Leer de un fd
@@ -214,17 +297,14 @@ int write(int fd, const char * buf, int count){
 //-----------------------------------------------------------------------------------------
 int read(int fd, char * buf, int count){
     pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
-
-    if(pipe_mode->mode==O_WRONLY)
+    if(pipe_mode->mode==O_WRONLY){
         return -1;
-
+    }
     int read;
     //lock del mutex del pipe
     sem_wait(pipe_mode->info->lock);
-
     //No tengo nada para leer
     while(pipe_mode->info->index_read == pipe_mode->info->index_write){
-
         //Bloqueo al proceso actual
         int index_block = index_lock_pid(pipe_mode->info->pid_read_lock);
         pipe_mode->info->pid_read_lock[index_block] = get_current_pcb()->pid;
@@ -246,6 +326,9 @@ int read(int fd, char * buf, int count){
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){
         unblock_process_handler(pipe_mode->info->pid_write_lock[i]);
         pipe_mode->info->pid_write_lock[i] = 0;
+    }
+    if(pipe_mode->mode==CONSOLE){
+        print(buf, WHITE, ALL);
     }
     sem_post(pipe_mode->info->lock);
     return read;
@@ -281,6 +364,47 @@ void get_info(pipe_user_info * user_data, int * count){
 
 
 //-----------------------------------------------------------------------------------------
+//dup2: Duplicar la referencia de un fd en otro
+//-----------------------------------------------------------------------------------------
+//Argumentos:
+//  oldfd: fd que se quiere duplicar
+//  newfd: nuevo fd a referenciar
+//-----------------------------------------------------------------------------------------
+//Retorno:
+//  retorna newfd
+//-----------------------------------------------------------------------------------------
+int dup2(int oldfd, int newfd){
+    pipe_restrict * pipe_mode = get_current_pcb()->fd[oldfd];
+    get_current_pcb()->fd[newfd] = pipe_mode;
+    pipe_mode->count_access++;
+    pipe_mode->info->count_access++;
+    return newfd;
+}
+
+
+//-----------------------------------------------------------------------------------------
+//dup: Duplicar la referencia de un fd en el proximo fd libre
+//-----------------------------------------------------------------------------------------
+//Argumentos:
+//  oldfd: fd que se quiere duplicar
+//-----------------------------------------------------------------------------------------
+//Retorno:
+//  retorna newfd o (-1 en caso de error)
+//-----------------------------------------------------------------------------------------
+int dup(int oldfd){
+    pipe_restrict * pipe_mode = get_current_pcb()->fd[oldfd];
+    int newfd = get_next_fd();
+    if(newfd == -1){
+        return -1;
+    }
+    get_current_pcb()->fd[newfd] = pipe_mode;
+    pipe_mode->count_access++;
+    pipe_mode->info->count_access++;
+    return newfd;
+}
+
+
+//-----------------------------------------------------------------------------------------
 //Funcion de Comparacion para la lista de Pipes
 //  Se intenta que los pipes con nombres esten primero para mejorar la performance en busqueda
 //-----------------------------------------------------------------------------------------
@@ -301,7 +425,7 @@ int64_t pipe_compare(pipe_info * elem1, pipe_info * elem2){
 pipe_info * create_info_pipe(char * name){
     pipe_info * aux = mm_alloc(sizeof(pipe_info));
 //    aux->lock = mm_alloc(sizeof (sem_t));
-    if((aux->lock=sem_init(NULL, 1)) != NULL){
+    if((aux->lock=sem_init(NULL, 1)) == NULL){
         mm_free(aux->lock);
         mm_free(aux);
         return NULL;

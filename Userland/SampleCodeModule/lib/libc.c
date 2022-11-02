@@ -380,17 +380,17 @@ int open_fifo(Pipe_modes mode, char * name){
     return sys_open_fifo(mode, name);
 }
 int link_pipe_named(Pipe_modes mode, char * name){
-    return sys_open_fifo(mode, name);
+    return sys_link_pipe_named(mode, name);
 }
 int close_fd(int fd){
     return sys_close_fd(fd);
 }
-//int write(int fd, const char * buf, int count){
-//    return sys_write(fd, buf, count);
-//}
-//int read(int fd, char * buf, int count){
-//    return sys_read(fd, buf, count);
-//}
+int write_pipe(int fd, const char * buf, int count){
+    return sys_write_pipe(fd, buf, count);
+}
+int read_pipe(int fd, char * buf, int count){
+    return sys_read_pipe(fd, buf, count);
+}
 void get_info(pipe_user_info * user_data, int * count){
     sys_get_info(user_data, count);
 }
@@ -421,4 +421,12 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
 
 void sems_dump_free(sem_dump_t * buffer, uint32_t length){
     sys_sems_dump_free(buffer, length);
+}
+
+int dup2(int oldfd, int newfd){
+    return sys_dup2(oldfd, newfd);
+}
+
+int dup_handler(int oldfd){
+    return sys_dup(oldfd);
 }

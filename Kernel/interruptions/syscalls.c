@@ -10,7 +10,9 @@
 #include <mm.h>
 #include <pipes.h>
 #include <semaphores.h>
+#include <pipes.h>
 //TODO: sacar
+#include "../include/pipes.h"
 #include "../include/scheduler.h"
 #include "../include/syscalls.h"
 #include "../include/interrupts.h"
@@ -29,6 +31,7 @@
 //  0 si no hay caracteres para ller
 //  1 si hay caracteres para leer
 //----------------------------------------------------------------------
+/*
 int32_t read_handler(char* str){
     extern queue_t queue;
     //TODO: usar un pipe
@@ -40,6 +43,30 @@ int32_t read_handler(char* str){
     str[1] = '\0';
     return 1;                       // Devolvemos la cantidad de caracteres leidos
 }
+ */
+//----------------------------------------------------------------------
+// read_handler: handler para leer del pipe de consola
+//----------------------------------------------------------------------
+// Argumentos:
+//  str: char* donde se debe guardar el caracter leido
+//----------------------------------------------------------------------
+// Retorno:
+//  1 o 0 segun leyo o no un caracter
+//----------------------------------------------------------------------
+int32_t read_handler(char* str){
+    read(1, str, 2);
+    /*
+    pipe_info * console_pipe = get_pipe_console();
+    if(console_pipe->index_write == console_pipe->index_read){
+        *str = '\0';
+        return 0;
+    }else{
+        *str = console_pipe->buff[console_pipe->index_read++];
+        return 1;
+    }
+     */
+}
+
 //----------------------------------------------------------------------
 // write_handler: imprime un string en la pantalla del proceso que lo llama
 //----------------------------------------------------------------------
@@ -244,12 +271,12 @@ int link_pipe_named_handler(Pipe_modes mode, char * name){
 int close_fd_handler(int fd){
     return close_fd(fd);
 }
-//int write_handler(int fd, const char * buf, int count){
-//    return write(fd, buf, count)
-//}
-//int read_handler(int fd, char * buf, int count){
-//    return read(fd, buf, count);
-//}
+int write_handler_pipe(int fd, const char * buf, int count){
+    return write(fd, buf, count);
+}
+int read_handler_pipe(int fd, char * buf, int count){
+    return read(fd, buf, count);
+}
 void get_info_handler(pipe_user_info * user_data, int * count){
     get_info(user_data, count);
 }
@@ -282,12 +309,19 @@ void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length){
     sems_dump_free(buffer, length);
 }
 
+int dup2_handler(int oldfd, int newfd){
+    return dup2(oldfd, newfd);
+}
+int dup_handler(int oldfd){
+    return dup(oldfd);
+}
 
 
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
                   &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
-                    &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler, &read_handler, &get_info_handler,
-                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler};
+                    &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler_pipe, &read_handler_pipe, &get_info_handler,
+                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler,
+                    &dup2_handler, &dup_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
     if(syscall_num<0 || syscall_num>=35){

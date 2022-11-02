@@ -8,12 +8,14 @@
 #include <interrupts.h>
 #include <video_driver.h>
 #include <HashADT.h>
+#include <pipes.h>
 //TODO: sacar
 #include "../include/queueADT.h"
 #include "../include/video_driver.h"
 #include "../include/interrupts.h"
 #include "../include/dispatcher.h"
 #include "../include/HashADT.h"
+#include "../include/pipes.h"
 
 static RRADT rr = NULL;
 static uint64_t new_pid = 1;
@@ -85,6 +87,27 @@ int create_process(executable_t* executable){
     //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
     //Si no, podria despertar al padre de un pipe y no tiene que ser asi
 //    hash[new_pid++]=new_process;
+    if(executable->fds == NULL){
+        for(int i=0; i<MAXFD; i++){
+            new_process->fd[i] = current_process->fd[i];
+            if(new_process->fd[i] != NULL){
+                new_process->fd[i]->count_access++;
+                new_process->fd[i]->info->count_access++;
+            }
+        }
+    } else{
+        int i;
+        for(i=0; i<DEFAULTFD; i++){
+            new_process->fd[i] = current_process->fd[executable->fds[i]];
+            if(new_process->fd[i] != NULL){
+                new_process->fd[i]->count_access++;
+                new_process->fd[i]->info->count_access++;
+            }
+        }
+        for(; i<MAXFD; i++){
+            new_process->fd[i] = NULL;
+        }
+    }
     new_pid++;
     hashADT_add(hash, new_process);
     if( RR_add_process(rr,new_process,BASE_PRIORITY)==-1){
@@ -130,6 +153,9 @@ int terminate_process(uint64_t pid){
 //    PCB* process = hash[pid];
     PCB* process = hashADT_get(hash,&wanted);
     process->status = FINISHED;
+    for(int i=0; i<DEFAULTFD; i++){
+        close_fd(i);
+    }
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
     //Liberamos ahora a la memoria, pero en el caso donde esta terminando el proceso que se estaba ejecutando, hay que
     //notar que si esta terminando el proceso que estaba en ejecucion, parece peligroso liberar la memoria ahora

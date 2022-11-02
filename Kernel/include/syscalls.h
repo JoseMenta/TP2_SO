@@ -40,8 +40,8 @@ int pipe_handler(int fd[2]);
 int open_fifo_handler(Pipe_modes mode, char * name);
 int link_pipe_named_handler(Pipe_modes mode, char * name);
 int close_fd_handler(int fd);
-//int write_handler(int fd, const char * buf, int count);
-//int read_handler(int fd, char * buf, int count);
+int write_handler_pipe(int fd, const char * buf, int count);
+int read_handler_pipe(int fd, char * buf, int count);
 void get_info_handler(pipe_user_info * user_data, int * count);
 
 
@@ -53,7 +53,8 @@ int8_t sem_post_handler(sem_t * sem);
 int8_t sem_close_handler(sem_t * sem);
 uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length);
-
+int dup_handler(int oldfd);
+int dup2_handler(int oldfd, int newfd);
 
 
 void* syscall_dispatcher(uint64_t syscall_num);

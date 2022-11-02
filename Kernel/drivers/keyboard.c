@@ -2,7 +2,9 @@
 #include <scheduler.h>
 #include <interrupts.h>
 #include <queue.h>
-
+#include <pipes.h>
+#include "../include/pipes.h"
+#include "../include/video_driver.h"
 #define IS_ALPHA(x) ((x) >= 'a' && (x) <= 'z') ? 1 : 0
 #define IS_REFERENCEABLE(x) ((x) <= KEYBOARD_REFERENCE_LENGTH && keyboard_reference[(x)]!='\0')
 
@@ -147,11 +149,16 @@ void keyboard_handler(){
         else if (key_case > 0 && IS_ALPHA(keyboard_reference[key])){
             // Es una mayuscula
             //buffer[write] = keyboard_reference[key] - UPPER_OFFSET;
-            enqueue(&queue,keyboard_reference[key] - UPPER_OFFSET);
+            //enqueue(&queue,keyboard_reference[key] - UPPER_OFFSET);
+            char aux = keyboard_reference[key] - UPPER_OFFSET;
+            write_keyboard( &aux, 1);
         } else {
             // Es una minuscula u otro tipo de caracter que no es letra
             //buffer[write] = keyboard_reference[key];
-            enqueue(&queue,keyboard_reference[key]);
+            //enqueue(&queue,keyboard_reference[key]);
+            char aux = keyboard_reference[key];
+            write_keyboard( &aux, 1);
+
         }
     }
 }

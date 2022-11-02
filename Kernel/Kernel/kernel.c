@@ -7,7 +7,9 @@
 #include <video_driver.h>
 #include <mm.h>
 #include <scheduler.h>
+#include <pipes.h>
 #include "../include/scheduler.h"
+#include "../include/pipes.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -222,17 +224,27 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
 //    print("Pasa el testeo del mm\n",WHITE,ALL);
 
     initialize_scheduler();
+    pipe_initialize();
     executable_t exec;
     char* aux[]={"Hello",NULL};
     exec.arg_c=2;
     exec.arg_v=aux;
     exec.name = "Process 1";
     exec.foreground = 1;
+    //TODO: ver de poner pero falla
+    //exec.fds[0]= get_pipe_console_restrict();
+    //exec.fds[1]= get_pipe_console_restrict();
+    //exec.fds[2]= get_error_pipe_console();
+    //for(int i=DEFAULTFD; i<MAXFD; i++){
+    //    exec.fds[i] = NULL;
+    //}
+
     exec.start=sampleCodeModuleAddress;
     create_process(&exec);
 //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
     load_idt();
 
+    pipe_terminated();
 //    ((EntryPoint)sampleCodeModuleAddress)();
     while(1);//para que espere hasta el tt y se vaya al bash
     print("Computadora apagada",WHITE,ALL);
