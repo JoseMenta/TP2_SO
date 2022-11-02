@@ -232,21 +232,16 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     exec.name = "Process 1";
     exec.foreground = 1;
     //TODO: ver de poner pero falla
-    //exec.fds[0]= get_pipe_console_restrict();
-    //exec.fds[1]= get_pipe_console_restrict();
-    //exec.fds[2]= get_error_pipe_console();
-    //for(int i=DEFAULTFD; i<MAXFD; i++){
-    //    exec.fds[i] = NULL;
-    //}
-
+    int aux2[3] = {-1,-1,-1};
+    exec.fds = aux2;
     exec.start=sampleCodeModuleAddress;
     create_process(&exec);
-//    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
+    //hasta aca tengo todo, menos los FD's
+    //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
     load_idt();
-
-    pipe_terminated();
-//    ((EntryPoint)sampleCodeModuleAddress)();
     while(1);//para que espere hasta el tt y se vaya al bash
+    //pipe_terminated();
+    //((EntryPoint)sampleCodeModuleAddress)();
     print("Computadora apagada",WHITE,ALL);
     clear(ALL);
 

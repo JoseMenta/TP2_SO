@@ -33,7 +33,7 @@ typedef struct{
     uint64_t arg_c;      // Cantidad de argumentos ingresados al programa
     char** arg_v;            // Vector de strings con los argumentos del programa
     uint8_t foreground;
-    int * fds;
+    int * fds[3];
 } executable_t;
 
 typedef struct {

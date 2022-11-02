@@ -83,8 +83,11 @@ void print_scheduler_info(){
     }
 }
 int main(uint64_t arg_c, char** arg_v) {
-    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
-    uint64_t pid = sys_exec(&pipes_test);
+    while (1){
+        write_pipe(1,"a",2);
+    }
+//    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
+//    uint64_t pid = sys_exec(&pipes_test);
 
 /*
     char* aux[] = {"100","1",NULL};
@@ -97,7 +100,7 @@ int main(uint64_t arg_c, char** arg_v) {
 //    }
 */
 
-    waitpid(pid);
+//    waitpid(pid);
     while (1){
         print_string("a",WHITE);
         pause_ticks(1);
