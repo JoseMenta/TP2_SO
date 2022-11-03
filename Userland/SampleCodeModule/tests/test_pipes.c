@@ -2,8 +2,37 @@
 #include "../include/libc.h"
 #include "../include/test_pipes.h"
 
-void test_pipes(){
+void write_pipe_name(){
+    int fd = open_fifo(O_RDWR, "PorFavor");
+    print_string_fd("con nombre", fd);
+    close_fd(fd);
+    return;
+}
 
+void read_pipe_name(){
+    int fd = link_pipe_named(O_RDWR, "PorFavor");
+    char buf[20];
+    read(fd, buf, 20);
+    print_string(buf);
+    close_fd(fd);
+    return;
+}
+
+void write_pipe_common(){
+    print_string("Comun\n");
+    return;
+}
+
+void read_pipe_common(){
+    char buf[50];
+    get_line(buf, 50);
+    print_string(buf);
+    return;
+}
+
+
+/*
+void test_pipes(){
     error_test();
     first_write_name();
     first_read_name();
@@ -11,7 +40,6 @@ void test_pipes(){
     first_read_common();
     stdin_test();
     full_pipes();
-
 }
 
 //-----------------------------------------------------------------------------------------
@@ -181,3 +209,4 @@ void read_pipe_common(){
     write(1, buf, 20);
     return;
 }
+*/

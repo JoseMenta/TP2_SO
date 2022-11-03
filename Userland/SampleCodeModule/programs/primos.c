@@ -18,13 +18,17 @@ static uint8_t is_prime(uint64_t number){
 
 void primos(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=0){
-        throw_error("Error: primos el programa no recibe argumentos");
+        throw_error("Error: el programa no recibe argumentos");
     }
     char c[2];
+    //para probar el pipeo nada mas
+    /*
+    print_string("lectura: ");
     c[1]='\0';
     for(int i=0; (c[0] = get_char()) != '\n'; i++){
         print_string(c);
     }
+     */
    for(uint64_t i=FIRST_PRIME; i<=10 ; i++){
         if(is_prime(i)){
             //TODO: revisar cuando se pasan valores mayores a 4, pues se reinician los ticks en el scheduler
@@ -34,6 +38,7 @@ void primos(uint64_t arg_c, const char ** arg_v){
            print_string(" ");
         }
    }
+    print_string("\n");
 //   exit();
     return;
 }
