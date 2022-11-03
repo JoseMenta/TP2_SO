@@ -89,7 +89,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (13)
+#define CANT_PROG (15)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -186,5 +186,6 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free(sem_dump_t * buffer, uint32_t length);
 int dup_handler(int oldfd);
 int dup2(int oldfd, int newfd);
+void p_error(char * str);
 
 #endif //TPE_LIBC_H

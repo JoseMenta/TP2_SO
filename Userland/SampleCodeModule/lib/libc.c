@@ -20,6 +20,7 @@ front_program_t programs[CANT_PROG] = {
         {"test_prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
         {"test_sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
         {"test_mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
+        {NULL}
 };
 
 
@@ -86,7 +87,7 @@ uint64_t strcmp(const char *X, const char *Y)
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
-    int ret = read(0, &c, 1);
+    int ret = read(0, c, 1);
     if(ret == 0){
         return 0;
     } //Si no leyo caracteres
@@ -130,7 +131,7 @@ uint32_t get_line(char* buf, uint32_t max_len){
     c[1]='\0';
     for(; (c[0] = get_char()) != '\n' && read<max_len; read++){
         buf[read]=c[0];
-        write(STDOUT, &c, 1);
+        write(STDOUT, c, 1);
     }
     buf[read] = '\n';
     return read;
@@ -443,16 +444,29 @@ uint64_t str_tok(char * buffer, char sep){
 //   - void
 //---------------------------------------------------------------------------------
 void throw_error(char * str){
+    p_error(str);
+    sys_exit();
+}
+
+//---------------------------------------------------------------------------------
+// throw_error: Imprime un mensaje de error y corta el programa
+//---------------------------------------------------------------------------------
+// Argumentos:
+//   - str: mensaje de error a imprimir
+//---------------------------------------------------------------------------------
+// Retorno
+//   - void
+//---------------------------------------------------------------------------------
+void p_error(char * str){
     uint64_t size = strlen(str);
     write(STDERR, "\n", 1);
     write(STDERR, str, size);
-    write(STDERR, "\n\n", 2);
+    write(STDERR, "\n", 2);
     // print_string("\n", WHITE);
     // print_string(str, STDERR);
     // print_string("\n\n", WHITE);
 //    exit();
 //TODO: revisar de hacer un error expulsivo y otro no quizas
-    //sys_exit();
 }
 
 //---------------------------------------------------------------------------------

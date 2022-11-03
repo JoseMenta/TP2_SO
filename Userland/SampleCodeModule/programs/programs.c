@@ -17,7 +17,7 @@ void help(uint64_t arg_c, const char ** arg_v){
         throw_error("Error: el programa no recibe argumentos");
     }
     print_string("Programas disponibles:\n");
-    for(int i = 0; i<CANT_PROG;i++){
+    for(int i = 0; i<CANT_PROG && programs[i] != NULL;i++){
         print_string(programs[i].desc);
     }
     sys_exit();
@@ -99,5 +99,4 @@ void tiempo(uint64_t arg_c, const char ** arg_v) {
     print_string("hs\n");
     sys_exit();
 }
-
 
