@@ -85,12 +85,12 @@ uint64_t strcmp(const char *X, const char *Y)
 //      caracter leido o 0 si no se leyo un caracter
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
-    char c;
+    char c[2];
     int ret = read(0, &c, 1);
     if(ret == 0){
         return 0;
     } //Si no leyo caracteres
-    return c;
+    return c[0];
 }
 
 //---------------------------------------------------------------------------------
@@ -126,9 +126,11 @@ uint8_t get_char_fd(int fd){
 //---------------------------------------------------------------------------------
 uint32_t get_line(char* buf, uint32_t max_len){
     int read = 0;
-    char c;
-    for(; (c = get_char()) != '\n' && read<max_len; read++){
-        buf[read]=c;
+    char c[2];
+    c[1]='\0';
+    for(; (c[0] = get_char()) != '\n' && read<max_len; read++){
+        buf[read]=c[0];
+        write(STDOUT, &c, 1);
     }
     buf[read] = '\n';
     return read;

@@ -328,9 +328,9 @@ int read(int fd, char * buf, int count){
         unblock_process_handler(pipe_mode->info->pid_write_lock[i]);
         pipe_mode->info->pid_write_lock[i] = 0;
     }
-    if(pipe_mode->mode==CONSOLE){
-        print(buf, WHITE, ALL);
-    }
+//    if(pipe_mode->mode==CONSOLE){
+//        print(buf, WHITE, ALL);
+//    }
     sem_post(pipe_mode->info->lock);
     return read;
 }

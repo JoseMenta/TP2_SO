@@ -135,7 +135,10 @@ void analyze_buffer(void) {
         }
         //TODO: agregar los FD's
         executable_t exec_a = {get_program_name(program_a),program_a,i,aux_a,!background,NULL};
-        sys_exec(&exec_a);
+        int pid = sys_exec(&exec_a);
+        if(!background){
+            waitpid(pid);
+        }
         clean_buffer();
         return;
     }
@@ -205,8 +208,10 @@ void analyze_buffer(void) {
     uint64_t pidLeft = sys_exec(&exec_a);
     executable_t exec_b = {get_program_name(program_b),program_b,i,aux_a,!background, newFdRight};
     uint64_t pidRight = sys_exec(&exec_b);
-    waitpid(pidLeft);
-    waitpid(pidRight);
+    if(!background) {
+        waitpid(pidLeft);
+        waitpid(pidRight);
+    }
     clean_buffer();
     return;
 }

@@ -121,6 +121,8 @@ int create_process(executable_t* executable){
         for(i=0; i<DEFAULTFD; i++){
             if(executable->fds[i]==-1){
                 new_process->fd[i] = default_fds[i];
+                new_process->fd[i]->count_access++;
+                new_process->fd[i]->info->count_access++;
             }else {
                 new_process->fd[i] = current_process->fd[executable->fds[i]];
                 if (new_process->fd[i] != NULL) {

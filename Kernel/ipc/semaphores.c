@@ -352,6 +352,8 @@ int8_t sem_wait(sem_t * sem){
 
     // Verificamos que exista el semaforo buscado
     if(orderListADT_get(sem_manager.semaphores, sem) == NULL){
+        //TODO: se rompe aca
+        release(&sem_manager.lock);
         return ERR_NOT_FOUND;
     }
 
@@ -408,7 +410,7 @@ int8_t sem_post(sem_t * sem){
     }
 
     // Tomamos el lock para acceder a la seccion critica
-    acquire(&sem_manager.lock);
+    acquire(&sem_manager.lock);//ACA se queda
 
     // Verificamos que se haya inicializado el manejador de semaforos
     if(sem_manager.semaphores == NULL){
