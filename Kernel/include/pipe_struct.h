@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <semaphores.h>
 typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR, CONSOLE, CONSOLE_ERR} Pipe_modes;
-#define PIPESIZE 30
+#define PIPESIZE 20
 #define MAXLOCK 5
 
 typedef struct{

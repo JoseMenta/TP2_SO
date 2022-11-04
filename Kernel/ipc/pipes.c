@@ -84,6 +84,7 @@ pipe_restrict * get_pipe_console_restrict(){
 //-----------------------------------------------------------------------------------------
 int pipe(int fd[2]){
     pipe_info * info = create_info_pipe(NULL);
+    PCB * curren = get_current_pcb();
     if(info == NULL){
         return -1;
     }
@@ -95,18 +96,18 @@ int pipe(int fd[2]){
         mm_free(info);
         return -1;
     }
-    get_current_pcb()->fd[fd[0]] = create_restrict_pipe(O_RDONLY, info);
+    curren->fd[fd[0]] = create_restrict_pipe(O_RDONLY, info);
+
 
     //Modo escritura en el segundo fd
     fd[1] = get_next_fd();
     if(fd[1] == -1){
         fd[0]=-1;
-        mm_free(get_current_pcb()->fd[fd[0]]);
+        mm_free(curren->fd[fd[0]]);
         mm_free(info);
         return -1;
     }
-    get_current_pcb()->fd[fd[1]] = create_restrict_pipe(O_WRONLY, info);
-    info->count_access+=2;
+    curren->fd[fd[1]] = create_restrict_pipe(O_WRONLY, info);
     //Agrego la estructura con la informacion a la lista
     orderListADT_add(pipes_list, info);
     return 0;
@@ -182,6 +183,29 @@ int link_pipe_named(Pipe_modes mode, char * name){
 //Retorno:
 //  fd de donde se referencia el fifo, -1 en caso de error
 //-----------------------------------------------------------------------------------------
+int close_fd_terminated(PCB* process, int fd){
+    pipe_restrict * pipe_mode = process->fd[fd];
+
+    pipe_mode->count_access--;
+    pipe_mode->info->count_access--;
+    //Libero si no tengo a nadie apuntandolo y si no queda nada por leer
+    if(pipe_mode->info->count_access == 0 && pipe_mode->info->index_write == pipe_mode->info->index_read){
+        //print("entre", WHITE, ALL);
+        orderListADT_delete(pipes_list, pipe_mode->info);
+        sem_close(pipe_mode->info->lock);
+        mm_free(pipe_mode->info);
+    }
+    if(pipe_mode->count_access == 0){
+        for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){
+            unblock_process_handler(pipe_mode->info->pid_write_lock[i]);
+            pipe_mode->info->pid_write_lock[i] = 0;
+        }
+        mm_free(pipe_mode);
+    }
+    process->fd[fd] = NULL;
+    return 0;
+}
+
 int close_fd(int fd){
     pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
 
@@ -189,11 +213,18 @@ int close_fd(int fd){
     pipe_mode->info->count_access--;
     //Libero si no tengo a nadie apuntandolo y si no queda nada por leer
     if(pipe_mode->info->count_access == 0 && pipe_mode->info->index_write == pipe_mode->info->index_read){
+        //print("entre", WHITE, ALL);
         orderListADT_delete(pipes_list, pipe_mode->info);
         sem_close(pipe_mode->info->lock);
         mm_free(pipe_mode->info);
     }
     if(pipe_mode->count_access == 0){
+        //print("entre2", WHITE, ALL);
+        //Desperta a todos los bloqueados
+        for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){
+            unblock_process_handler(pipe_mode->info->pid_write_lock[i]);
+            pipe_mode->info->pid_write_lock[i] = 0;
+        }
         mm_free(pipe_mode);
     }
     get_current_pcb()->fd[fd] = NULL;
@@ -217,10 +248,7 @@ int write(int fd, const char * buf, int count){
 
     if(pipe_mode->mode==O_RDONLY)
         return -1;
-    if(pipe_mode->mode==CONSOLE){
-        print(buf, WHITE, ALL);
-        return 0;
-    }
+
     if(pipe_mode->mode==CONSOLE_ERR){
         print(buf, RED, ALL);
         return 0;
@@ -229,30 +257,37 @@ int write(int fd, const char * buf, int count){
     int write;
     //lock del mutex del pipe
     sem_wait(pipe_mode->info->lock);
-
+    //print("sali", WHITE,ALL);
     for(write=0; write<count && buf[write] != '\0'; write++){
-        //Si la distancia es el tamaño del buffer => en el proximo pisaria informacion
-        while(pipe_mode->info->index_write == pipe_mode->info->index_read + PIPESIZE){
-
-            //Despierta a todos los lectores que se habian bloqueado
-            for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
-                unblock_process_handler(pipe_mode->info->pid_read_lock[i]);
-                pipe_mode->info->pid_read_lock[i] = 0;
-            }
-
-            //Bloqueo al proceso actual
-            int index_block = index_lock_pid(pipe_mode->info->pid_write_lock);
-            pipe_mode->info->pid_write_lock[index_block] = get_current_pcb()->pid;
-            pipe_mode->info->pid_write_lock[index_block+1] = 0;
-            //TODO revisar concurrencia
-            sem_post(pipe_mode->info->lock);
-            if(block_process_handler(get_current_pcb()->pid) == -1){
-                return -1;
-            }
+        if(pipe_mode->mode==CONSOLE){
+            //char aux[2] = {buf[write], '\0'};
+            //print(aux, WHITE, ALL);
+            print_char(buf[write], WHITE, ALL);
         }
-        pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = buf[write];
+        else{
+            //Si la distancia es el tamaño del buffer => en el proximo pisaria informacion
+            while(pipe_mode->info->index_write == pipe_mode->info->index_read + PIPESIZE){
+
+                //Despierta a todos los lectores que se habian bloqueado
+                for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
+                    unblock_process_handler(pipe_mode->info->pid_read_lock[i]);
+                    pipe_mode->info->pid_read_lock[i] = 0;
+                }
+
+                //Bloqueo al proceso actual
+                int index_block = index_lock_pid(pipe_mode->info->pid_write_lock);
+                pipe_mode->info->pid_write_lock[index_block] = get_current_pcb()->pid;
+                pipe_mode->info->pid_write_lock[index_block+1] = 0;
+                sem_post(pipe_mode->info->lock);
+                //print("block", WHITE, ALL);
+                if(block_process_handler(get_current_pcb()->pid) == -1){
+                    return -1;
+                }
+            }
+            pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = buf[write];
+        }
     }
-    pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = '\0';
+    pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
 
     //Desperta a todos los lectores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
@@ -306,6 +341,17 @@ int read(int fd, char * buf, int count){
     sem_wait(pipe_mode->info->lock);
     //No tengo nada para leer
     while(pipe_mode->info->index_read == pipe_mode->info->index_write){
+        //char aux[2] = {pipe_mode->info->count_access +'0', '\0'};
+        //print("--pipe", WHITE, ALL);
+        //print(aux, WHITE, ALL);
+        //char aux2[2] = {pipe_mode->count_access +'0', '\0'};
+        //print("\nrestrict", WHITE, ALL);
+        //print(aux2, WHITE, ALL);
+        if(pipe_mode->info->count_access == pipe_mode->count_access){
+            //print("aca", WHITE, ALL);
+            sem_post(pipe_mode->info->lock);
+            return -1;
+        }
         //Bloqueo al proceso actual
         int index_block = index_lock_pid(pipe_mode->info->pid_read_lock);
         pipe_mode->info->pid_read_lock[index_block] = get_current_pcb()->pid;
@@ -452,6 +498,7 @@ pipe_restrict * create_restrict_pipe(Pipe_modes mode, pipe_info * info){
     aux->info=info;
     aux->mode=mode;
     aux->count_access=1;
+    aux->info->count_access++;
     return aux;
 }
 

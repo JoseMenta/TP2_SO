@@ -129,7 +129,7 @@ void analyze_buffer(void) {
         new_token = str_tok(buffer+prev_token+1, ' ');
         //si no hay un pipe, tengo que ejecutar uno solo
         if(new_token!=0){
-            p_error("ERROR: Programa de consola derecha ausente");
+            p_error("ERROR: Programa ausente");
             clean_buffer();
             return;
         }
@@ -153,7 +153,7 @@ void analyze_buffer(void) {
     new_token = str_tok(buffer+prev_token+1, ' ');
     if(new_token == 0){
         // Lanzar error: Hubo un pipe pero no hubo un string despues de él
-        p_error("ERROR: Programa a la derecha del pipe ausente");
+        p_error("ERROR: Programa lector del pipe ausente.");
 //        print_string("\nERROR: Programa de consola derecha ausente\n", RED);
         clean_buffer();
         return;
@@ -166,7 +166,7 @@ void analyze_buffer(void) {
     // Si no lo es lanza error
     if (program_b == NULL) {
         // Lanzar error: Programa invalido
-        p_error("ERROR: programa para consola derecha invalido");
+        p_error("ERROR: programa lector del pipe invalido");
         // print_string("\nERROR: programa para consola derecha invalido\n", RED);
         clean_buffer();
         return;
@@ -208,8 +208,13 @@ void analyze_buffer(void) {
     int newFdRight[DEFAULTFD] =  {fd[0], 1, 2};
     executable_t exec_a = {get_program_name(program_a),program_a,arg_c_a,aux_a,!background, newFdLeft};
     uint64_t pidLeft = sys_exec(&exec_a);
+    close_fd(fd[1]);
+    //print_string("lo cerre");
     executable_t exec_b = {get_program_name(program_b),program_b,i,aux_b,!background, newFdRight};
     uint64_t pidRight = sys_exec(&exec_b);
+    close_fd(fd[0]);
+    //close_fd(1);
+    //close_fd(0);
     if(!background) {
         waitpid(pidLeft);
         waitpid(pidRight);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+//TODO ES por aca
 //#include <string.h>
 #include <test_util.h>
 #include <libc.h>
@@ -20,14 +21,15 @@ uint64_t test_mm(uint64_t argc, char *argv[]){
     uint32_t total;
     uint64_t max_memory;
 
-    if (argc != 1) return -1;
+    if (argc != 1){
+        throw_error("Error: el programa debe recibir exactamente 1 argumento");
+    }
 
     if ((max_memory = satoi(argv[0])) <= 0) return -1;
-
+    print_number(max_memory-1);
     while (1){
         rq = 0;
         total = 0;
-
         // Request as many blocks as we can
         while(rq < MAX_BLOCKS && total < max_memory){
             mm_rqs[rq].size = GetUniform(max_memory - total - 1) + 1;
@@ -43,7 +45,7 @@ uint64_t test_mm(uint64_t argc, char *argv[]){
         uint32_t i;
         for (i = 0; i < rq; i++)
             if (mm_rqs[i].address)
-                //memset(mm_rqs[i].address, i, mm_rqs[i].size);
+                memset(mm_rqs[i].address, i, mm_rqs[i].size);
 
         // Check
         for (i = 0; i < rq; i++)

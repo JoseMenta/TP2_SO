@@ -65,6 +65,7 @@ void endless_loop(){
 }
 
 void endless_loop_print(uint64_t wait){
+    //print_string("llegue");
     int64_t pid = getpid();
 //    int64_t pid = my_getpid();
 
@@ -73,4 +74,5 @@ void endless_loop_print(uint64_t wait){
         print_number(pid);
         bussy_wait(wait);
     }
+    return;
 }

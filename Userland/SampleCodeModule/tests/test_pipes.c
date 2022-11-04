@@ -24,9 +24,11 @@ void write_pipe_common(){
 }
 
 void read_pipe_common(){
-    char buf[50];
-    get_line(buf, 50);
-    print_string(buf);
+    char buf[10];
+    int i;
+    while( (i = read(STDIN, buf, 10) ) != -1){
+        write(STDOUT, buf, i);
+    }
     return;
 }
 

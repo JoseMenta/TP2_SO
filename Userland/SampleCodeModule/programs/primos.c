@@ -20,7 +20,6 @@ void primos(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=0){
         throw_error("Error: el programa no recibe argumentos");
     }
-    char c[2];
     //para probar el pipeo nada mas
     /*
     print_string("lectura: ");
@@ -38,8 +37,9 @@ void primos(uint64_t arg_c, const char ** arg_v){
            print_string(" ");
         }
    }
-    print_string("\n");
+   //print_string("\n");
 //   exit();
+    //print_string("sali");
     return;
 }
 

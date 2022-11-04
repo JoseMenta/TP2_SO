@@ -181,7 +181,8 @@ int terminate_process(uint64_t pid){
     PCB* process = hashADT_get(hash,&wanted);
     process->status = FINISHED;
     for(int i=0; i<DEFAULTFD; i++){
-        close_fd(i);
+        //print("pepe", WHITE, ALL);
+        close_fd_terminated(process, i);
     }
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
     //Liberamos ahora a la memoria, pero en el caso donde esta terminando el proceso que se estaba ejecutando, hay que

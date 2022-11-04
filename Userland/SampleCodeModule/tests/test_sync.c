@@ -64,7 +64,9 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
 uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
-    if (argc != 2) return -1;
+    if (argc != 2){
+        throw_error("Error: el programa debe recibir exactamente 2 argumentos");
+    }
 
     char * argvDec[] = {argv[0], "-1", argv[1], NULL};
     char * argvInc[] = {argv[0], "1", argv[1], NULL};
@@ -79,7 +81,7 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
-        executable_t aux={"my_process_inc",&my_process_inc,3,argvDec,0};
+        executable_t aux={"my_process_inc",&my_process_inc,3,argvDec,0, NULL};
         pids[i] = sys_exec(&aux);
 //        pids[i] = my_create_process("my_process_inc", 3, argvDec);
         aux.arg_v = argvInc;

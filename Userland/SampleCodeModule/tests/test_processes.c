@@ -22,17 +22,21 @@ int64_t test_processes(uint64_t argc, char *argv[]){
     uint64_t max_processes;
     char * argvAux[] = {0};
 
-    if (argc != 1) return -1;
+    if (argc != 1){
+        throw_error("Error: el programa debe recibir exactamente 1 argumento");
+    }
 
-    if ((max_processes = satoi(argv[0])) <= 0) return -1;
-    print_string(argv[0]);
+    if ((max_processes = satoi(argv[0])) <= 0) {
+        throw_error("Error: el programa debe recibir valor numero mayor a cero");
+    }
+    //print_number(max_processes-1);
     p_rq p_rqs[max_processes];
 
     while (1){
-
+        print_string("hola");
         // Create max_processes processes
         for(rq = 0; rq < max_processes; rq++){
-            executable_t exec = {"endless_loop",&endless_loop,0,argvAux,0};
+            executable_t exec = {"endless_loop",&endless_loop,0,argvAux,0, NULL};
             p_rqs[rq].pid = sys_exec(&exec);
 //            p_rqs[rq].pid = my_create_process("endless_loop", 0, argvAux);
 
