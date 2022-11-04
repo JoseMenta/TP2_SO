@@ -139,6 +139,11 @@ void mm_free(void* p){
     insert_block_into_free_list(block);
     allocated_blocks--;
 }
+
+uint64_t get_total_bytes(){
+    return heap_size;
+}
+
 uint64_t get_allocated_blocks(){
     return allocated_blocks;
 }
