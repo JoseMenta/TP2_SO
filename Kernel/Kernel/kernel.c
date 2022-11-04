@@ -243,12 +243,10 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     exec.arg_v=aux;
     exec.name = "Shell";
     exec.foreground = 1;
-    //TODO: ver de poner pero falla
     int aux2[3] = {-1,-1,-1};
     exec.fds = aux2;
     exec.start=sampleCodeModuleAddress;
     create_process(&exec);
-    //hasta aca tengo todo, menos los FD's
     //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
     load_idt();
     while(1);//para que espere hasta el tt y se vaya al bash

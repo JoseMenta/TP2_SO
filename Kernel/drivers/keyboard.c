@@ -26,7 +26,7 @@ uint8_t regs_saved = 0;
 
 uint64_t* get_inforeg_context();
 //teclado Mac
-static int keyboard_reference[] = {'\0','\0','1','2','3','4','5',
+static int keyboard_reference[] = {'\0','\0','&','_','3','4','5',
                                    '6','7','8','9','0','-','=',
                                    ASCII_DELETE,'\t','q','w','e','r','t',
                                    'y','u','i','o','p','[',']','\n',
@@ -132,7 +132,7 @@ void keyboard_handler(){
 
 
         // Detenimiento de procesos
-        else if(keyboard_reference[key] == 'f' && alt_pressed){
+        else if(keyboard_reference[key] == 'k' && alt_pressed){
 //            all_state = kill_full();
         }
         else if (keyboard_reference[key] == 'l' && alt_pressed){
@@ -142,7 +142,7 @@ void keyboard_handler(){
 //            right_state = kill_right();
         }
         else if(keyboard_reference[key] == 's' && ctrl_pressed){
-            copy_curr_context_to_inforeg_context();
+//            copy_curr_context_to_inforeg_context();
         }
 
 

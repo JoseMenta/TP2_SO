@@ -89,7 +89,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (26)
+#define CANT_PROG (30)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -178,7 +178,7 @@ int close_fd(int fd);
 void get_info(pipe_user_info * user_data, int * count);
 int write(int fd, const char * buf, int count);
 int read(int fd, char * buf, int count);
-
+uint8_t print_string_fd(const char * s1, int fd);
 sem_t sem_init(char * name, uint64_t value);
 sem_t sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait(sem_t sem);
@@ -188,6 +188,8 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free(sem_dump_t * buffer, uint32_t length);
 int dup_handler(int oldfd);
 int dup2(int oldfd, int newfd);
+void p_error(char * str);
+uint32_t get_string(char* buf, uint32_t max_len);
 
 void help(uint64_t arg_c, const char ** arg_v);
 void mem(uint64_t arg_c, const char ** arg_v);

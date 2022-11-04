@@ -18,16 +18,20 @@ uint64_t test_mm(uint64_t argc, char *argv[]){
     mm_rq mm_rqs[MAX_BLOCKS];
     uint8_t rq;
     uint32_t total;
-    uint64_t max_memory = 10000;
+    uint64_t max_memory;
 
 //    if (argc != 1) return -1;
+    if (argc != 1){
+        throw_error("Error: el programa debe recibir exactamente 1 argumento");
+    }
 
 //    if ((max_memory = satoi(argv[0])) <= 0) return -1;
 
+    if ((max_memory = satoi(argv[0])) <= 0) return -1;
+    print_number(max_memory-1);
     while (1){
         rq = 0;
         total = 0;
-
         // Request as many blocks as we can
         while(rq < MAX_BLOCKS && total < max_memory){
             mm_rqs[rq].size = GetUniform(max_memory - total - 1) + 1;

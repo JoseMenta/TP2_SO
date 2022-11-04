@@ -4,6 +4,7 @@
 //TODO: sacar
 #include "../include/libc.h"
 #include "../include/os_tests.h"
+#include "../include/test_pipes.h"
 
 #define MAX_NUMBER_LENGTH 21
 
@@ -32,7 +33,11 @@ front_program_t programs[CANT_PROG] = {
         {"wc","\twc: Cuenta la cantidad de lineas del input por entrada estandar\n",&wc},
         {"filter","\tfilter: Filtra las vocales del input por entrada estandar\n",&filter},
         {"pipe","\tpipe: Imprime una lista de los pipes con sus propiedades\n",&pipe_info},
-        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos",&phylo}
+        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos",&phylo},
+        {"write.pipe.name", "\t", &write_pipe_name},
+        {"read.pipe.name", "\t", &read_pipe_name},
+        {"write.pipe.common", "\t", &write_pipe_common},
+        {"read.pipe.common", "\t", &read_pipe_common},
 };
 
 
@@ -106,6 +111,7 @@ uint8_t get_char(void){
     return c[0];
 }
 
+
 //---------------------------------------------------------------------------------
 // getChar_fd: lectura de un caracter del fd con sys_call de lectura
 //---------------------------------------------------------------------------------
@@ -141,7 +147,20 @@ uint32_t get_line(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
     c[1]='\0';
-    for(; (c[0] = get_char()) != '\n' && read<max_len; read++){
+    for(; (c[0] = get_char()) != '\n' && read<max_len-1; read++){
+        buf[read]=c[0];
+        write(STDOUT, c, 1);
+    }
+    buf[read] = '\n';
+    buf[read+1] = '\0';
+    return read;
+}
+
+uint32_t get_string(char* buf, uint32_t max_len){
+    int read = 0;
+    char c[2];
+    c[1]='\0';
+    for(; (c[0] = get_char()) != '\0' && read<max_len-1; read++){
         buf[read]=c[0];
         write(STDOUT, c, 1);
     }
@@ -162,6 +181,7 @@ uint32_t get_line(char* buf, uint32_t max_len){
 //      Devuelve a la linea o max_len caracteres, lo que ocurra antes
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
+
 uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
     int read = 0;
     char c;
@@ -171,6 +191,7 @@ uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
     buf[read] = '\n';
     return read;
 }
+
 /*
 uint32_t get_line(char* buf, uint32_t max_len){
     uint32_t curr = 0;
@@ -180,9 +201,14 @@ uint32_t get_line(char* buf, uint32_t max_len){
         long aux = 0;
         //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
         aux = read(STDIN,buf,(max_len-curr));
-        //write(STDOUT,buf,aux);
+        print_number(aux);
+        write(STDOUT,buf,aux);
         for(uint32_t i = curr; i<curr+aux && !finished; i++){
+            print_string("entre");
+            print_string(&buf[i]);
+            print_string("dsp");
             if(buf[i]=='\n'){
+                print_string("hola");
                 buf[i+1]='\0';
                 curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
                 finished = 1;
@@ -478,16 +504,29 @@ uint64_t str_tok(char * buffer, char sep){
 //   - void
 //---------------------------------------------------------------------------------
 void throw_error(char * str){
+    p_error(str);
+    sys_exit();
+}
+
+//---------------------------------------------------------------------------------
+// throw_error: Imprime un mensaje de error y corta el programa
+//---------------------------------------------------------------------------------
+// Argumentos:
+//   - str: mensaje de error a imprimir
+//---------------------------------------------------------------------------------
+// Retorno
+//   - void
+//---------------------------------------------------------------------------------
+void p_error(char * str){
     uint64_t size = strlen(str);
     write(STDERR, "\n", 1);
     write(STDERR, str, size);
-    write(STDERR, "\n\n", 2);
+    write(STDERR, "\n", 2);
     // print_string("\n", WHITE);
     // print_string(str, STDERR);
     // print_string("\n\n", WHITE);
 //    exit();
 //TODO: revisar de hacer un error expulsivo y otro no quizas
-    //sys_exit();
 }
 
 //---------------------------------------------------------------------------------

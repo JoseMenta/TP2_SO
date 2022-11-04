@@ -33,10 +33,10 @@ void bash(uint64_t arg_c, char ** arg_v){
         write(1, "error", 100);
         throw_error("Error: el programa no recibe argumentos");
     }
-    print_string("Bienvenido!\nQue modulo desea correr?\n");
+    print_string("Bienvenido!\nQue modulo desea correr?");
     // print_string("Bienvenido!\nQue modulo desea correr?\n$ ",WHITE);
     while(1){
-        print_string("$");
+        print_string("\n$");
         int len = get_line(buffer,MAX_BUFFER_SIZE);
         if(len==MAX_BUFFER_SIZE-1 && buffer[len-1]=='\n'){
             print_string("No fue posible leer lo ingresado, por favor intente nuevamente\n$");
@@ -78,7 +78,7 @@ void analyze_buffer(void) {
             clear();
             return;
         } else {
-            throw_error("ERROR: expresion invalida");
+            p_error("ERROR: expresion invalida");
             // print_string("\nERROR: expresion invalida\n", RED);
             clean_buffer();
             return;
@@ -90,7 +90,7 @@ void analyze_buffer(void) {
     // Si no se encontro programa, entonces no es un string valido
     if (program_a == NULL) {
         // Lanzar error: El primer string es un programa valido
-        throw_error("ERROR: programa invalido");
+        p_error("ERROR: programa invalido");
         // print_string("\nERROR: programa invalido\n", RED);
         return;
     }
@@ -129,11 +129,12 @@ void analyze_buffer(void) {
         new_token = str_tok(buffer+prev_token+1, ' ');
         //si no hay un pipe, tengo que ejecutar uno solo
         if(new_token!=0){
-            throw_error("ERROR: Programa de consola derecha ausente");
+            p_error("ERROR: Programa ausente");
             clean_buffer();
             return;
         }
         //TODO: agregar los FD's
+        print_string("\n");
         executable_t exec_a = {get_program_name(program_a),program_a,i,aux_a,!background,NULL};
         print_string("\n");
         int pid = sys_exec(&exec_a);
@@ -153,7 +154,7 @@ void analyze_buffer(void) {
     new_token = str_tok(buffer+prev_token+1, ' ');
     if(new_token == 0){
         // Lanzar error: Hubo un pipe pero no hubo un string despues de él
-        throw_error("ERROR: Programa a la derecha del pipe ausente");
+        p_error("ERROR: Programa lector del pipe ausente.");
 //        print_string("\nERROR: Programa de consola derecha ausente\n", RED);
         clean_buffer();
         return;
@@ -166,7 +167,7 @@ void analyze_buffer(void) {
     // Si no lo es lanza error
     if (program_b == NULL) {
         // Lanzar error: Programa invalido
-        throw_error("ERROR: programa para consola derecha invalido");
+        p_error("ERROR: programa lector del pipe invalido");
         // print_string("\nERROR: programa para consola derecha invalido\n", RED);
         clean_buffer();
         return;
@@ -175,11 +176,12 @@ void analyze_buffer(void) {
     // Si llegamos aca es porque leimos dos programas validos, falta leer los arguementos del segundo programa
     end = 0;
     background = 0;
-    i=0;                                                        // Itera sobre el arreglo de argumentos
+    i=0;
+    // Itera sobre el arreglo de argumentos
     for(; !end && !background; i++){      // Recorrera siempre y cuando quede espacio para los argumentos o hasta llegar a un pipe o \0
         new_token = str_tok(buffer+prev_token+1, ' ');          // Obtenemos el proximo token, el cual puede ser un nuevo argumento, | o \0
         prev_token++;
-        copy_token(arg_b[i], &prev_token, new_token);           // Subo el argumento al arreglo de argumentos
+        copy_token(tokens, &prev_token, new_token);           // Subo el argumento al arreglo de argumentos
         if(i < MAX_ARGS_SIZE){
             copy_str(arg_b[i], tokens);           // Subo el argumento al arreglo de argumentos
         }
@@ -190,7 +192,7 @@ void analyze_buffer(void) {
                 i--;                                                // Contabilizamos como argumento al pipe o \0, por lo que debemos decrementar
             }                                             // Contabilizamos como argumento al pipe o \0, por lo que debemos decrementar
 //            pipe_or_end_reached = 1;                            // Actualizamos el flag
-            if(strcmp(arg_b[i], "&")==0){
+            if(strcmp(tokens, "&")==0){
                 background = 1;
             }else{
                 end = 1;
@@ -200,7 +202,7 @@ void analyze_buffer(void) {
     char* aux_b[] = {arg_b[0],arg_b[1], arg_b[2]};
 
     //tengo que crear el pipe
-    //TODO: agregar pipe
+    print_string("\n");
     int fd[2];
     pipe(fd);
     int newFdLeft[DEFAULTFD] =  {0, fd[1], 2};
@@ -208,8 +210,13 @@ void analyze_buffer(void) {
     print_string("\n");
     executable_t exec_a = {get_program_name(program_a),program_a,arg_c_a,aux_a,!background, newFdLeft};
     uint64_t pidLeft = sys_exec(&exec_a);
-    executable_t exec_b = {get_program_name(program_b),program_b,i,aux_a,!background, newFdRight};
+    close_fd(fd[1]);
+    //print_string("lo cerre");
+    executable_t exec_b = {get_program_name(program_b),program_b,i,aux_b,!background, newFdRight};
     uint64_t pidRight = sys_exec(&exec_b);
+    close_fd(fd[0]);
+    //close_fd(1);
+    //close_fd(0);
     if(!background) {
         waitpid(pidLeft);
         waitpid(pidRight);
