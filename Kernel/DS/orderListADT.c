@@ -47,7 +47,7 @@ orderListADT new_orderListADT(compare_function cmp){
 // Funcion recursiva para agregar a la lista
 static node_t * add_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size){
     // Si es el final de la lista o el proximo es mayor, lo agrego ahora
-    if(node == NULL || cmp(node->data, elem) < 0){
+    if(node == NULL || cmp(node->data, elem) > 0){
         node_t * new_node = mm_alloc(sizeof(node_t));
         if(new_node == NULL){
             return node;
@@ -88,7 +88,7 @@ int8_t orderListADT_add(orderListADT myListADT, void * elem){
 
 static node_t * delete_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size, void ** response){
     // Si llego al final de la lista o el nodo es mayor al actual, entonces el elemento no esta
-    if(node == NULL || cmp(node->data, elem) < 0){
+    if(node == NULL || cmp(node->data, elem) > 0){
         response = NULL;
         return node;
     }
@@ -155,7 +155,7 @@ void * orderListADT_edit(orderListADT myListADT, void * prev_elem, void * new_el
 
 static void * get_rec(node_t * node, void * elem_id, compare_function cmp){
     // Si llegue al final de la lista o el siguiente es mayor, entonces no lo encontre
-    if(node == NULL || cmp(node->data, elem_id) < 0){
+    if(node == NULL || cmp(node->data, elem_id) > 0){
         return NULL;
     }
     // Si la funcion de comparacion da 0, entonces lo encontre

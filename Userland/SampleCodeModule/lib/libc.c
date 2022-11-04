@@ -16,10 +16,23 @@ front_program_t programs[CANT_PROG] = {
         {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
         {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",&primos},
         {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",&fibonacci},
-        {"test_processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
-        {"test_prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
-        {"test_sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
-        {"test_mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
+        {"test-processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
+        {"test-prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
+        {"test-sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
+        {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
+        {"mem","\tmem: Imprime el estado de la memoria\n",&mem},
+        {"ps","\tps: Imprime la lista de todos los procesos y sus propiedades\n",&ps},
+        {"loop","\tloop: Imprime su ID cada 2 segundos\n",&loop},
+        {"kill","\tkill: Mata a un proceso dado su ID\n",&kill},
+        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice},
+        {"block","\tblock: Bloquea a un proceso dado su ID\n",&block},
+        {"unblock","\tunblock: Desbloquea a un proceso dado su ID\n",&unblock},
+        {"sem","\tsem: Imprime la lista de los semaforos con sus propiedades\n",&sem},
+        {"cat","\tcat: Imprime la entrada estandar\n",&cat},
+        {"wc","\twc: Cuenta la cantidad de lineas del input por entrada estandar\n",&wc},
+        {"filter","\tfilter: Filtra las vocales del input por entrada estandar\n",&filter},
+        {"pipe","\tpipe: Imprime una lista de los pipes con sus propiedades\n",&pipe_info},
+        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos",&phylo}
 };
 
 
@@ -86,7 +99,7 @@ uint64_t strcmp(const char *X, const char *Y)
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
-    int ret = read(0, &c, 1);
+    int ret = read(0, c, 1);
     if(ret == 0){
         return 0;
     } //Si no leyo caracteres
@@ -130,7 +143,7 @@ uint32_t get_line(char* buf, uint32_t max_len){
     c[1]='\0';
     for(; (c[0] = get_char()) != '\n' && read<max_len; read++){
         buf[read]=c[0];
-        write(STDOUT, &c, 1);
+        write(STDOUT, c, 1);
     }
     buf[read] = '\n';
     return read;
@@ -186,6 +199,28 @@ uint32_t get_line(char* buf, uint32_t max_len){
 }
 */
 
+//---------------------------------------------------------------------------------
+// print_string_with_padding: imprime un String completando con espacios el tamaño libre
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      s1: el string que se desea imprimir
+//      len: el tamaño que se desea que tenga el string (completando con espacios a derecha)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_string_with_padding(const char * s1, uint8_t len){
+    char aux[len+1];
+    int i = 0;
+    for(;s1[i]!='\0' && i<len;i++){
+        aux[i]=s1[i];
+    }
+    for(;i<len;i++){
+        aux[i] = ' ';
+    }
+    aux[i]='\0';
+    return write(STDOUT, aux, len);
+}
 //---------------------------------------------------------------------------------
 // printString: imprime un String
 //---------------------------------------------------------------------------------

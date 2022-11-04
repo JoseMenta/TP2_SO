@@ -89,7 +89,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (13)
+#define CANT_PROG (26)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -124,6 +124,8 @@ void * get_program(const char * str);
 char* get_program_name(void* program);
 uint8_t get_char(void);
 uint8_t print_string(const char * s1);
+uint8_t print_string_with_padding(const char * s1, uint8_t len);
+void number_to_string(uint64_t num, char * str);
 uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);
@@ -187,4 +189,18 @@ void sems_dump_free(sem_dump_t * buffer, uint32_t length);
 int dup_handler(int oldfd);
 int dup2(int oldfd, int newfd);
 
+void help(uint64_t arg_c, const char ** arg_v);
+void mem(uint64_t arg_c, const char ** arg_v);
+void ps(uint64_t arg_c, const char ** arg_v);
+void loop(uint64_t arg_c, const char ** arg_v);
+void kill(uint64_t arg_c, const char ** arg_v);
+void nice_command(uint64_t arg_c, const char ** arg_v);
+void block(uint64_t arg_c, const char ** arg_v);
+void unblock(uint64_t arg_c, const char ** arg_v);
+void sem(uint64_t arg_c, const char ** arg_v);
+void cat(uint64_t arg_c, const char ** arg_v);
+void wc(uint64_t arg_c, const char ** arg_v);
+void filter(uint64_t arg_c, const char ** arg_v);
+void pipe_info(uint64_t arg_c, const char ** arg_v);
+void phylo(uint64_t arg_c, const char ** arg_v);
 #endif //TPE_LIBC_H

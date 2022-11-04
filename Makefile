@@ -3,12 +3,12 @@ all: bootloader kernel userland image
 
 #toolchain:
 	#cd Toolchain; make all
-
+mm = heap
 bootloader:
 	cd Bootloader; make all
 
 kernel:
-	cd Kernel; make all
+	cd Kernel; make all mm=$(mm)
 
 userland:
 	cd Userland; make all

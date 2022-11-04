@@ -11,17 +11,17 @@ const time_func time_arr[] = {get_secs, 0, get_min, 0, get_hour, 0, get_day_week
 //  arg_c: cantidad de argumentos del programa (0)
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
-void help(uint64_t arg_c, const char ** arg_v){
-    extern front_program_t programs[CANT_PROG];
-    if(arg_c!=0){
-        throw_error("Error: el programa no recibe argumentos");
-    }
-    print_string("Programas disponibles:\n");
-    for(int i = 0; i<CANT_PROG;i++){
-        print_string(programs[i].desc);
-    }
-    sys_exit();
-}
+//void help(uint64_t arg_c, const char ** arg_v){
+//    extern front_program_t programs[CANT_PROG];
+//    if(arg_c!=0){
+//        throw_error("Error: el programa no recibe argumentos");
+//    }
+//    print_string("Programas disponibles:\n");
+//    for(int i = 0; i<CANT_PROG;i++){
+//        print_string(programs[i].desc);
+//    }
+//    sys_exit();
+//}
 
 //---------------------------------------------------------------------------------
 // inforeg: imprime los registros guardados con la combinacion de teclas Control+s

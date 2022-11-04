@@ -19,6 +19,9 @@ void * hashADT_get(HashADT table, void * elem_id);
 uint8_t hashADT_is_empty(HashADT table);
 uint32_t hashADT_size(HashADT table);
 void free_hashADT(HashADT table);
+void hashADT_to_begin(HashADT table);
+int hashADT_has_next(HashADT table);
+void* hashADT_next(HashADT table);
 
 void dump(HashADT table);
 

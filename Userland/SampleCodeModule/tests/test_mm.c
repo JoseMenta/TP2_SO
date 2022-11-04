@@ -18,11 +18,11 @@ uint64_t test_mm(uint64_t argc, char *argv[]){
     mm_rq mm_rqs[MAX_BLOCKS];
     uint8_t rq;
     uint32_t total;
-    uint64_t max_memory;
+    uint64_t max_memory = 10000;
 
-    if (argc != 1) return -1;
+//    if (argc != 1) return -1;
 
-    if ((max_memory = satoi(argv[0])) <= 0) return -1;
+//    if ((max_memory = satoi(argv[0])) <= 0) return -1;
 
     while (1){
         rq = 0;
@@ -43,7 +43,7 @@ uint64_t test_mm(uint64_t argc, char *argv[]){
         uint32_t i;
         for (i = 0; i < rq; i++)
             if (mm_rqs[i].address)
-                //memset(mm_rqs[i].address, i, mm_rqs[i].size);
+                memset(mm_rqs[i].address, i, mm_rqs[i].size);
 
         // Check
         for (i = 0; i < rq; i++)

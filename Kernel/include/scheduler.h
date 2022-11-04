@@ -56,6 +56,7 @@ void* scheduler(void* curr_rsp);
 int waitPid(uint64_t pid);
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t get_process_count();
+PCB* get_pcb_by_pid(pid);
 //Inicio scheduler arqui
 //#include <interrupts.h>
 //#include <stdint.h>

@@ -10,6 +10,7 @@
 #include <pipes.h>
 #include "../include/scheduler.h"
 #include "../include/pipes.h"
+#include "../include/video_driver.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -27,6 +28,17 @@ extern void TesterRead();
 extern void zero_division_exc();
 typedef int (*EntryPoint)();									// Entrypoint es un alias para punteros a funcion que devuelven un entero, sin parametros
 
+void print_defined();
+#ifdef BUDDY
+void print_defined(){
+    print("buddy",WHITE,ALL);
+}
+#endif
+#ifdef HEAP
+void print_defined(){
+    print("heap",WHITE,ALL);
+}
+#endif
 
 void clearBSS(void * bssAddress, uint64_t bssSize)
 {
@@ -224,6 +236,7 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
 //    print("Pasa el testeo del mm\n",WHITE,ALL);
     pipe_initialize();
     initialize_scheduler();
+//    print_defined();
     executable_t exec;
     char* aux[]={NULL};
     exec.arg_c=0;

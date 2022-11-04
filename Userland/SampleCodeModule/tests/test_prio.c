@@ -22,7 +22,7 @@ void test_prio(){
     uint64_t i;
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
-        executable_t exec = {"endless_loop_print",&endless_loop_print,MINOR_WAIT,argv,1};
+        executable_t exec = {"endless_loop_print",&endless_loop_print,0,argv,1};
         pids[i] = sys_exec(&exec);
 //        pids[i] = my_create_process("endless_loop_print", 0, argv);
     }
@@ -66,6 +66,7 @@ void test_prio(){
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
         terminate_process(pids[i]);
+        waitpid(pids[i]);
 //        my_kill(pids[i]);
     }
 }

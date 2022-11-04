@@ -181,7 +181,7 @@ int terminate_process(uint64_t pid){
     PCB* process = hashADT_get(hash,&wanted);
     process->status = FINISHED;
     for(int i=0; i<DEFAULTFD; i++){
-        close_fd(i);
+        close_fd(i,pid);
     }
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
     //Liberamos ahora a la memoria, pero en el caso donde esta terminando el proceso que se estaba ejecutando, hay que
@@ -344,27 +344,42 @@ uint64_t get_current_pid(){
 PCB * get_current_pcb(){
     return current_process;
 }
+PCB* get_pcb_by_pid(pid){
+    PCB wanted;
+    wanted.pid = pid;
+    return hashADT_get(hash,&wanted);
+}
+//Perdon por usar Bubble sort, pero no vamos a tener muchos procesos simultaneamente
+//Y no usa recursividad o arreglos temporales
+static void sort_process_info(process_info_t* processInfo, uint32_t n){
+    for(int i = 0; i<n-1; i++){
+        for(int j = 0; j<n-i-1;j++){
+            if(processInfo[j].pid>processInfo[j+1].pid){
+                process_info_t temp = processInfo[j];
+                processInfo[j] = processInfo[j+1];
+                processInfo[j+1] = temp;
+            }
+        }
+    }
+}
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count){
     //TODO: cambiar por el iterador del hash map
     PCB wanted;
     int32_t index = 0;
-    for(int i = 0; i<max_count && i<new_pid; i++){
-//        PCB* process = hash[i];
-        wanted.pid = i;
-        PCB* process = hashADT_get(hash,&wanted);
-        if(process!=NULL){
-            processInfo[index].name = process->name;
-            processInfo[index].pid = process->pid;
-            processInfo[index].status = process->status;
-            processInfo[index].priority = process->priority;
-            processInfo[index].foreground = process->foreground;
-            processInfo[index].sp = (uint64_t) process->sp;
-            processInfo[index++].bp = (uint64_t) process->bp;
-        }
+    hashADT_to_begin(hash);
+    while (hashADT_has_next(hash)&&index<max_count){
+        PCB* process = hashADT_next(hash);
+        processInfo[index].name = process->name;
+        processInfo[index].pid = process->pid;
+        processInfo[index].status = process->status;
+        processInfo[index].priority = process->priority;
+        processInfo[index].foreground = process->foreground;
+        processInfo[index].sp = (uint64_t) process->sp;
+        processInfo[index++].bp = (uint64_t) process->bp;
     }
+    sort_process_info(processInfo,index);
     return index;
 }
 uint64_t get_process_count(){
-    //TODO: cambiar con el hash
-    return new_pid;
+    return hashADT_size(hash);
 }

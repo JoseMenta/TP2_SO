@@ -182,8 +182,8 @@ int link_pipe_named(Pipe_modes mode, char * name){
 //Retorno:
 //  fd de donde se referencia el fifo, -1 en caso de error
 //-----------------------------------------------------------------------------------------
-int close_fd(int fd){
-    pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
+int close_fd(int fd, uint64_t pid){
+    pipe_restrict * pipe_mode = get_pcb_by_pid(pid)->fd[fd];
 
     pipe_mode->count_access--;
     pipe_mode->info->count_access--;
@@ -196,7 +196,7 @@ int close_fd(int fd){
     if(pipe_mode->count_access == 0){
         mm_free(pipe_mode);
     }
-    get_current_pcb()->fd[fd] = NULL;
+    get_pcb_by_pid(pid)->fd[fd] = NULL;
     return 0;
 }
 

@@ -9,6 +9,8 @@
 typedef struct HashCDT{
     orderListADT lists[SIZE];       // Listas del hash
     prehash_function pre_hash;      // Funcion de prehasheo
+    uint32_t iterator_index;
+    uint8_t curr_initialized;
 } HashCDT;
 
 
@@ -50,7 +52,8 @@ HashADT new_hashADT(prehash_function pre_hash, compare_function cmp){
         }
         table->lists[i] = aux;
     }
-
+    table->iterator_index = 0;
+    table->curr_initialized = 0;
     return table;
 }
 
@@ -190,6 +193,27 @@ uint32_t hashADT_size(HashADT table){
 }
 
 
+void hashADT_to_begin(HashADT table){
+    table->iterator_index = 0;
+    table->curr_initialized = 0;
+}
+int hashADT_has_next(HashADT table){
+    while (table->iterator_index<SIZE){
+        if(!table->curr_initialized){
+            orderListADT_toBegin(table->lists[table->iterator_index]);
+            table->curr_initialized = 1;
+        }
+        if(orderListADT_hasNext(table->lists[table->iterator_index])==1){
+            return 1;
+        }
+        (table->iterator_index)++;
+        table->curr_initialized = 0;
+    }
+    return 0;
+}
+void* hashADT_next(HashADT table){
+    return orderListADT_next(table->lists[table->iterator_index]);
+}
 //----------------------------------------------------------------------
 // free_hashADT: Destruye la tabla
 //----------------------------------------------------------------------

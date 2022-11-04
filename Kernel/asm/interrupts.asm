@@ -211,7 +211,7 @@ picSlaveMask:
 
 ;Proceso que se ejecuta cuando no hay otro
 idle_process:
-    sti
+    ;sti ;TODO: revisar esto (no se si tiene que ir)
     hlt
     jmp idle_process
 

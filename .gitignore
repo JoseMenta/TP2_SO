@@ -15,3 +15,5 @@ Userland/.0000-sampleCodeModule.elf.icloud
 *.elf
 .bashrc
 .gdb_history 2
+Userland/.0000-sampleCodeModule*.elf.icloud*
+Image/*.icloud

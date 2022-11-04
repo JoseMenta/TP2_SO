@@ -268,7 +268,7 @@ int link_pipe_named_handler(Pipe_modes mode, char * name){
     return link_pipe_named(mode, name);
 }
 int close_fd_handler(int fd){
-    return close_fd(fd);
+    return close_fd(fd,get_current_pid());
 }
 int write_handler_pipe(int fd, const char * buf, int count){
     return write(fd, buf, count);
