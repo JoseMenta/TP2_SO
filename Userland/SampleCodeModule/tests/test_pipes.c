@@ -24,9 +24,9 @@ void write_pipe_common(){
 }
 
 void read_pipe_common(){
-    char buf[10];
+    char buf[15];
     int i;
-    while( (i = read(STDIN, buf, 10) ) != -1){
+    while( (i = read(STDIN, buf, 15) ) != -1){
         write(STDOUT, buf, i);
     }
     return;

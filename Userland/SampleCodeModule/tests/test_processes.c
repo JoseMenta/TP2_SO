@@ -17,9 +17,9 @@ int64_t test_processes(uint64_t argc, char *argv[]){
     uint8_t rq;
     uint8_t alive = 0;
     uint8_t action;
-    uint64_t max_processes;
+    uint64_t max_processes = 3;
     char * argvAux[] = {0};
-
+    max_processes = 3;
     if (argc != 1){
         throw_error("Error: el programa debe recibir exactamente 1 argumento");
     }

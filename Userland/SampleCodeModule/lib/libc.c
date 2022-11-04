@@ -12,7 +12,7 @@ front_program_t programs[CANT_PROG] = {
         {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
         {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
         {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",&invalid_opcode_exc},
-        {"inforeg","\tinforeg: Imprime el valor los registros guardados en un momento con la combinacion Control+s\n",&inforeg},
+        {"inforeg","\tinforeg: en un momento con la combinacion Control+s\n",&inforeg},
         {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",&printmem},
         {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
         {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",&primos},
@@ -33,11 +33,11 @@ front_program_t programs[CANT_PROG] = {
         {"wc","\twc: Cuenta la cantidad de lineas del input por entrada estandar\n",&wc},
         {"filter","\tfilter: Filtra las vocales del input por entrada estandar\n",&filter},
         {"pipe","\tpipe: Imprime una lista de los pipes con sus propiedades\n",&pipe_info},
-        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos",&phylo},
-        {"write.pipe.name", "\t", &write_pipe_name},
-        {"read.pipe.name", "\t", &read_pipe_name},
-        {"write.pipe.common", "\t", &write_pipe_common},
-        {"read.pipe.common", "\t", &read_pipe_common},
+        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos\n",&phylo},
+        {"write.name", "\twrite_pipe\n", &write_pipe_name},
+        {"read.name", "\tread_pipe\n", &read_pipe_name},
+        {"write.common", "\twrite_pipe_c\n", &write_pipe_common},
+        {"read.common", "\tread_pipe_c\n", &read_pipe_common},
 };
 
 

@@ -84,10 +84,10 @@ int create_process(executable_t* executable){
     new_process->arg_c = executable->arg_c;
     //Para que otro no cambie los argumentos si pasa una zona de memoria local
     char** arg_v = executable->arg_v;
-    if(executable->arg_c!=0){
+    if(new_process->arg_c!=0){
         arg_v = mm_alloc(executable->arg_c*sizeof (char*));
         for(int i = 0;i<executable->arg_c; i++){
-            char* aux = mm_alloc(strlen(executable->arg_v[i])*sizeof (char));
+            char* aux = mm_alloc((strlen(executable->arg_v[i])+1)*sizeof (char));
             strcpy(aux,executable->arg_v[i]);
             arg_v[i] = aux;
         }
@@ -181,6 +181,8 @@ int terminate_process(uint64_t pid){
     PCB* process = hashADT_get(hash,&wanted);
     process->status = FINISHED;
     for(int i=0; i<DEFAULTFD; i++){
+        //TODO: verificar si esto tiene que cerrar solo a los default o solo a todos,
+        //creo que deberia ser a todos
         close_fd(i,pid);
     }
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)

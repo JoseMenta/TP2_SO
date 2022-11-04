@@ -13,18 +13,18 @@
 int64_t global;  //shared memory
 
 void slowInc(int64_t *p, int64_t inc){
-    uint64_t aux = *p;
-    for(int i = 0; i<40000; i++);
-//    yield();
+    int64_t aux = *p;
+//    for(int i = 0; i<300000; i++);
+    yield();
 //    my_yield(); //This makes the race condition highly probable
     aux += inc;
     *p = aux;
 }
 
 uint64_t my_process_inc(uint64_t argc, char *argv[]){
-    uint64_t n;
-    int8_t inc;
-    int8_t use_sem;
+    uint64_t n = 10;
+    int8_t inc = 3;
+    int8_t use_sem = 0;
 
     if (argc != 3) return -1;
 
@@ -60,9 +60,8 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
 
     return 0;
 }
-
+uint64_t pids_sync[2 * TOTAL_PAIR_PROCESSES];
 uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
-    uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
     if (argc != 2){
         throw_error("Error: el programa debe recibir exactamente 2 argumentos");
@@ -77,22 +76,22 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
         return -1;
     }
 
-    global = 1398480;
+    global = 0;
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
         executable_t aux={"my_process_inc",&my_process_inc,3,argvDec,0, NULL};
-        pids[i] = sys_exec(&aux);
+        pids_sync[i] = sys_exec(&aux);
 //        pids[i] = my_create_process("my_process_inc", 3, argvDec);
         aux.arg_v = argvInc;
-        pids[i+TOTAL_PAIR_PROCESSES] = sys_exec(&aux);
+        pids_sync[i+TOTAL_PAIR_PROCESSES] = sys_exec(&aux);
 //        pids[i + TOTAL_PAIR_PROCESSES] = my_create_process("my_process_inc", 3, argvInc);
     }
 
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
-        waitpid(pids[i]);
+        waitpid(pids_sync[i]);
 //        my_wait(pids[i]);
-        waitpid(pids[i+TOTAL_PAIR_PROCESSES]);
+        waitpid(pids_sync[i+TOTAL_PAIR_PROCESSES]);
 //        my_wait(pids[i + TOTAL_PAIR_PROCESSES]);
     }
 
@@ -101,7 +100,7 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
     print_string("Final value: ");
 //    if(global<0){
 //        print_string("Negativo!",WHITE);
-//        global = -global;
+//        globa l = -global;
 //    }
     print_number(global);
     print_string("\n");

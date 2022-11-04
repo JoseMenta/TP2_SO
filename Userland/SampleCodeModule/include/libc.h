@@ -89,7 +89,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (30)
+#define CANT_PROG (29)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);

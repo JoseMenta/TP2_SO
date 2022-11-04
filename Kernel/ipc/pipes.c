@@ -215,13 +215,8 @@ int close_fd(int fd, uint64_t pid){
 //-----------------------------------------------------------------------------------------
 int write(int fd, const char * buf, int count){
     pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
-
-    if(pipe_mode->mode==O_RDONLY)
+    if(pipe_mode->mode==O_RDONLY){
         return -1;
-
-    if(pipe_mode->mode==CONSOLE_ERR){
-        print(buf, RED, ALL);
-        return 0;
     }
 
     int write;
@@ -230,9 +225,10 @@ int write(int fd, const char * buf, int count){
 
     for(write=0; write<count && buf[write] != '\0'; write++){
         if(pipe_mode->mode==CONSOLE){
-            //char aux[2] = {buf[write], '\0'};
-            //print(aux, WHITE, ALL);
             print_char(buf[write], WHITE, ALL);
+        }
+        else if(pipe_mode->mode==CONSOLE_ERR){
+            print_char(buf[write], RED, ALL);
         }
         else{
             //Si la distancia es el tamaño del buffer => en el proximo pisaria informacion
@@ -257,7 +253,11 @@ int write(int fd, const char * buf, int count){
             pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = buf[write];
         }
     }
+    if(pipe_mode->mode!=CONSOLE){
+    //No chequea nunca que haya espacio
+    //TODO: revisar
     pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
+    }
 
     //Desperta a todos los lectores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
