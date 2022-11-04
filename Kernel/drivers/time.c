@@ -1,7 +1,8 @@
 #include <time.h>
 #include <scheduler.h>
-
-static uint64_t ticks = 0;
+#include <stdint.h>
+uint64_t ticks = 0;
+extern uint64_t scheduler_ticks;
 //----------------------------------------------------------------------
 // timer_handler: handler para timer tick
 //----------------------------------------------------------------------
@@ -13,7 +14,8 @@ static uint64_t ticks = 0;
 //----------------------------------------------------------------------
 void timer_handler() {							    // Es la funcion que se ejecuta cuando ocurra la interrupcion del timer tick (Incrementa la cantidad de ticks)
 	ticks++;
-    change_context();
+    scheduler_ticks++;
+//    change_context();
 }
 
 uint64_t ticks_elapsed() {							// Devuelve la cantidad de veces que se ejecuto la interrupcion del timer tick desde que se inicio el sistema

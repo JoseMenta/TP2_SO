@@ -4,7 +4,7 @@
 #define TPE_QUEUE_H
 
 #include <stdint.h>
-
+//TODO: cambiar por pipes
 #define MAX 100
 //NOTA: Si no tiene mas espacio en la cola para agregar, no agrega al elemento y se queda con los que ya estaban
 //Esto hace que si se escribe mucho y se supera al buffer, algunos caracteres no se guarden y se vuelven a guardar recien

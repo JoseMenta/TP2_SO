@@ -4,6 +4,23 @@
 #include <scheduler.h>
 #include <queue.h>
 #include <time.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <interrupts.h>
+#include <mm.h>
+#include <pipes.h>
+#include <semaphores.h>
+#include <pipes.h>
+//TODO: sacar
+#include "../include/pipes.h"
+#include "../include/scheduler.h"
+#include "../include/syscalls.h"
+#include "../include/interrupts.h"
+#include "../include/mm.h"
+#include "../include/pipes.h"
+
+//TODO: cambiar a pipes para el read y el keyboard
+
 //----------------------------------------------------------------------
 // read_handler: handler para leer un caracter del teclado
 //----------------------------------------------------------------------
@@ -14,8 +31,10 @@
 //  0 si no hay caracteres para ller
 //  1 si hay caracteres para leer
 //----------------------------------------------------------------------
-uint8_t read_handler(char* str){
+/*
+int32_t read_handler(char* str){
     extern queue_t queue;
+    //TODO: usar un pipe
     if (is_empty(&queue)){
         *str = '\0'; //no hay caracteres para imprimir
         return 0;
@@ -24,6 +43,30 @@ uint8_t read_handler(char* str){
     str[1] = '\0';
     return 1;                       // Devolvemos la cantidad de caracteres leidos
 }
+ */
+//----------------------------------------------------------------------
+// read_handler: handler para leer del pipe de consola
+//----------------------------------------------------------------------
+// Argumentos:
+//  str: char* donde se debe guardar el caracter leido
+//----------------------------------------------------------------------
+// Retorno:
+//  1 o 0 segun leyo o no un caracter
+//----------------------------------------------------------------------
+int32_t read_handler(int fd, char * buf, int count) {
+    return read(fd, buf, count);
+}
+    /*
+    pipe_info * console_pipe = get_pipe_console();
+    if(console_pipe->index_write == console_pipe->index_read){
+        *str = '\0';
+        return 0;
+    }else{
+        *str = console_pipe->buff[console_pipe->index_read++];
+        return 1;
+    }
+     */
+
 //----------------------------------------------------------------------
 // write_handler: imprime un string en la pantalla del proceso que lo llama
 //----------------------------------------------------------------------
@@ -31,46 +74,15 @@ uint8_t read_handler(char* str){
 //  str: el string que se desea imprimor
 //  format: el color de la letra que se desea usar
 //----------------------------------------------------------------------
-uint8_t write_handler(const char * str, formatType format){
-    if(process_array_is_empty()){
-        //No se cargaron procesos, por default imprime en LEFT
-        positionType position = ALL;
-        print(str, format, position);
-        return 0;
-    }
-    print(str, format, get_current_position());        // Imprime por pantalla
-    return 0;
+int32_t write_handler(int fd, const char * str, int count){
+    return write(fd, str, count);        // Imprime por pantalla
 }
-
-//----------------------------------------------------------------------
-// ecec_handler: agrega procesos para que se ejecuten
-//----------------------------------------------------------------------
-// Argumentos:
-//  cant: la cantidad de procesos que se desea ejecutar (1 si es en toda la pantalla, 2 si es en pantalal dividida)
-//  programs: arreglo de program_t con los programas que se desean ejecutar
-//----------------------------------------------------------------------
-// Si cant==1, programs debe tener al menos 1 elemento, y se ejecuta el primero
-// Si cant==2, programs debe tener al menos 2 elementos, el primero se ejecuta a la izquierda y el
-//  segundo a la derecha
-//----------------------------------------------------------------------
-// Retorno:
-//  -1 si cant no es valido
-//  0 si logro ejecutar a los procesos
-//----------------------------------------------------------------------
-uint8_t exec_handler(uint8_t cant, const program_t* programs){//Recibe un vector de program_t
-    if(cant == 0 || cant > 2)
-        return -1;
-    else if(cant==1){
-        clear(ALL);
-        add_full_process(programs[0]);
-        //add_process(programs[0],ALL);
-    }else{
-        clear(ALL);//Limpio la pantalla y reinicio las posiciones de ambas subpantallas
-        add_two_processes(programs[0],programs[1]);
-        print_lines();
-    }
-    return 0;
-}
+//    if(process_array_is_empty()){
+//        //No se cargaron procesos, por default imprime en LEFT
+//        positionType position = ALL;
+//        print(str, format, position);
+//        return 0;
+//    }
 //----------------------------------------------------------------------
 // exit_handler: termina el proceso que lo llama
 //----------------------------------------------------------------------
@@ -81,9 +93,9 @@ uint8_t exec_handler(uint8_t cant, const program_t* programs){//Recibe un vector
 //  -1 si no hay procesos para terminar
 //  0 si logra terminar el proceso
 //----------------------------------------------------------------------
-uint8_t exit_handler(){
-    return terminate_process();
-}
+//int32_t exit_handler(){
+//    return terminate_process(1);
+//}
 //----------------------------------------------------------------------
 // time_handler: obtiene la unidad del tiempo que se pide
 //----------------------------------------------------------------------
@@ -93,7 +105,7 @@ uint8_t exit_handler(){
 // Retorno:
 //  El valor pedido o -1 si no es un parametro correcto
 //----------------------------------------------------------------------
-int8_t time_handler(timeType time_unit){
+uint8_t time_handler(timeType time_unit){
     if(time_unit != SEC && time_unit != MIN && time_unit != HOUR && time_unit != DAY_WEEK &&
         time_unit != DAY_MONTH && time_unit != MONTH && time_unit != YEAR){
         return -1;
@@ -113,7 +125,7 @@ int8_t time_handler(timeType time_unit){
 // Retorno:
 //  La cantidad de posiciones que se logro almacenar
 //----------------------------------------------------------------------
-uint8_t mem_handler(uint64_t init_dir, uint8_t * arr){
+int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
     uint8_t i = 0;
     // Empiezo a completar el arreglo, siempre y cuando la direccion consultada sea menor a la ultima
     // Asi se evita overflow
@@ -127,7 +139,7 @@ uint8_t mem_handler(uint64_t init_dir, uint8_t * arr){
     }
     // Si aun quedan espacios libres (i < 32), se completa con NULL
     for(int j = i; j < MAX_ARRAY_SIZE; j++){
-        arr[j] = NULL;
+        arr[j] = 0;
     }
     // En i se almacenan la cantidad real de datos que se pudieron almacenar
     return i;
@@ -150,8 +162,8 @@ uint64_t tick_handler(void){
 // Argumentos:
 //  void
 //----------------------------------------------------------------------
-uint8_t blink_handler(void){
-    video_blink(get_current_position());
+int32_t blink_handler(void){
+    video_blink(ALL);
     return 0;
 }
 //----------------------------------------------------------------------
@@ -174,7 +186,145 @@ uint8_t regs_handler(uint64_t * regs_arr){
 // Argumentos:
 //  void
 //----------------------------------------------------------------------
-uint8_t clear_handler(void){
+int32_t clear_handler(void){
     clear(ALL);
     return 0;
+}
+int32_t terminate_handler(uint64_t pid){
+    int status = 0;
+    if((status = terminate_process(pid))==-1){
+        return -1;
+    }
+    //No tengo problema con haber liberado el stack
+    //Pues no es un kernel desalojable (no me interrumpen aca)
+    _int20();//por si me termino a mi mismo
+    return status;
+}
+int32_t block_process_handler(uint64_t pid){
+    int status = 0;
+    if((status = block_process(pid))==-1){
+        return -1;
+    }
+    _int20();//llama al scheduler para ver como sigue, es para el caso donde se bloquea a si mismo
+    return status;
+}
+//hace _int20() adentro de wait, para que devuelva el codigo cuando ya esta disponible el que fue esperado
+int32_t waitpid_handler(uint64_t pid){
+    int status = 0;
+    if((status = waitPid(pid))==-1){
+        return -1;
+    }
+    return status;
+}
+int32_t yield_handler(){
+    int status = 0;
+    if((status = yield_current_process())==-1){
+        return -1;
+    }
+    _int20();
+    return status;
+}
+int32_t unblock_process_handler(uint64_t pid){
+    int status = 0;
+    if((status = unblock_process(pid))==-1){
+        return -1;
+    }
+    return status;
+}
+int32_t exec_handler(executable_t* executable){
+    if(executable==NULL){
+        return -1;
+    }
+    return create_process(executable);
+}
+int32_t nice_handler(uint64_t pid, uint8_t priority){
+    return change_process_priority(pid,priority);
+}
+uint64_t getpid_handler(){
+    return get_current_pid();
+}
+int32_t exit_handler(){
+    return terminate_handler(get_current_pid());
+}
+int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count){
+    return get_scheduler_info(processInfo,max_count);
+}
+uint64_t process_count_handler(){
+    return get_process_count();
+}
+void* mm_alloc_handler(uint32_t wanted_size){
+    return mm_alloc(wanted_size);
+}
+void mm_free_handler(void* p){
+    mm_free(p);
+}
+int pipe_handler(int fd[2]){
+    return pipe(fd);
+}
+int open_fifo_handler(Pipe_modes mode, char * name){
+    return open_fifo(mode, name);
+}
+int link_pipe_named_handler(Pipe_modes mode, char * name){
+    return link_pipe_named(mode, name);
+}
+int close_fd_handler(int fd){
+    return close_fd(fd,get_current_pid());
+}
+int write_handler_pipe(int fd, const char * buf, int count){
+    return write(fd, buf, count);
+}
+int read_handler_pipe(int fd, char * buf, int count){
+    return read(fd, buf, count);
+}
+void get_info_handler(pipe_user_info * user_data, int * count){
+    get_info(user_data, count);
+}
+
+sem_t * sem_init_handler(char * name, uint64_t value){
+    return sem_init(name, value);
+}
+
+sem_t * sem_open_handler(char * name, uint64_t value, open_modes mode){
+    return sem_open(name, value, mode);
+}
+
+int8_t sem_wait_handler(sem_t * sem){
+    return sem_wait(sem);
+}
+
+int8_t sem_post_handler(sem_t * sem){
+    return sem_post(sem);
+}
+
+int8_t sem_close_handler(sem_t * sem){
+    return sem_close(sem);
+}
+
+uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length){
+    return sems_dump(buffer, length);
+}
+
+void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length){
+    sems_dump_free(buffer, length);
+}
+
+int dup2_handler(int oldfd, int newfd){
+    return dup2(oldfd, newfd);
+}
+int dup_handler(int oldfd){
+    return dup(oldfd);
+}
+
+
+void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
+                  &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
+                    &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler_pipe, &read_handler_pipe, &get_info_handler,
+                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler,
+                    &dup2_handler, &dup_handler};
+
+void* syscall_dispatcher(uint64_t syscall_num){
+    if(syscall_num<0 || syscall_num>=35){
+        return NULL;
+    }
+    return syscalls[syscall_num];
 }

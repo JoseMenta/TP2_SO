@@ -6,6 +6,11 @@
 #include <idtLoader.h>
 #include <video_driver.h>
 #include <mm.h>
+#include <scheduler.h>
+#include <pipes.h>
+#include "../include/scheduler.h"
+#include "../include/pipes.h"
+#include "../include/video_driver.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -23,6 +28,17 @@ extern void TesterRead();
 extern void zero_division_exc();
 typedef int (*EntryPoint)();									// Entrypoint es un alias para punteros a funcion que devuelven un entero, sin parametros
 
+void print_defined();
+#ifdef BUDDY
+void print_defined(){
+    print("buddy",WHITE,ALL);
+}
+#endif
+#ifdef HEAP
+void print_defined(){
+    print("heap",WHITE,ALL);
+}
+#endif
 
 void clearBSS(void * bssAddress, uint64_t bssSize)
 {
@@ -91,15 +107,25 @@ void testMM(){
         ncPrint("Error1: la direccion de salida es menor a la inicial");
         ncNewline();
     }
+    *dir='1';
     uint8_t* dir2 = mm_alloc(20);
     if(dir>=dir2){
         ncPrint("Error2: la segunda direccion que se dio fue menor o igual a la primera");
         ncNewline();
     }
-    ncPrint("Dir: ");
-    ncPrintHex((uint64_t)dir);
-    ncPrint("Dir2: ");
-    ncPrintHex((uint64_t)dir2);
+    *dir2 = '2';
+//    ncPrint("Dir: ");
+//    ncPrintHex((uint64_t)dir);
+//    ncPrint("Dir2: ");
+//    ncPrintHex((uint64_t)dir2);
+    if(*dir!='1'){
+        ncPrint("Error: No se preseva el valor escrito en la direccion dir");
+        ncNewline();
+    }
+    if(*dir2!='2'){
+        ncPrint("Error: No se preseva el valor escrito en la direccion dir2");
+        ncNewline();
+    }
     ncNewline();
     mm_free(dir);
     uint8_t* dir3 = mm_alloc(8);
@@ -130,6 +156,10 @@ void testMM(){
     }
     uint8_t* dir7 = mm_alloc(100);
     //Libero todo para ver si junta los bloques liberados de adelante y atras
+    if(*dir2!='2'){
+        ncPrint("Error: No se preseva el valor escrito en la direccion dir2");
+        ncNewline();
+    }
     mm_free(dir2);
     mm_free(dir7);
     mm_free(dir3);
@@ -178,7 +208,7 @@ void testMM(){
 
 int main()													// Es la primera funcion que se ejecutará una vez se halla cargado el SO en el sistema
 {
-    load_idt();
+//    load_idt();
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -190,7 +220,7 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
 	ncNewline();
 	ncNewline();
 
-	ncPrint("  Sample data module at 0x");
+	ncPrint("Sample data module at 0x");
 	ncPrintHex((uint64_t)sampleDataModuleAddress);
 	ncNewline();
 	ncPrint("  Sample data module contents: ");
@@ -201,10 +231,29 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
 
     print_lines();
     ncClear();
-
+//    mm_init();
     testMM();
-//    ((EntryPoint)sampleCodeModuleAddress)();
-//    clear(ALL);
-//    print("Computadora apagada",WHITE,ALL);
+//    print("Pasa el testeo del mm\n",WHITE,ALL);
+    pipe_initialize();
+    initialize_scheduler();
+//    print_defined();
+    executable_t exec;
+    char* aux[]={NULL};
+    exec.arg_c=0;
+    exec.arg_v=aux;
+    exec.name = "Shell";
+    exec.foreground = 1;
+    int aux2[3] = {-1,-1,-1};
+    exec.fds = aux2;
+    exec.start=sampleCodeModuleAddress;
+    create_process(&exec);
+    //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
+    load_idt();
+    while(1);//para que espere hasta el tt y se vaya al bash
+    //pipe_terminated();
+    //((EntryPoint)sampleCodeModuleAddress)();
+    print("Computadora apagada",WHITE,ALL);
+    clear(ALL);
+
 	return 0;
 }

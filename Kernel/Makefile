@@ -7,7 +7,11 @@ SOURCES_ASM=$(wildcard asm/*.asm)
 OBJECTS=$(SOURCES:.c=.o)
 OBJECTS_ASM=$(SOURCES_ASM:.asm=.o)
 LOADERSRC=loader.asm
-
+ifeq ($(mm),buddy)
+GCCFLAGS+=-D=BUDDY
+else
+GCCFLAGS+=-D=HEAP
+endif
 LOADEROBJECT=$(LOADERSRC:.asm=.o)
 STATICLIBS=
 

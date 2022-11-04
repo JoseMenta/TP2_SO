@@ -7,7 +7,7 @@
 
 #define COUNT_REGS (18)
 
-
+void bash(uint64_t arg_c, char ** arg_v);
 
 typedef uint8_t (* time_func) ();
 
@@ -26,5 +26,9 @@ void help(uint64_t arg_c, const char** arg_v);
 void zero_division_exc(uint64_t arg_c, const char** arg_v);
 
 void invalid_opcode_exc(uint64_t arc_c, const char** arg_v);
+
+void write_pipename(uint64_t arg_c, const char ** arg_v);
+
+void read_pipename(uint64_t arg_c, const char ** arg_v);
 
 #endif //TPE_PROGRAMS_H

@@ -1,20 +1,97 @@
 #include <libc.h>
 #include <programs.h>
+#include <os_tests.h>
+//TODO: sacar
+#include "../include/libc.h"
+#include "../include/os_tests.h"
+#include "../include/test_pipes.h"
+
+#define MAX_NUMBER_LENGTH 21
 
 front_program_t programs[CANT_PROG] = {
-        {"help","\thelp: Despliega los distintos comandos disponibles\n",help},
-        {"div0","\tdiv0: Genera una excepcion por division por cero\n",zero_division_exc},
-        {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",invalid_opcode_exc},
-        {"inforeg","\tinforeg: Imprime el valor los registros guardados en un momento con la combinacion Control+s\n",inforeg},
-        {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",printmem},
-        {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",tiempo},
-        {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",primos},
-        {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",fibonacci}
+        {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
+        {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
+        {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",&invalid_opcode_exc},
+        {"inforeg","\tinforeg: en un momento con la combinacion Control+s\n",&inforeg},
+        {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",&printmem},
+        {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
+        {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",&primos},
+        {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",&fibonacci},
+        {"test-processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
+        {"test-prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
+        {"test-sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
+        {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
+        {"mem","\tmem: Imprime el estado de la memoria\n",&mem},
+        {"ps","\tps: Imprime la lista de todos los procesos y sus propiedades\n",&ps},
+        {"loop","\tloop: Imprime su ID cada 2 segundos\n",&loop},
+        {"kill","\tkill: Mata a un proceso dado su ID\n",&kill},
+        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice},
+        {"block","\tblock: Bloquea a un proceso dado su ID\n",&block},
+        {"unblock","\tunblock: Desbloquea a un proceso dado su ID\n",&unblock},
+        {"sem","\tsem: Imprime la lista de los semaforos con sus propiedades\n",&sem},
+        {"cat","\tcat: Imprime la entrada estandar\n",&cat},
+        {"wc","\twc: Cuenta la cantidad de lineas del input por entrada estandar\n",&wc},
+        {"filter","\tfilter: Filtra las vocales del input por entrada estandar\n",&filter},
+        {"pipe","\tpipe: Imprime una lista de los pipes con sus propiedades\n",&pipe_info},
+        {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos\n",&phylo},
+        {"write.name", "\twrite_pipe\n", &write_pipe_name},
+        {"read.name", "\tread_pipe\n", &read_pipe_name},
+        {"write.common", "\twrite_pipe_c\n", &write_pipe_common},
+        {"read.common", "\tread_pipe_c\n", &read_pipe_common},
 };
 
 
 
 void number_to_string(uint64_t number, char * str);
+
+
+
+//---------------------------------------------------------------------------------
+// strcpy: implementacion local de strcpy
+//---------------------------------------------------------------------------------
+char* strcpy(char* destination, const char* source){
+    if (destination == NULL) {
+        return NULL;
+    }
+    char *ptr = destination;
+    while (*source != '\0')
+    {
+        *destination = *source;
+        destination++;
+        source++;
+    }
+    *destination = '\0';
+    return ptr;
+}
+
+//---------------------------------------------------------------------------------
+// strlen: implementacion local de strlen
+//---------------------------------------------------------------------------------
+unsigned int strlen(const char *s)
+{
+    unsigned int count = 0;
+    while(*s!='\0')
+    {
+        count++;
+        s++;
+    }
+    return count;
+}
+
+//---------------------------------------------------------------------------------
+// strcmp: implementacion local de strcmp
+//---------------------------------------------------------------------------------
+uint64_t strcmp(const char *X, const char *Y)
+{
+    while (*X){
+        if (*X != *Y) {
+            break;
+        }
+        X++;
+        Y++;
+    }
+    return *(const unsigned char*)X - *(const unsigned char*)Y;
+}
 
 //---------------------------------------------------------------------------------
 // getChar: lectura de un caracter con sys_call de lectura
@@ -27,14 +104,149 @@ void number_to_string(uint64_t number, char * str);
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
-    int ret = sys_read(c);
-    if(ret == 0) //Si no leyo caracteres
+    int ret = read(0, c, 1);
+    if(ret == 0){
         return 0;
+    } //Si no leyo caracteres
     return c[0];
 }
 
 
+//---------------------------------------------------------------------------------
+// getChar_fd: lectura de un caracter del fd con sys_call de lectura
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      fd: fd del que se quiere leer
+//---------------------------------------------------------------------------------
+// Retorno:
+//      caracter leido o 0 si no se leyo un caracter
+//---------------------------------------------------------------------------------
+uint8_t get_char_fd(int fd){
+    char c;
+    int ret = read(fd, &c, 1);
+    if(ret == 0){
+        return 0;
+    } //Si no leyo caracteres
+    return c;
+}
 
+
+//---------------------------------------------------------------------------------
+// getLine: lectura de una linea (hasta \n) de STDIN e imprime en pantalla a medida que lee
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      buf: el buffer donde se guarda el resultado
+//      max_len: la longitud maxima de caracteres que se puede guardar (incluyendo el \0)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      La cantidad de caracteres leidos (incluyendo a \n), sin incluir \0
+//      Devuelve a la linea o max_len caracteres, lo que ocurra antes
+//      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
+//---------------------------------------------------------------------------------
+uint32_t get_line(char* buf, uint32_t max_len){
+    int read = 0;
+    char c[2];
+    c[1]='\0';
+    for(; (c[0] = get_char()) != '\n' && read<max_len-1; read++){
+        buf[read]=c[0];
+        write(STDOUT, c, 1);
+    }
+    buf[read] = '\n';
+    buf[read+1] = '\0';
+    return read;
+}
+
+uint32_t get_string(char* buf, uint32_t max_len){
+    int read = 0;
+    char c[2];
+    c[1]='\0';
+    for(; (c[0] = get_char()) != '\0' && read<max_len-1; read++){
+        buf[read]=c[0];
+        write(STDOUT, c, 1);
+    }
+    buf[read] = '\n';
+    return read;
+}
+
+//---------------------------------------------------------------------------------
+// get_line_fd: lectura de una linea (hasta \n) de fd e imprime en pantalla a medida que lee
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      fd: de donde se quiere leer
+//      buf: el buffer donde se guarda el resultado
+//      max_len: la longitud maxima de caracteres que se puede guardar (incluyendo el \0)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      La cantidad de caracteres leidos (incluyendo a \n), sin incluir \0
+//      Devuelve a la linea o max_len caracteres, lo que ocurra antes
+//      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
+//---------------------------------------------------------------------------------
+
+uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
+    int read = 0;
+    char c;
+    for(; (c = get_char_fd(fd)) != '\n' && read<max_len; read++){
+        buf[read]=c;
+    }
+    buf[read] = '\n';
+    return read;
+}
+
+/*
+uint32_t get_line(char* buf, uint32_t max_len){
+    uint32_t curr = 0;
+    int finished = 0;
+//    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
+    do{
+        long aux = 0;
+        //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
+        aux = read(STDIN,buf,(max_len-curr));
+        print_number(aux);
+        write(STDOUT,buf,aux);
+        for(uint32_t i = curr; i<curr+aux && !finished; i++){
+            print_string("entre");
+            print_string(&buf[i]);
+            print_string("dsp");
+            if(buf[i]=='\n'){
+                print_string("hola");
+                buf[i+1]='\0';
+                curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
+                finished = 1;
+            }
+        }
+        if(!finished){
+            curr+=aux;
+            if(curr+1==max_len){//aux<=max_len-curr => aux+curr<=max_len
+                finished=1;
+            }
+        }
+    } while (!finished);
+    return curr;
+}
+*/
+
+//---------------------------------------------------------------------------------
+// print_string_with_padding: imprime un String completando con espacios el tamaño libre
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      s1: el string que se desea imprimir
+//      len: el tamaño que se desea que tenga el string (completando con espacios a derecha)
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_string_with_padding(const char * s1, uint8_t len){
+    char aux[len+1];
+    int i = 0;
+    for(;s1[i]!='\0' && i<len;i++){
+        aux[i]=s1[i];
+    }
+    for(;i<len;i++){
+        aux[i] = ' ';
+    }
+    aux[i]='\0';
+    return write(STDOUT, aux, len);
+}
 //---------------------------------------------------------------------------------
 // printString: imprime un String
 //---------------------------------------------------------------------------------
@@ -44,8 +256,22 @@ uint8_t get_char(void){
 // Retorno:
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
-uint8_t print_string(const char * s1, formatType format){
-    return sys_write(s1, format);
+uint8_t print_string(const char * s1){
+    return write(STDOUT, s1, strlen(s1));
+}
+
+//---------------------------------------------------------------------------------
+// printString_fd: imprime un String en fd
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      void printString(char * s1)
+//      fd: a donde se quiere imprimir
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_string_fd(const char * s1, int fd){
+    return write(fd, s1, strlen(s1));
 }
 
 //---------------------------------------------------------------------------------
@@ -57,10 +283,26 @@ uint8_t print_string(const char * s1, formatType format){
 // Retorno:
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
-uint8_t print_number(uint64_t number, formatType format){
-    char str[21];
+uint8_t print_number(uint64_t number){
+    char str[MAX_NUMBER_LENGTH];
     number_to_string(number, str);
-    return print_string(str, format);
+    return print_string(str);
+}
+
+//---------------------------------------------------------------------------------
+// printNumber_fd: imprime un Numero en fd
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      void printString(int number, int format)
+//      fd: donde se quiere imprimir
+//---------------------------------------------------------------------------------
+// Retorno:
+//      cantidad de caracteres escritos
+//---------------------------------------------------------------------------------
+uint8_t print_number_fd(uint64_t number, int fd){
+    char str[MAX_NUMBER_LENGTH];
+    number_to_string(number, str);
+    return print_string_fd(str, fd);
 }
 
 //---------------------------------------------------------------------------------
@@ -117,25 +359,6 @@ void number_to_string(uint64_t num, char * str){
 
 
 //---------------------------------------------------------------------------------
-// strcmp: comparar dos string
-//---------------------------------------------------------------------------------
-// Argumentos:
-//   s1: El primer string
-//   s2: El segundo string
-//---------------------------------------------------------------------------------
-// Retorno
-//   s1 - s2 =>
-//   s1 = s2 retorno 0
-//   s1 > s2 retorno positivo
-//   s1 < s2 retorno negativo
-//---------------------------------------------------------------------------------
-uint64_t strcmp(const char* s1, const char* s2){
-    int i;
-    for(i=0; s1[i]!='\0' && s2[i]!='\0' && s1[i]==s2[i]; i++);
-    return s1[i]-s2[i];
-}
-
-//---------------------------------------------------------------------------------
 // get_program: Devuelve el programa asociado al string str
 //---------------------------------------------------------------------------------
 // Argumentos:
@@ -154,6 +377,14 @@ void* get_program(const char * str){
     return NULL;
 }
 
+char* get_program_name(void* program){
+    for(int i = 0; i<CANT_PROG; i++){
+        if(programs[i].start == program){
+            return programs[i].name;
+        }
+    }
+    return NULL;
+}
 //-----------------------------------------------------------------------
 // uintToBase: Convierte un entero en la base indica por parametro en un string
 //-----------------------------------------------------------------------
@@ -258,7 +489,7 @@ uint8_t get_secs(void){
 //---------------------------------------------------------------------------------
 uint64_t str_tok(char * buffer, char sep){
     uint64_t i=0;
-    for(; buffer[i]!=sep && buffer[i]!='\0'; i++);
+    for(; buffer[i]!=sep && buffer[i]!='\0' && buffer[i]!='\n'; i++);
     return i;
 }
 
@@ -273,10 +504,29 @@ uint64_t str_tok(char * buffer, char sep){
 //   - void
 //---------------------------------------------------------------------------------
 void throw_error(char * str){
-    print_string("\n", WHITE);
-    print_string(str, STDERR);
-    print_string("\n\n", WHITE);
+    p_error(str);
     sys_exit();
+}
+
+//---------------------------------------------------------------------------------
+// throw_error: Imprime un mensaje de error y corta el programa
+//---------------------------------------------------------------------------------
+// Argumentos:
+//   - str: mensaje de error a imprimir
+//---------------------------------------------------------------------------------
+// Retorno
+//   - void
+//---------------------------------------------------------------------------------
+void p_error(char * str){
+    uint64_t size = strlen(str);
+    write(STDERR, "\n", 1);
+    write(STDERR, str, size);
+    write(STDERR, "\n", 2);
+    // print_string("\n", WHITE);
+    // print_string(str, STDERR);
+    // print_string("\n\n", WHITE);
+//    exit();
+//TODO: revisar de hacer un error expulsivo y otro no quizas
 }
 
 //---------------------------------------------------------------------------------
@@ -339,4 +589,92 @@ void copy_str(char * dest, char * source){
     dest[i] = '\0';
 }
 
+int32_t block_process(uint64_t pid){
+    return sys_block(pid);
+}
+uint32_t unblock_process(uint64_t pid){
+    return sys_unblock(pid);
+}
+int32_t waitpid(uint64_t pid){
+    return sys_waitpid(pid);
+}
 
+int32_t yield(){
+    return sys_yield();
+}
+int32_t terminate_process(uint64_t pid){
+    return sys_terminate(pid);
+}
+
+uint64_t getpid(){
+    return sys_getpid();
+}
+
+uint64_t nice(uint64_t pid, uint8_t priority){
+    return sys_nice(pid,priority);
+}
+
+void* malloc(uint32_t wanted_size){
+    return sys_mm_alloc(wanted_size);
+}
+void free(void* p){
+    sys_mm_free(p);
+}
+
+int pipe(int fd[2]){
+    return sys_pipe(fd);
+}
+int open_fifo(Pipe_modes mode, char * name){
+    return sys_open_fifo(mode, name);
+}
+int link_pipe_named(Pipe_modes mode, char * name){
+    return sys_link_pipe_named(mode, name);
+}
+int close_fd(int fd){
+    return sys_close_fd(fd);
+}
+int write(int fd, const char * buf, int count){
+    return sys_write(fd, buf, count);
+}
+int read(int fd, char * buf, int count){
+    return sys_read(fd, buf, count);
+}
+void get_info(pipe_user_info * user_data, int * count){
+    sys_get_info(user_data, count);
+}
+
+sem_t sem_init(char * name, uint64_t value){
+    return sys_sem_init(name, value);
+}
+
+sem_t sem_open(char * name, uint64_t value, open_modes mode){
+    return sys_sem_open(name, value, mode);
+}
+
+int8_t sem_wait(sem_t sem){
+    return sys_sem_wait(sem);
+}
+
+int8_t sem_post(sem_t sem){
+    return sys_sem_post(sem);
+}
+
+int8_t sem_close(sem_t sem){
+    return sys_sem_close(sem);
+}
+
+uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
+    return sys_sems_dump(buffer, length);
+}
+
+void sems_dump_free(sem_dump_t * buffer, uint32_t length){
+    sys_sems_dump_free(buffer, length);
+}
+
+int dup2(int oldfd, int newfd){
+    return sys_dup2(oldfd, newfd);
+}
+
+int dup_handler(int oldfd){
+    return sys_dup(oldfd);
+}
