@@ -232,7 +232,7 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     print_lines();
     ncClear();
 //    mm_init();
-    testMM();
+//    testMM();
 //    print("Pasa el testeo del mm\n",WHITE,ALL);
     pipe_initialize();
     initialize_scheduler();

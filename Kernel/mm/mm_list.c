@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-
+#ifdef HEAP
 //La posicion desde donde reservamos memoria
 extern uint8_t endOfKernel;
 
@@ -186,3 +186,4 @@ static void insert_block_into_free_list(block_t* new_block){
         iterator->next_free_block = new_block;
     }
 }
+#endif

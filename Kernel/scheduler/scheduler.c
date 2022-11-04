@@ -346,7 +346,7 @@ uint64_t get_current_pid(){
 PCB * get_current_pcb(){
     return current_process;
 }
-PCB* get_pcb_by_pid(pid){
+PCB* get_pcb_by_pid(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
     return hashADT_get(hash,&wanted);

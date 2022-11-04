@@ -5,7 +5,9 @@
 // La implementación utiliza un arreglo el cual lo maneja como árbol binario mediante indices
 
 #include <mm.h>
-#include <mm_buddy.h>
+#include <stddef.h>
+#ifdef BUDDY
+// #include <mm_buddy.h>
 
 /* ----------------------------------------------------------------------------------------------------------------
  * Buddy
@@ -331,49 +333,50 @@ uint64_t get_free_bytes(){
 // Retorno:
 //
 //----------------------------------------------------------------------
-void mm_buddy_dump(){
-    char * canvas = (char *) BUDDY_MANAGER_END - (buddy_manager.size / MIN_SIZE + 1) - 1;
-    uint32_t i, j, node_size, offset;
-
-    for(i = 0; i < buddy_manager.size / MIN_SIZE + 1; i++){
-        canvas[i] = '_';
-    }
-
-    node_size = buddy_manager.size * 2;
-
-    for(i = 0; i < NODES; i++){
-        if(IS_POWER_OF_2(i+1)){
-            node_size /= 2;
-        }
-
-        if(buddy_manager.node[i].size_available == 0){
-            if(node_size == MIN_SIZE){
-                print("\nTamaño del nodo: ", WHITE, ALL);
-                print_dec_format(node_size, ALL);
-                print("\nCantidad: 1\n", WHITE, ALL);
-                print("Posicion: ", WHITE, ALL);
-                print_dec_format(i - buddy_manager.size / MIN_SIZE + 1, ALL);
-                new_line(ALL);
-                canvas[i - buddy_manager.size / MIN_SIZE + 1] = '*';
-            }
-            else if(buddy_manager.node[LEFT_LEAF(i)].size_available && buddy_manager.node[RIGHT_LEAF(i)].size_available) {
-                offset = ((i + 1) * node_size - buddy_manager.size) / MIN_SIZE;
-
-                print("\nTamaño del nodo: ", WHITE, ALL);
-                print_dec_format(node_size, ALL);
-                print("\nCantidad: ", WHITE, ALL);
-                print_dec_format(node_size / MIN_SIZE, ALL);
-
-                for(j = offset; j < offset + node_size / MIN_SIZE; j++){
-                    print("\nPosicion: ", WHITE, ALL);
-                    print_dec_format(j, ALL);
-                    canvas[j] = '*';
-                }
-            }
-        }
-    }
-    canvas[buddy_manager.size / MIN_SIZE] = '\0';
-    print("\n\nEstado de la memoria\n*: Byte ocupado\n_: Byte libre\n", WHITE, ALL);
-    print(canvas, WHITE, ALL);
-    print("\n\n", WHITE, ALL);
-}
+//void mm_buddy_dump(){
+//    char * canvas = (char *) BUDDY_MANAGER_END - (buddy_manager.size / MIN_SIZE + 1) - 1;
+//    uint32_t i, j, node_size, offset;
+//
+//    for(i = 0; i < buddy_manager.size / MIN_SIZE + 1; i++){
+//        canvas[i] = '_';
+//    }
+//
+//    node_size = buddy_manager.size * 2;
+//
+//    for(i = 0; i < NODES; i++){
+//        if(IS_POWER_OF_2(i+1)){
+//            node_size /= 2;
+//        }
+//
+//        if(buddy_manager.node[i].size_available == 0){
+//            if(node_size == MIN_SIZE){
+//                print("\nTamaño del nodo: ", WHITE, ALL);
+//                print_dec_format(node_size, ALL);
+//                print("\nCantidad: 1\n", WHITE, ALL);
+//                print("Posicion: ", WHITE, ALL);
+//                print_dec_format(i - buddy_manager.size / MIN_SIZE + 1, ALL);
+//                new_line(ALL);
+//                canvas[i - buddy_manager.size / MIN_SIZE + 1] = '*';
+//            }
+//            else if(buddy_manager.node[LEFT_LEAF(i)].size_available && buddy_manager.node[RIGHT_LEAF(i)].size_available) {
+//                offset = ((i + 1) * node_size - buddy_manager.size) / MIN_SIZE;
+//
+//                print("\nTamaño del nodo: ", WHITE, ALL);
+//                print_dec_format(node_size, ALL);
+//                print("\nCantidad: ", WHITE, ALL);
+//                print_dec_format(node_size / MIN_SIZE, ALL);
+//
+//                for(j = offset; j < offset + node_size / MIN_SIZE; j++){
+//                    print("\nPosicion: ", WHITE, ALL);
+//                    print_dec_format(j, ALL);
+//                    canvas[j] = '*';
+//                }
+//            }
+//        }
+//    }
+//    canvas[buddy_manager.size / MIN_SIZE] = '\0';
+//    print("\n\nEstado de la memoria\n*: Byte ocupado\n_: Byte libre\n", WHITE, ALL);
+//    print(canvas, WHITE, ALL);
+//    print("\n\n", WHITE, ALL);
+//}
+#endif
