@@ -12,8 +12,9 @@ void write_pipe_name(){
 void read_pipe_name(){
     int fd = link_pipe_named(O_RDWR, "PorFavor");
     char buf[20];
-    read(fd, buf, 20);
-    print_string(buf);
+    int i = read(fd, buf, 10);
+    write(STDOUT,buf,i);
+//    print_string(buf);
     close_fd(fd);
     return;
 }
@@ -26,7 +27,7 @@ void write_pipe_common(){
 void read_pipe_common(){
     char buf[15];
     int i;
-    while( (i = read(STDIN, buf, 15) ) != -1){
+    while( (i = read(STDIN, buf, 1) ) != -1){
         write(STDOUT, buf, i);
     }
     return;

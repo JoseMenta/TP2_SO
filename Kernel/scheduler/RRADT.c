@@ -22,7 +22,7 @@ RRADT new_RR(){
         return ans;
     }
     for(int i = 0; i<PRIORITY_LEVELS; i++){
-        (ans->levels)[i] = new_RRLevel(i, GET_QUANTUM_INTERVAL(i));
+        (ans->levels)[i] = new_RRLevel();
         if((ans->levels)[i]==NULL){
             for(int j = 0; j<i; j++){
                 free_RRLevel((ans->levels)[i]);

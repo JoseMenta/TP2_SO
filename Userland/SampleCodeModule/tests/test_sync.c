@@ -7,15 +7,15 @@
 #include "../include/libc.h"
 #include "../include/test_util.h"
 
-#define SEM_ID "/sem"
+#define SEM_ID "/sem_sync"
 #define TOTAL_PAIR_PROCESSES 5
 
 int64_t global;  //shared memory
 
 void slowInc(int64_t *p, int64_t inc){
     int64_t aux = *p;
-//    for(int i = 0; i<300000; i++);
-    yield();
+    for(int i = 0; i<300000; i++);
+//    yield();
 //    my_yield(); //This makes the race condition highly probable
     aux += inc;
     *p = aux;

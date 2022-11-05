@@ -10,6 +10,7 @@
 #include "../include/semaphores.h"
 #include "../include/mm.h"
 #include "../include/video_driver.h"
+#include "../include/keyboard.h"
 orderListADT pipes_list = NULL;
 static pipe_info * console_pipe = NULL;
 static pipe_restrict * console_pipe_restrict = NULL;
@@ -158,6 +159,7 @@ int open_fifo(Pipe_modes mode, char * name){
 int link_pipe_named(Pipe_modes mode, char * name){
     int fd = get_next_fd();
     if(fd==-1){
+        print("fallo fd del link", WHITE, ALL);
         return -1;
     }
     //Creo una structura igual para la comparacion
@@ -165,6 +167,7 @@ int link_pipe_named(Pipe_modes mode, char * name){
     aux.name=name;
     pipe_info * info = orderListADT_get(pipes_list, &aux);
     if(info == NULL){
+        print("fallo  creacion de info", WHITE, ALL);
         return -1;
     }
 
@@ -233,7 +236,6 @@ int write(int fd, const char * buf, int count){
         else{
             //Si la distancia es el tamaño del buffer => en el proximo pisaria informacion
             while(pipe_mode->info->index_write == pipe_mode->info->index_read + PIPESIZE){
-
                 //Despierta a todos los lectores que se habian bloqueado
                 for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
                     unblock_process_handler(pipe_mode->info->pid_read_lock[i]);
@@ -255,8 +257,9 @@ int write(int fd, const char * buf, int count){
     }
     if(pipe_mode->mode!=CONSOLE){
     //No chequea nunca que haya espacio
-    //TODO: revisar
-    pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
+    //TODO: revisar, lo saque poruqe nunca se verifica que haya espacio
+    //hacer testeos
+//        pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
     }
 
     //Desperta a todos los lectores que se habian bloqueado
@@ -331,13 +334,19 @@ int read(int fd, char * buf, int count){
         if(block_process_handler(get_current_pcb()->pid) == -1){
             return -1;
         }
+        sem_wait(pipe_mode->info->lock);
     }
-
+    //para que devuelva -1 en el caso de eof
+    if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE){
+        pipe_mode->info->index_read++;
+        return -1;
+    }
     //Si tengo algo para leer entonces no lo tengo que bloquear cuando termina
-    for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write; read++){
+    for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write && !(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE); read++){
         buf[read] = pipe_mode->info->buff[pipe_mode->info->index_read++ % PIPESIZE];
     }
-    buf[read] = '\0';
+    //TODO: revisar, nunca chequea que haya espacio, hay que testearlo
+//    buf[read] = '\0';
 
     //Desperta a todos los escritores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){

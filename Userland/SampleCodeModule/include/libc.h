@@ -54,7 +54,12 @@ typedef struct{
     uint8_t foreground;
 }process_info_t;
 
-
+typedef struct{
+    uint64_t allocated_bytes;
+    uint64_t free_bytes;
+    uint64_t allocated_blocks;
+    uint64_t total_bytes;
+}mm_info_t;
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 // Codigo de errores del semaforo
@@ -89,7 +94,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (29)
+#define CANT_PROG (31)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -115,10 +120,12 @@ uint64_t sys_getpid();
 int32_t sys_nice(uint64_t pid, uint8_t priority);
 int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
+int32_t sys_pause_ticks(uint64_t ticks);
 void* sys_mm_alloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
 int sys_dup2(int oldfd, int newfd);
 int sys_dup(int oldfd);
+int32_t sys_mm_info(mm_info_t* info);
 
 void * get_program(const char * str);
 char* get_program_name(void* program);
@@ -129,6 +136,7 @@ void number_to_string(uint64_t num, char * str);
 uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);
+uint8_t print_numbers(const uint64_t* nums, uint32_t len);
 uint64_t uintToBase(uint64_t value, char * buffer, uint64_t base);
 void copy_str(char * dest, char * source);
 int32_t block_process(uint64_t pid);
@@ -168,8 +176,9 @@ sem_t sys_sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sys_sem_wait(sem_t  sem);
 int8_t sys_sem_post(sem_t  sem);
 int8_t sys_sem_close(sem_t  sem);
-uint32_t sys_sems_dump(sem_dump_t * buffer, uint32_t length);
-void sys_sems_dump_free(sem_dump_t * buffer, uint32_t length);
+uint32_t sys_sem_info(sem_dump_t * buffer, uint32_t length);
+void sys_free_sem_info(sem_dump_t * buffer, uint32_t length);
+uint32_t sys_sem_count();
 
 int pipe(int fd[2]);
 int open_fifo(Pipe_modes mode, char * name);
@@ -184,25 +193,12 @@ sem_t sem_open(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait(sem_t sem);
 int8_t sem_post(sem_t  sem);
 int8_t sem_close(sem_t  sem);
-uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
-void sems_dump_free(sem_dump_t * buffer, uint32_t length);
+uint32_t sem_info(sem_dump_t * buffer, uint32_t length);
+void free_sem_info(sem_dump_t * buffer, uint32_t length);
 int dup_handler(int oldfd);
 int dup2(int oldfd, int newfd);
 void p_error(char * str);
 uint32_t get_string(char* buf, uint32_t max_len);
 
-void help(uint64_t arg_c, const char ** arg_v);
-void mem(uint64_t arg_c, const char ** arg_v);
-void ps(uint64_t arg_c, const char ** arg_v);
-void loop(uint64_t arg_c, const char ** arg_v);
-void kill(uint64_t arg_c, const char ** arg_v);
-void nice_command(uint64_t arg_c, const char ** arg_v);
-void block(uint64_t arg_c, const char ** arg_v);
-void unblock(uint64_t arg_c, const char ** arg_v);
-void sem(uint64_t arg_c, const char ** arg_v);
-void cat(uint64_t arg_c, const char ** arg_v);
-void wc(uint64_t arg_c, const char ** arg_v);
-void filter(uint64_t arg_c, const char ** arg_v);
-void pipe_info(uint64_t arg_c, const char ** arg_v);
-void phylo(uint64_t arg_c, const char ** arg_v);
+
 #endif //TPE_LIBC_H

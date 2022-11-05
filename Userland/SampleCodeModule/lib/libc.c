@@ -1,14 +1,20 @@
 #include <libc.h>
 #include <programs.h>
 #include <os_tests.h>
+#include <built_in.h>
+#include <bash.h>
 //TODO: sacar
 #include "../include/libc.h"
+#include "../include/bash.h"
 #include "../include/os_tests.h"
 #include "../include/test_pipes.h"
+#include "../include/built_in.h"
 
 #define MAX_NUMBER_LENGTH 21
 
+
 front_program_t programs[CANT_PROG] = {
+        {"bash","\tbash: Crea un bash\n",&bash},
         {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
         {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
         {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",&invalid_opcode_exc},
@@ -25,7 +31,8 @@ front_program_t programs[CANT_PROG] = {
         {"ps","\tps: Imprime la lista de todos los procesos y sus propiedades\n",&ps},
         {"loop","\tloop: Imprime su ID cada 2 segundos\n",&loop},
         {"kill","\tkill: Mata a un proceso dado su ID\n",&kill},
-        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice},
+        {"waitpid","\twaitpid: Espera a un proceso dado su ID (o eliminar zombies)\n",&wait_pid_command},
+        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice_command},
         {"block","\tblock: Bloquea a un proceso dado su ID\n",&block},
         {"unblock","\tunblock: Desbloquea a un proceso dado su ID\n",&unblock},
         {"sem","\tsem: Imprime la lista de los semaforos con sus propiedades\n",&sem},
@@ -104,7 +111,7 @@ uint64_t strcmp(const char *X, const char *Y)
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
-    int ret = read(0, c, 1);
+    int ret = read(STDIN, c, 1);
     if(ret == 0){
         return 0;
     } //Si no leyo caracteres
@@ -143,13 +150,21 @@ uint8_t get_char_fd(int fd){
 //      Devuelve a la linea o max_len caracteres, lo que ocurra antes
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
+//TODO: solucionar el tema de eliminar, a veces funciona y a veces no
 uint32_t get_line(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
     c[1]='\0';
-    for(; (c[0] = get_char()) != '\n' && read<max_len-1; read++){
-        buf[read]=c[0];
-        write(STDOUT, c, 1);
+    for(; (c[0] = get_char()) != '\n' && read<max_len-1;){
+        if(c[0]!=ASCII_DELETE){
+            buf[read]=c[0];
+            read++;
+            write(STDOUT, c, 1);
+        }else if(read>0){
+            read--;
+            write(STDOUT, c, 1);
+        }
+
     }
     buf[read] = '\n';
     buf[read+1] = '\0';
@@ -160,9 +175,15 @@ uint32_t get_string(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
     c[1]='\0';
-    for(; (c[0] = get_char()) != '\0' && read<max_len-1; read++){
-        buf[read]=c[0];
-        write(STDOUT, c, 1);
+    for(; (c[0] = get_char()) != '\0' && read<max_len-1;){
+        if(c[0]!=ASCII_DELETE){
+            buf[read]=c[0];
+            read++;
+            write(STDOUT, c, 1);
+        } else if(read>0){
+            read--;
+            write(STDOUT, c, 1);
+        }
     }
     buf[read] = '\n';
     return read;
@@ -246,6 +267,15 @@ uint8_t print_string_with_padding(const char * s1, uint8_t len){
     }
     aux[i]='\0';
     return write(STDOUT, aux, len);
+}
+uint8_t print_numbers(const uint64_t* nums, uint32_t len){
+    if(nums==NULL){
+        return;
+    }
+    for(int i = 0; i<len; i++){
+        print_number(nums[i]);
+        print_string(" ");
+    }
 }
 //---------------------------------------------------------------------------------
 // printString: imprime un String
@@ -539,9 +569,7 @@ void p_error(char * str){
 //   - void
 //---------------------------------------------------------------------------------
 void pause_ticks(uint64_t ticks){
-    uint64_t i = sys_tick();
-    while(sys_tick() - i <= ticks);
-    return;
+    sys_pause_ticks(ticks);
 }
 
 //---------------------------------------------------------------------------------
@@ -663,12 +691,12 @@ int8_t sem_close(sem_t sem){
     return sys_sem_close(sem);
 }
 
-uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
-    return sys_sems_dump(buffer, length);
+uint32_t sem_info(sem_dump_t * buffer, uint32_t length){
+    return sys_sem_info(buffer, length);
 }
 
-void sems_dump_free(sem_dump_t * buffer, uint32_t length){
-    sys_sems_dump_free(buffer, length);
+void free_sem_info(sem_dump_t * buffer, uint32_t length){
+    sys_free_sem_info(buffer, length);
 }
 
 int dup2(int oldfd, int newfd){

@@ -7,6 +7,7 @@
 // TODO: sacar
 #include "../include/semaphores.h"
 #include "../include/mm.h"
+#include "../include/scheduler.h"
 #define FREE        0
 #define OCCUPIED    1
 
@@ -188,6 +189,13 @@ static sem_t * create_semaphore(char * name, uint64_t value){
 
     // Agregamos el proceso que creo el semaforo a la lista de procesos conectados
     pid = get_current_pid();
+    if(pid==0){
+        pid = 0;
+        //esto es para la inicializacion del pipe de teclado
+        //como todavia no hay un procesos corriendo, pero sabemos que el que va a usar ese pipe en un
+        //principio va a ser bash, entonces lo ponemos con 1
+    }
+
     pid_p = mm_alloc(sizeof(pid));
     if(pid_p == NULL){
         free_queueADT(sem->blocked_processes);
@@ -494,6 +502,20 @@ int8_t sem_close(sem_t * sem){
     return OK;
 }
 
+uint32_t sem_count(){
+    uint32_t ans = 0;
+    acquire(&sem_manager.lock);
+    // Verificamos que se haya inicializado el manejador de semaforos
+    //TODO: verificar si deberia irse aca, creo que si porque no hay semaforos que mostrar
+    if(sem_manager.semaphores == NULL){
+        semaphore_manager_init();
+        release(&sem_manager.lock);
+        return 0;
+    }
+    ans = orderListADT_size(sem_manager.semaphores);
+    release(&sem_manager.lock);
+    return ans;
+}
 
 //----------------------------------------------------------------------
 // sems_dump: Dado un buffer pasado por el usuario, se devuelve la informacion de los semaforos a traves del buffer
@@ -570,17 +592,17 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
         }
 
         queueADT_toBegin(curr_sem->blocked_processes);
-        for(uint32_t j = 0; j < buffer[i].blocked_size; j++){
+        for(uint32_t j = 0; j < buffer[i].blocked_size && queueADT_hasNext(curr_sem->blocked_processes); j++){
             pid_p = (uint64_t *)queueADT_next(curr_sem->blocked_processes);
             pid = *pid_p;
-            buffer[i].blocked_processes[j] = pid;
+            (buffer[i].blocked_processes)[j] = pid;
         }
 
         orderListADT_toBegin(curr_sem->connected_processes);
-        for(uint32_t j = 0; j < buffer[i].connected_size; j++){
+        for(uint32_t j = 0; j < buffer[i].connected_size && orderListADT_hasNext(curr_sem->connected_processes); j++){
             pid_p = (uint64_t *)orderListADT_next(curr_sem->connected_processes);
             pid = *pid_p;
-            buffer[i].connected_processes[j] = pid;
+            (buffer[i].connected_processes)[j] = pid;
         }
     }
 

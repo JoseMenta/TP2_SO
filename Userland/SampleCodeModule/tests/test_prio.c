@@ -23,10 +23,12 @@ void test_prio(){
 
     for(i = 0; i < TOTAL_PROCESSES; i++) {
         executable_t exec = {"endless_loop_print",&endless_loop_print,0,argv,1, NULL};
-        print_string("hola");
         pids[i] = sys_exec(&exec);
 //        pids[i] = my_create_process("endless_loop_print", 0, argv);
     }
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
     bussy_wait(WAIT);
     bussy_wait(WAIT);
     print_string("\nCHANGING PRIORITIES...\n");
@@ -38,6 +40,12 @@ void test_prio(){
     }
     bussy_wait(WAIT);
     bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+
     print_string("\nBLOCKING...\n");
 //    printf("\nBLOCKING...\n");
 
@@ -60,6 +68,10 @@ void test_prio(){
 //        my_unblock(pids[i]);
     }
 
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
+    bussy_wait(WAIT);
     bussy_wait(WAIT);
     bussy_wait(WAIT);
     print_string("\nKILLING...\n");

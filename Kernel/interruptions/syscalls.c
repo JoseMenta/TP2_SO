@@ -17,6 +17,7 @@
 #include "../include/syscalls.h"
 #include "../include/interrupts.h"
 #include "../include/mm.h"
+#include "../include/time.h"
 #include "../include/pipes.h"
 
 //TODO: cambiar a pipes para el read y el keyboard
@@ -195,8 +196,8 @@ int32_t terminate_handler(uint64_t pid){
     if((status = terminate_process(pid))==-1){
         return -1;
     }
-    //No tengo problema con haber liberado el stack
-    //Pues no es un kernel desalojable (no me interrumpen aca)
+    //el stack todavia no se libero, pues scheduler utiliza mm_alloc
+    //Si lo libero en terminate_process, puedo estar pisando el contexto actual con mm_alloc
     _int20();//por si me termino a mi mismo
     return status;
 }
@@ -299,13 +300,15 @@ int8_t sem_post_handler(sem_t * sem){
 int8_t sem_close_handler(sem_t * sem){
     return sem_close(sem);
 }
-
-uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length){
-    return sems_dump(buffer, length);
+uint32_t sem_count_handler(){
+    return sem_count();
+}
+uint32_t sem_info_handler(sem_dump_t * buffer, uint32_t length){
+    return sems_dump(buffer,length);
 }
 
-void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length){
-    sems_dump_free(buffer, length);
+void free_sem_info_handler(sem_dump_t * buffer, uint32_t length){
+    sems_dump_free(buffer,length);
 }
 
 int dup2_handler(int oldfd, int newfd){
@@ -314,16 +317,24 @@ int dup2_handler(int oldfd, int newfd){
 int dup_handler(int oldfd){
     return dup(oldfd);
 }
-
-
+int32_t pause_ticks_handler(uint64_t ticks){
+    add_timer(ticks);
+    _int20();//veo cual sigue
+}
+int32_t mm_info_handler(mm_info_t* info){
+    info->total_bytes = get_total_bytes();
+    info->allocated_bytes = get_allocated_bytes();
+    info->free_bytes = get_free_bytes();
+    info->allocated_blocks = get_allocated_blocks();
+}
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
                   &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
                     &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler_pipe, &read_handler_pipe, &get_info_handler,
-                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sems_dump_handler, &sems_dump_free_handler,
-                    &dup2_handler, &dup_handler};
+                    &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sem_info_handler, &free_sem_info_handler,
+                    &dup2_handler, &dup_handler,&pause_ticks_handler, &mm_info_handler, &sem_count_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=35){
+    if(syscall_num<0 || syscall_num>=40){
         return NULL;
     }
     return syscalls[syscall_num];

@@ -16,19 +16,15 @@
 struct RRLevelCDT {
     queueADT to_execute;
     queueADT executed;
-    uint8_t priority;
-    uint8_t tt_interval; //la cantidad de timer tick que determinan al quantum
 };
 
-RRLevelADT new_RRLevel(uint8_t priority, uint8_t tt_interval){
+RRLevelADT new_RRLevel(){
     RRLevelADT ans = mm_alloc(sizeof (struct RRLevelCDT));
     if(ans==NULL){
         return NULL;
     }
     ans->to_execute = new_queueADT(elemType_compare_to);
     ans->executed = new_queueADT(elemType_compare_to);
-    ans->priority = priority;
-    ans->tt_interval = tt_interval;
     return ans;
 }
 

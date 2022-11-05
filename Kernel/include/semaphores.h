@@ -50,5 +50,6 @@ int8_t sem_close(sem_t * sem);
 
 uint32_t sems_dump(sem_dump_t * buffer, uint32_t length);
 void sems_dump_free(sem_dump_t * buffer, uint32_t length);
+uint32_t sem_count();
 
 #endif // TP2_SO_SEMAPHORE_H

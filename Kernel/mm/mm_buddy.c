@@ -5,6 +5,7 @@
 // La implementación utiliza un arreglo el cual lo maneja como árbol binario mediante indices
 
 #include <mm.h>
+#include <stdint.h>
 #include <stddef.h>
 #ifdef BUDDY
 // #include <mm_buddy.h>
@@ -215,7 +216,7 @@ void mm_free(void * p){
     node_size = buddy_manager.size * 2;
 
     // Busco el nodo cuya direccion inicial sea p
-    for(uint32_t i = 0; index == -1 && i < NODES; i++){
+    for(uint64_t i = 0; index == -1 && i < NODES; i++){
         if(IS_POWER_OF_2(i+1)){
             // Cada vez que alcanzo una potencia de 2, bajo un nivel mas en el arbol, empezando por el nodo más a la izquierda
             address = (uint8_t *) start_address;

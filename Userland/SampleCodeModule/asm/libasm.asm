@@ -36,10 +36,13 @@ GLOBAL sys_sem_open
 GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
 GLOBAL sys_sem_close
-GLOBAL sys_sems_dump
-GLOBAL sys_sems_dump_free
+GLOBAL sys_sem_info
+GLOBAL sys_free_sem_info
+GLOBAL sys_sem_count
 GLOBAL sys_dup2
 GLOBAL sys_dup
+GLOBAL sys_pause_ticks
+GLOBAL sys_mm_info
 
 EXTERN print_string
 
@@ -691,7 +694,7 @@ sys_sem_close:
 ; Retorno:
 ;   Devuelve la cantidad de semaforos (elementos completados del arreglo)
 ;------------------------------------------------------------------------------------
-sys_sems_dump:
+sys_sem_info:
     syscall_macro 33
 
 ;-------------------------------------------------------------------------------------
@@ -703,7 +706,7 @@ sys_sems_dump:
 ;-------------------------------------------------------------------------------------
 ; Retorno:
 ;------------------------------------------------------------------------------------
-sys_sems_dump_free:
+sys_free_sem_info:
     syscall_macro 34
 
 ;-------------------------------------------------------------------------------------
@@ -730,6 +733,15 @@ sys_dup2:
 ;------------------------------------------------------------------------------------
 sys_dup:
     syscall_macro 36
+
+sys_pause_ticks:
+    syscall_macro 37
+
+sys_mm_info:
+    syscall_macro 38
+
+sys_sem_count:
+    syscall_macro 39
 
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero

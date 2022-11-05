@@ -8,11 +8,17 @@ typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8
 
 #define MAX_ARRAY_SIZE 32
 #define MAX_MEM_ADDRESS 0xFFFFFFFF8                             // A partir de la proxima direccion, falla (suponemos que es un seg fault)
-//#define NULL 0
+
+
+typedef struct{
+    uint64_t allocated_bytes;
+    uint64_t free_bytes;
+    uint64_t allocated_blocks;
+    uint64_t total_bytes;
+}mm_info_t;
 
 int32_t read_handler(int fd, char * buf, int count);            // Lee por pantalla el siguiente caracter y lo copia en str
 int32_t write_handler(int fd, const char * str, int count);             // Escribe el string str por pantalla con el formato format
-//int32_t exec_handler(uint8_t cant, const executable_t* programas);                    // Agrega un nuevo proceso al arreglo de procesos
 int32_t exec_handler(executable_t* executable);
 int32_t exit_handler();                                         // Finaliza un proceso con codigo de error
 uint8_t time_handler(timeType time_unit);                        // Devuelve el valor para la unidad indicada en GMT
@@ -35,6 +41,9 @@ int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count)
 uint64_t process_count_handler();
 void* mm_alloc_handler(uint32_t wanted_size);
 void mm_free_handler(void* p);
+int32_t pause_ticks_handler(uint64_t ticks);
+int32_t mm_info_handler(mm_info_t* info);
+
 
 int pipe_handler(int fd[2]);
 int open_fifo_handler(Pipe_modes mode, char * name);
@@ -51,8 +60,9 @@ sem_t * sem_open_handler(char * name, uint64_t value, open_modes mode);
 int8_t sem_wait_handler(sem_t * sem);
 int8_t sem_post_handler(sem_t * sem);
 int8_t sem_close_handler(sem_t * sem);
-uint32_t sems_dump_handler(sem_dump_t * buffer, uint32_t length);
-void sems_dump_free_handler(sem_dump_t * buffer, uint32_t length);
+uint32_t sem_info_handler(sem_dump_t * buffer, uint32_t length);
+void free_sem_info_handler(sem_dump_t * buffer, uint32_t length);
+uint32_t sem_count_handler();
 int dup_handler(int oldfd);
 int dup2_handler(int oldfd, int newfd);
 
