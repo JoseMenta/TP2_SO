@@ -13,37 +13,34 @@
 /* ----------------------------------------------------------------------------------------------------------------
  * Buddy
  *
- * Tamaño total de heap: 128 MB
- * Tamaño minimo de bloque: 8 B
+ * Tamaño total de heap: 8 MB
+ * Tamaño minimo de bloque: 64 B
  *
- * Cant. de nodos: 1 (128 MB) + 2 (64 MB) + 4 (32 MB) + 8 (16 MB) + 16 (8 MB) + 32 (4 MB) + 64 (2 MB) + 128 (1 MB) +
-		    256 (512 KB) + 512 (256 KB) + 1024 (128 KB) + 2048 (64 KB) + 4096 (32 KB) + 8192 (16 KB). +
-                16384 (8 KB) + 32768 (4 KB) + 65536 (2 KB) + 131072 (1 KB) + 262144 (512 B) + 524288 (256 B) +
-   	  	    1048576 (128 B) + 2097152 (64 B) + 4194304 (32 B) + 8388608 (16 B) + 16777216 (8 B) = 33554431 nodos
+ * Cant. de nodos: 262143 nodos
 
  * Tamaño de un nodo: 4 B
- * Tamaño total de nodos: 134217724 B
+ * Tamaño total de nodos: 1.048.572 B
  *
  * Tamaño del buddy: 16 B
  *
- * Tamaño total: 134217740 B = 134.21774 MB < 135 MB
+ * Tamaño total: 1.048.588 B = 1.00001 MB < 2 MB
  *
- * Inicio del buddy:    0x  600000 (6 MB)
- * Fin del buddy: 	    0x 8D00000 (141 MB)
+ * Inicio del buddy:    0x 600000 (6 MB)
+ * Fin del buddy: 	    0x 800000 (8 MB)
  *
- * Inicio del heap: 	0x 8E00000 (142 MB)
- * Fin del heap:	    0x10E00000 (270 MB)
+ * Inicio del heap: 	0x 900000 (9 MB)
+ * Fin del heap:	    0x1100000 (17 MB)
 // ---------------------------------------------------------------------------------------------------------------- */
 
 
 #define BUDDY_MANAGER_START 0x600000
-#define BUDDY_MANAGER_END   0x8D00000
+#define BUDDY_MANAGER_END   0x800000
 
-#define HEAP_START          0x8E00000
-#define HEAP_END            0x10E00000
+#define HEAP_START          0x900000
+#define HEAP_END            0x1100000
 
-#define NODES               33554431
-#define MIN_SIZE            8
+#define NODES               262143
+#define MIN_SIZE            64
 #define MM_SIZE             (((uint8_t *)HEAP_END) - ((uint8_t *)HEAP_START))
 
 #define LEFT_LEAF(index)    ((index) * 2 + 1)               // Devuelve el indice del nodo hijo izquierdo de index
@@ -108,7 +105,6 @@ static buddy_t buddy_manager = {-1, (node_t *) BUDDY_MANAGER_START};
 
 // Setea el buddy para empezar a manejar el heap
 void mm_init(){
-    uint8_t * address = (uint8_t *) start_address;
     uint32_t node_size, buddy_size;
 
     // Define el tamaño del heap que va a manejar el buddy system
@@ -122,11 +118,9 @@ void mm_init(){
         // Cada vez que se llegue a una potencia de 2 es porque se paso al siguiente nivel del arbol
         // por lo que el tamaño del nodo decrece a la mitad y comienza a apuntar nuevamente al principio de la memoria
         if(IS_POWER_OF_2(i+1)){
-            address = (uint8_t *) start_address;
             node_size /= 2;
         }
         buddy_manager.node[i].size_available = node_size;
-        address += node_size;
     }
 }
 

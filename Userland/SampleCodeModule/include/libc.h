@@ -120,9 +120,13 @@ uint64_t sys_getpid();
 int32_t sys_nice(uint64_t pid, uint8_t priority);
 int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
+
 int32_t sys_pause_ticks(uint64_t ticks);
 void* sys_mm_alloc(uint32_t wanted_size);
+void* malloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
+void free(void* p);
+
 int sys_dup2(int oldfd, int newfd);
 int sys_dup(int oldfd);
 int32_t sys_mm_info(mm_info_t* info);
@@ -133,6 +137,7 @@ uint8_t get_char(void);
 uint8_t print_string(const char * s1);
 uint8_t print_string_with_padding(const char * s1, uint8_t len);
 void number_to_string(uint64_t num, char * str);
+uint64_t string_to_number(const char * str, uint64_t * resp);
 uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);

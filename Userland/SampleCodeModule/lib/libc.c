@@ -388,6 +388,27 @@ void number_to_string(uint64_t num, char * str){
 }
 
 
+// Dado el string de un numero, devuelve su entero correspondiente
+// Tambien se puede recibir el resultado por puntero
+uint64_t string_to_number(const char * str, uint64_t * resp){
+    uint64_t i = 0;
+    uint64_t res = 0;
+
+    if (!str) return 0;
+
+    for ( ; str[i] != '\0'; ++i){
+        if(str[i] < '0' || str[i] > '9') return 0;
+        res = res * 10 + str[i] - '0';
+    }
+
+    if(resp != NULL){
+        *resp = res;
+    }
+
+    return res;
+}
+
+
 //---------------------------------------------------------------------------------
 // get_program: Devuelve el programa asociado al string str
 //---------------------------------------------------------------------------------

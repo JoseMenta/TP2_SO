@@ -36,7 +36,7 @@ void bash(uint64_t arg_c, char ** arg_v){
     print_string("Bienvenido!\nQue modulo desea correr?");
     // print_string("Bienvenido!\nQue modulo desea correr?\n$ ",WHITE);
     while(1){
-        print_string("\n$");
+        print_string("\n$ ");
         int len = get_line(buffer,MAX_BUFFER_SIZE);
         if(len==MAX_BUFFER_SIZE-1 && buffer[len-1]=='\n'){
             print_string("No fue posible leer lo ingresado, por favor intente nuevamente\n$");
