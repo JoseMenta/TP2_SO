@@ -130,6 +130,7 @@ uint8_t get_char(void);
 uint8_t print_string(const char * s1);
 uint8_t print_string_with_padding(const char * s1, uint8_t len);
 void number_to_string(uint64_t num, char * str);
+uint64_t string_to_number(const char * str, uint64_t * resp);
 uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);

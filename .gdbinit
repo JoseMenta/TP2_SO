@@ -1,6 +1,6 @@
 # Este archivo permite debuggear el proyecto usando gdb con una interfaz gráfica simple
 
-target remote 172.17.192.214:1234
+target remote 172.23.88.162:1234
 add-symbol-file Kernel/kernel.elf 0x100000
 add-symbol-file Userland/0000-sampleCodeModule.elf 0x400000
 

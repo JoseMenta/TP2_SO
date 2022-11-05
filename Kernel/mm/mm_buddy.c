@@ -104,7 +104,6 @@ static buddy_t buddy_manager = {-1, (node_t *) BUDDY_MANAGER_START};
 
 // Setea el buddy para empezar a manejar el heap
 void mm_init(){
-    uint8_t * address = (uint8_t *) start_address;
     uint32_t node_size, buddy_size;
 
     // Define el tamaño del heap que va a manejar el buddy system
@@ -118,11 +117,9 @@ void mm_init(){
         // Cada vez que se llegue a una potencia de 2 es porque se paso al siguiente nivel del arbol
         // por lo que el tamaño del nodo decrece a la mitad y comienza a apuntar nuevamente al principio de la memoria
         if(IS_POWER_OF_2(i+1)){
-            address = (uint8_t *) start_address;
             node_size /= 2;
         }
         buddy_manager.node[i].size_available = node_size;
-        address += node_size;
     }
 }
 

@@ -76,6 +76,3 @@ void sem(uint64_t arg_c, const char ** arg_v){
 void pipe_info(uint64_t arg_c, const char ** arg_v){
     //TODO
 }
-void phylo(uint64_t arg_c, const char ** arg_v){
-    //TODO
-}
