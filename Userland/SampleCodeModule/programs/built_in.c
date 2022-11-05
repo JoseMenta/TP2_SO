@@ -73,15 +73,6 @@ void unblock(uint64_t arg_c, const char ** arg_v){
 void sem(uint64_t arg_c, const char ** arg_v){
     //TODO
 }
-void cat(uint64_t arg_c, const char ** arg_v){
-    //TODO
-}
-void wc(uint64_t arg_c, const char ** arg_v){
-    //TODO
-}
-void filter(uint64_t arg_c, const char ** arg_v){
-    //TODO
-}
 void pipe_info(uint64_t arg_c, const char ** arg_v){
     //TODO
 }

@@ -115,8 +115,12 @@ uint64_t sys_getpid();
 int32_t sys_nice(uint64_t pid, uint8_t priority);
 int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
+
 void* sys_mm_alloc(uint32_t wanted_size);
+void* malloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
+void free(void* p);
+
 int sys_dup2(int oldfd, int newfd);
 int sys_dup(int oldfd);
 
