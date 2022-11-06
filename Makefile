@@ -1,9 +1,17 @@
+mm = heap
+
+run:
+	sudo qemu-system-x86_64 -hda Image/x64BareBonesImage.qcow2 -m 512 -k en-us
+
+debug:
+	sudo qemu-system-x86_64 -s -S -hda Image/x64BareBonesImage.qcow2 -m 512 -d int -k en-us
+
 
 all: bootloader kernel userland image
 
 #toolchain:
 	#cd Toolchain; make all
-mm = heap
+
 bootloader:
 	cd Bootloader; make all
 
