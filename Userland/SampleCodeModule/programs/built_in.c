@@ -149,7 +149,6 @@ void sem(uint64_t arg_c, const char ** arg_v){
     aux_sem_dump = sys_mm_alloc(count*sizeof (sem_dump_t));
     count = sem_info(aux_sem_dump,count);
     for(int i = 0; i<count; i++){
-        if(aux_sem_dump[i].name!=NULL){
         print_string("Semaforo: ");
         print_string(aux_sem_dump[i].name!=NULL?aux_sem_dump[i].name:"sin nombre");
         print_string(", Valor: ");
@@ -161,11 +160,48 @@ void sem(uint64_t arg_c, const char ** arg_v){
         print_string("Procesos conectados: ");
         print_numbers(aux_sem_dump[i].connected_processes,aux_sem_dump[i].connected_size);
         print_string("\n");
-        }
     }
     free_sem_info(aux_sem_dump,count);
     free(aux_sem_dump);
 }
+
 void pipe_info(uint64_t arg_c, const char ** arg_v){
-    //TODO
+    if(arg_c>1){
+        throw_error("Error: el programa recibe 1 o ningun argumento");
+    }
+    uint64_t count;
+    string_to_number(arg_v[0], &count);
+
+    //pipe_user_info aux[count];
+    pipe_user_info * aux = sys_mm_alloc(count * sizeof(pipe_user_info));
+    if(aux == NULL){
+        throw_error("Error: En la reserva de memoria dinamica");
+    }
+
+    int size = get_info(aux, count);
+    if(size==0){
+        print_string("No se crearon pipes aun");
+    }
+    for(int i=0; i<size; i++){
+        print_string("\n\nNOMBRE: ");
+        if(aux[i].name == NULL){
+            print_string("Sin Nombre");
+        }else{
+            print_string(aux[i].name);
+        }
+        print_string("\nWrite Index: ");
+        print_number(aux[i].index_write);
+        print_string("\nRead Index: ");
+        print_number(aux[i].index_read);
+        print_string("\nProcesos bloqueados en escritura: ");
+        for(int j=0; i<MAXLOCK && aux[i].pid_write_lock[j] != 0; j++){
+            print_number(aux[i].pid_write_lock[j]);
+        }
+        print_string("\nProcesos bloqueados en lectura: ");
+        for(int j=0; i<MAXLOCK && aux[i].pid_read_lock[j] != 0; j++){
+            print_number(aux[i].pid_read_lock[j]);
+        }
+    }
+    sys_mm_free(aux);
+    return;
 }

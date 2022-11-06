@@ -39,6 +39,7 @@ int pipe_initialize(){
     console_pipe = create_info_pipe("CONSOLE\0");
     console_pipe_restrict = create_restrict_pipe(CONSOLE, console_pipe);
     error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
+    orderListADT_add(pipes_list, console_pipe);
     return 0;
     /*
     get_current_pcb()->fd[0] = console_pipe_restrict;
@@ -127,11 +128,11 @@ int pipe(int fd[2]){
 //  fd de donde se referencia el fifo, -1 en caso de error
 //-----------------------------------------------------------------------------------------
 int open_fifo(Pipe_modes mode, char * name){
-
-    pipe_info * info = create_info_pipe(name);
+    pipe_info aux;
+    aux.name=name;
+    pipe_info * info = orderListADT_get(pipes_list, &aux);
     if(info == NULL){
-        print("fallo info", WHITE, ALL);
-        return -1;
+        info = create_info_pipe(name);
     }
     //Un fifo admite cualquiera de los 3 modos
     int fd = get_next_fd();
@@ -140,9 +141,19 @@ int open_fifo(Pipe_modes mode, char * name){
         mm_free(info);
         return -1;
     }
+    if(orderListADT_size(pipes_list) == 1){
+        print("es 1 antes\n", WHITE, ALL);
+    }
+
     get_current_pcb()->fd[fd] = create_restrict_pipe(mode, info);
-    info->count_access++;
-    orderListADT_add(pipes_list, info);
+
+    if(orderListADT_add(pipes_list, info) == -1){
+        print("da -1", WHITE, ALL);
+    }
+
+    if(orderListADT_size(pipes_list) == 1){
+        print("es 1", WHITE, ALL);
+    }
     return fd;
 }
 
@@ -173,7 +184,6 @@ int link_pipe_named(Pipe_modes mode, char * name){
     }
 
     get_current_pcb()->fd[fd] = create_restrict_pipe(mode, info);
-    info->count_access++;
     return fd;
 }
 
@@ -376,22 +386,36 @@ int read(int fd, char * buf, int count){
 //-----------------------------------------------------------------------------------------
 //Retorno:
 //-----------------------------------------------------------------------------------------
-void get_info(pipe_user_info * user_data, int * count){
+int64_t get_info(pipe_user_info * user_data, int64_t count){
+    if(user_data == NULL){
+        return -1;
+    }
+    char aux[2] = {orderListADT_size(pipes_list) + '0', '\0'};
+    print(aux, WHITE, ALL);
+    uint32_t size =0;
     orderListADT_toBegin(pipes_list);
-    int i=0;
     pipe_info * info_next;
-    while(orderListADT_hasNext(pipes_list)){
+    for(int i=0; orderListADT_hasNext(pipes_list) && i < count; i++){
         info_next = orderListADT_next(pipes_list);
         user_data[i].index_read=info_next->index_read;
         user_data[i].index_write=info_next->index_write;
-        user_data[i].name=info_next->name;
+        if(info_next->name != NULL){
+            char * aux = info_next->name;
+            user_data[i].name = mm_alloc((strlen(aux) +1) * sizeof (char));
+            if(user_data[i].name == NULL){
+                return -1;
+            }
+            strcpy(user_data[i].name, info_next->name);
+        }else{
+            user_data[i].name = NULL;
+        }
         for(int j=0; j<MAXLOCK; j++){
             user_data[i].pid_read_lock[j]=info_next->pid_read_lock[j];
             user_data[i].pid_write_lock[j]=info_next->pid_write_lock[j];
         }
-        i++;
+        size++;
     }
-    (*count) = i;
+    return size;
 }
 
 
@@ -444,10 +468,10 @@ int64_t pipe_compare(pipe_info * elem1, pipe_info * elem2){
     if(elem1->name == NULL && elem2->name==NULL)
         return elem1 - elem2;
     if(elem1->name == NULL)
-        return -1;
-    if(elem2->name==NULL)
         return 1;
-    return *elem1->name - *elem1->name;
+    if(elem2->name==NULL)
+        return -1;
+    return strcmp(elem1->name,elem2->name);
 }
 
 
@@ -462,7 +486,14 @@ pipe_info * create_info_pipe(char * name){
         mm_free(aux);
         return NULL;
     }
-    aux->name=name;
+    if(name == NULL){
+        aux->name =NULL;
+    }else{
+        aux->name = mm_alloc((strlen(name) +1) * sizeof(char));
+        aux->name[strlen(name)] = '\0';
+        strcpy(aux->name, name);
+    }
+    //print(aux->name, WHITE, ALL);
     aux->count_access=0;
     aux->index_write=0;
     aux->index_read=0;
@@ -470,7 +501,6 @@ pipe_info * create_info_pipe(char * name){
     aux->pid_read_lock[0]=0;
     return aux;
 }
-
 
 //-----------------------------------------------------------------------------------------
 //create_restrict_pipe: crea la estructura a la que apunta un fd

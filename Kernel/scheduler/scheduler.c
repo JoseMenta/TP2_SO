@@ -328,6 +328,7 @@ int waitPid(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
     if(!CHECK_PID(pid,&wanted)){
+        print("Se esta esperando a un proceso inexistente",WHITE,ALL);
         return -1;
     }
     PCB* waited = hashADT_get(hash,&wanted);

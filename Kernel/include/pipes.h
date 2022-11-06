@@ -11,7 +11,7 @@ int link_pipe_named(Pipe_modes mode, char * name);
 int close_fd(int fd, uint64_t pid);
 int write(int fd, const char * buf, int count);
 int read(int fd, char * buf, int count);
-void get_info(pipe_user_info * user_data, int * count);
+int64_t get_info(pipe_user_info * user_data, int64_t count);
 int dup2(int oldfd, int newfd);
 int dup(int oldfd);
 int pipe_initialize();

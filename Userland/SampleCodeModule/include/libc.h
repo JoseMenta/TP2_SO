@@ -19,8 +19,8 @@ typedef struct{
     char * name;
     uint64_t pid_write_lock[MAXLOCK];
     uint64_t pid_read_lock[MAXLOCK];
-    uint8_t index_write;
-    uint8_t index_read;
+    uint64_t index_write;
+    uint64_t index_read;
 }pipe_user_info;
 
 typedef struct{
@@ -94,7 +94,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (25)
+#define CANT_PROG (26)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -120,6 +120,7 @@ uint64_t sys_getpid();
 int32_t sys_nice(uint64_t pid, uint8_t priority);
 int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
+
 
 void sys_pause_ticks(uint64_t ticks);
 void sys_sleep(uint32_t seconds);
@@ -177,7 +178,7 @@ int sys_link_pipe_named(Pipe_modes mode, char * name);
 int sys_close_fd(int fd);
 int sys_write_pipe(int fd, const char * buf, int count);
 int sys_read_pipe(int fd, char * buf, int count);
-void sys_get_info(pipe_user_info * user_data, int * count);
+int64_t sys_get_info(pipe_user_info * user_data, int64_t count);
 
 sem_t sys_sem_init(char * name, uint64_t value);
 sem_t sys_sem_open(char * name, uint64_t value, open_modes mode);
@@ -192,7 +193,7 @@ int pipe(int fd[2]);
 int open_fifo(Pipe_modes mode, char * name);
 int link_pipe_named(Pipe_modes mode, char * name);
 int close_fd(int fd);
-void get_info(pipe_user_info * user_data, int * count);
+int64_t get_info(pipe_user_info * user_data, int64_t count);
 int write(int fd, const char * buf, int count);
 int read(int fd, char * buf, int count);
 uint8_t print_string_fd(const char * s1, int fd);

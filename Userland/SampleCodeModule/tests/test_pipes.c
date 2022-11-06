@@ -4,17 +4,18 @@
 
 void write_pipe_name(){
     int fd = open_fifo(O_RDWR, "PorFavor");
-    print_string_fd("con nombre", fd);
+    print_string_fd("con aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", fd);
     close_fd(fd);
     return;
 }
 
 void read_pipe_name(){
-    int fd = link_pipe_named(O_RDWR, "PorFavor");
+    int fd = open_fifo(O_RDWR, "PorFavor");
     char buf[20];
-    int i = read(fd, buf, 10);
-    write(STDOUT,buf,i);
-//    print_string(buf);
+    int i;
+    while( (i = read(fd, buf, 1) ) != -1){
+        write(STDOUT, buf, i);
+    }
     close_fd(fd);
     return;
 }

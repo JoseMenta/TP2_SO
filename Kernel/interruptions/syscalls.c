@@ -278,8 +278,8 @@ int write_handler_pipe(int fd, const char * buf, int count){
 int read_handler_pipe(int fd, char * buf, int count){
     return read(fd, buf, count);
 }
-void get_info_handler(pipe_user_info * user_data, int * count){
-    get_info(user_data, count);
+int64_t get_info_handler(pipe_user_info * user_data, int64_t count){
+    return get_info(user_data, count);
 }
 
 sem_t * sem_init_handler(char * name, uint64_t value){
@@ -343,7 +343,7 @@ void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time
                     &dup2_handler, &dup_handler,&pause_ticks_handler, &sleep_handler, &mm_info_handler, &sem_count_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=40){
+    if(syscall_num<0 || syscall_num>=41){
         return NULL;
     }
     return syscalls[syscall_num];

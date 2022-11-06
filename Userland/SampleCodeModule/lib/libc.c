@@ -39,6 +39,7 @@ front_program_t programs[CANT_PROG] = {
         {"read.name", "\tread_pipe\n", &read_pipe_name},
         {"write.common", "\twrite_pipe_c\n", &write_pipe_common},
         {"read.common", "\tread_pipe_c\n", &read_pipe_common},
+        {"info.pipe", "\tinfo del pipe\n", &pipe_info}
 };
 
 
@@ -696,8 +697,8 @@ int write(int fd, const char * buf, int count){
 int read(int fd, char * buf, int count){
     return sys_read(fd, buf, count);
 }
-void get_info(pipe_user_info * user_data, int * count){
-    sys_get_info(user_data, count);
+int64_t get_info(pipe_user_info * user_data, int64_t count){
+    return sys_get_info(user_data, count);
 }
 
 sem_t sem_init(char * name, uint64_t value){

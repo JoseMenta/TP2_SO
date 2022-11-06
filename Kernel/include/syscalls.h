@@ -51,7 +51,8 @@ int link_pipe_named_handler(Pipe_modes mode, char * name);
 int close_fd_handler(int fd);
 int write_handler_pipe(int fd, const char * buf, int count);
 int read_handler_pipe(int fd, char * buf, int count);
-void get_info_handler(pipe_user_info * user_data, int * count);
+int64_t get_info_handler(pipe_user_info * user_data, int64_t count);
+
 
 
 // Syscalls de semaforos

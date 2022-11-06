@@ -71,6 +71,9 @@ void* mm_alloc(uint32_t wanted_size){
     if(end_block==NULL){
         mm_init();
     }
+    if(wanted_size==0){
+        return NULL;
+    }
     if(wanted_size>0){
         if(wanted_size+block_size>heap_size-allocated_bytes){
             return NULL;

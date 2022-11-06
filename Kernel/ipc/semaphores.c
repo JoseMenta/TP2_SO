@@ -361,7 +361,6 @@ int8_t sem_wait(sem_t * sem){
 
     // Verificamos que exista el semaforo buscado
     if(orderListADT_get(sem_manager.semaphores, sem) == NULL){
-        //TODO: se rompe aca
         release(&sem_manager.lock);
         return ERR_NOT_FOUND;
     }
@@ -567,10 +566,19 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
         buffer[i].name = NULL;
 
         buffer[i].blocked_size = queueADT_size(curr_sem->blocked_processes);
-        buffer[i].blocked_processes = mm_alloc(buffer[i].blocked_size * sizeof(uint64_t));
+        if(buffer[i].blocked_size != 0){
+            buffer[i].blocked_processes = mm_alloc(buffer[i].blocked_size * sizeof(uint64_t));
+        }else{
+            buffer[i].blocked_processes = NULL;
+        }
 
         buffer[i].connected_size = orderListADT_size(curr_sem->connected_processes);
-        buffer[i].connected_processes = mm_alloc(buffer[i].connected_size * sizeof(uint64_t));
+        if(buffer[i].connected_size != 0){
+            buffer[i].connected_processes = mm_alloc(buffer[i].connected_size * sizeof(uint64_t));
+        }else{
+            buffer[i].connected_processes = NULL;
+        }
+
 
         // Verificamos que se hayan podido crear ambos buffers (bloqueados y conectados)
         if((buffer[i].blocked_processes == NULL && buffer[i].blocked_size != 0) ||
