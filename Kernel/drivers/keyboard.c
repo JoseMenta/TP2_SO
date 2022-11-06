@@ -146,8 +146,8 @@ void keyboard_handler(){
             //tengo que mandar un &
             char aux = '&';
             write_keyboard( &aux, 1);
-        }else if(keyboard_reference[key]=='['){
-            char aux = '[';
+        }else if(keyboard_reference[key]=='d' && ctrl_pressed){
+            char aux = EOF;
             write_keyboard( &aux, 1);
         }
         else if (key_case > 0 && IS_ALPHA(keyboard_reference[key])){
