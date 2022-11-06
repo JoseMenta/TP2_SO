@@ -146,6 +146,9 @@ int create_process(executable_t* executable){
     }
     new_pid++;
     hashADT_add(hash, new_process);
+    if(hashADT_get(hash,new_process)==NULL){
+        return -1;
+    }
     if( RR_add_process(rr,new_process,new_process->priority)==-1){
 //        print("Error al ingresar el proceso al hash",WHITE,ALL);
         return -1;
@@ -195,7 +198,7 @@ int terminate_process(uint64_t pid){
         return -1;
     }
     process->status = FINISHED;
-    for(int i=0; i<DEFAULTFD; i++){
+    for(int i=0; i<MAXFD; i++){
         //TODO: verificar si esto tiene que cerrar solo a los default o solo a todos,
         //creo que deberia ser a todos
         if(process->fd[i]!=NULL) {
