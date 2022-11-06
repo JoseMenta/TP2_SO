@@ -13,7 +13,7 @@
 #define ESC 1
 #define RELEASED 128
 #define ASCII_DELETE 127
-#define EOF (-1)
+#define EOF (126)
 #define UPPER_OFFSET ('a'-'A')  //0x20
 #define KEYBOARD_REFERENCE_LENGTH 60
 

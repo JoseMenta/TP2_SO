@@ -194,6 +194,7 @@ int32_t clear_handler(void){
 int32_t terminate_handler(uint64_t pid){
     int status = 0;
     if((status = terminate_process(pid))==-1){
+        print("No fue posible terminar al proceso",WHITE,ALL);
         return -1;
     }
     //el stack todavia no se libero, pues scheduler utiliza mm_alloc

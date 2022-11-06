@@ -18,6 +18,7 @@
 #include "../include/HashADT.h"
 #include "../include/pipes.h"
 #include "../include/stringLib.h"
+#include "../include/video_driver.h"
 
 
 static void* stack_to_free = NULL;
@@ -72,6 +73,9 @@ int initialize_scheduler(){
     //No se lo carga en RR, para ejecutarlo solo cuando no hay otros
 //    hash[0] = new_process;
     hashADT_add(hash, new_process);
+    if(hashADT_get(hash,new_process)==NULL){
+        return -1;
+    }
     return 0;
 }
 //devuelve el pid del proceso si no hubo error, -1 si hubo error
@@ -95,6 +99,7 @@ int create_process(executable_t* executable){
     }
     new_process->arg_v = arg_v;
     if(create_new_process_context(new_process->arg_c,new_process->arg_v,executable->start,&bp,&sp)==-1){
+        print("Error al crear el stack del proceso",WHITE,ALL);
         return -1;
     }
     new_process->bp = bp;
@@ -138,6 +143,7 @@ int create_process(executable_t* executable){
     new_pid++;
     hashADT_add(hash, new_process);
     if( RR_add_process(rr,new_process,new_process->priority)==-1){
+        print("Error al ingresar el proceso al hash",WHITE,ALL);
         return -1;
     }
     return new_process->pid;
@@ -174,15 +180,17 @@ int terminate_process(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
     if(!CHECK_PID(pid,&wanted)){
+        print("Se desea terminar un procceso que no existe",WHITE,ALL);
         return -1;
     }
 //    PCB* process = hash[pid];
     PCB* process = hashADT_get(hash,&wanted);
     if(process->status==FINISHED){
+        print("Se desea terminar un procceso ya terminado",WHITE,ALL);
         return -1;
     }
     process->status = FINISHED;
-    for(int i=0; i<MAXFD; i++){
+    for(int i=0; i<DEFAULTFD; i++){
         //TODO: verificar si esto tiene que cerrar solo a los default o solo a todos,
         //creo que deberia ser a todos
         if(process->fd[i]!=NULL) {
@@ -193,8 +201,13 @@ int terminate_process(uint64_t pid){
 
     PCB* curr = NULL;
     //Desbloquea a todos los que lo estan esperando
-    while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
-        unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
+    queueADT_toBegin(process->waiting_processes);//esto falta
+//    while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
+//        unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
+//    }
+    while (queueADT_hasNext(process->waiting_processes)){
+        curr = queueADT_next(process->waiting_processes);
+        unblock_process(curr->pid);
     }
     free_queueADT(process->waiting_processes);
     for(int i = 0; i<process->arg_c; i++){
@@ -204,7 +217,8 @@ int terminate_process(uint64_t pid){
         mm_free(process->arg_v);
     }
     //lo hago aca, para que no haya algun mm_alloc despues
-    stack_to_free = process->bp;
+    free_process_stack(process->bp);
+//    stack_to_free = process->bp;
     //No liberamos la memoria aca, pues la funcion scheduler que se va a llamar despues para cambiar el contexto hace
     //mm_alloc para estruturas auxiliares, y eso podria estar pisando el stack donde estamos hasta el cambio de contexto
     //con la funcion free_unused_stack, liberamos la memoria en un punto donde sabemos que no vamos a hacer mas mm_alloc
@@ -239,25 +253,32 @@ int unblock_process(uint64_t pid){
     wanted.pid = pid;
 
     if(!CHECK_PID(pid,&wanted)){
+        //ACA
+        //La unica manera en la que puede no estar es porque
+        //se termino al proceso, si no no se saca del hash
+        print("El pid no es valido o no esta en el hash",WHITE,ALL);
         return -1;
     }
 //    PCB* process = hash[pid];
     PCB* process = hashADT_get(hash,&wanted);
     if(process->status!=BLOCKED){
+        print("El pid no esta bloqueado o no esta en el hash",WHITE,ALL);
         return -1;
     }
     //PCB* process = HashProcess_get(myHash, pid);
     process->status = READY;
     //lo agrego para que pueda seguir ejecutandose cuando sigue
-    RR_add_process(rr,process,process->priority);
+    if(RR_add_process(rr,process,process->priority)==-1){
+        print("Error al agregar el proceso para ejecucion luego de desbloquearlo",WHITE,ALL);
+    }
     return 0;
 }
-static void free_unused_stack(){
-    if(stack_to_free!=NULL){
-        free_process_stack(stack_to_free);
-        stack_to_free = NULL;
-    }
-}
+//static void free_unused_stack(){
+//    if(stack_to_free!=NULL){
+//        free_process_stack(stack_to_free);
+//        stack_to_free = NULL;
+//    }
+//}
 //devuelve RSP del proceso que debe continuar en ejecucion
 void* scheduler(void* curr_rsp){
     //si debe seguir el proceso que esta en el momento
@@ -265,7 +286,7 @@ void* scheduler(void* curr_rsp){
     if(current_process!=NULL && current_process->status==EXECUTE && scheduler_ticks< max_ticks_for_current){
 //        current_process->sp = curr_rsp;
 //        return current_process->sp;
-        free_unused_stack();
+//        free_unused_stack();
         return curr_rsp;
     }
     //Si corresponde, guardamos al proceso que se estaba ejecutando para que siga luego
@@ -276,7 +297,9 @@ void* scheduler(void* curr_rsp){
 //        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!=hash[0]){
         if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= hashADT_get(hash,&aux)){
             current_process->status = READY;
-            RR_add_process(rr,current_process,current_process->priority);
+            if(RR_add_process(rr,current_process,current_process->priority)==-1){
+                print("Error al agregar el proceso para la vuelta",WHITE,ALL);
+            }
         }
         //si no, fue bloqueado o terminado (en todos los casos guardamos a sp)
         current_process->sp = curr_rsp;
@@ -289,7 +312,7 @@ void* scheduler(void* curr_rsp){
         PCB aux;
         aux.pid = 0;
         current_process = hashADT_get(hash,&aux);
-        free_unused_stack();
+//        free_unused_stack();
         return current_process->sp;
     }
     scheduler_ticks = 0; //reiniciamos los ticks para el nuevo proceso
@@ -297,7 +320,7 @@ void* scheduler(void* curr_rsp){
     current_process = RR_get_next(rr);
     max_ticks_for_current = ticks_for_priority[current_process->priority];
     current_process->status = EXECUTE;
-    free_unused_stack();
+//    free_unused_stack();
     return current_process->sp;
 }
 
@@ -312,7 +335,9 @@ int waitPid(uint64_t pid){
 //    if(hash[pid]->status!=FINISHED){
     if(waited->status!=FINISHED){
 //        queueADT_insert(hash[pid]->waiting_processes,current_process);
-        queueADT_insert(waited->waiting_processes,current_process);
+        if(queueADT_insert(waited->waiting_processes,current_process)==-1){
+            print("Error al ingresar el proceso a la lista de esperando",WHITE,ALL);
+        }
     }
 
     while(waited->status!=FINISHED){

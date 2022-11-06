@@ -86,8 +86,8 @@ typedef struct {
     uint64_t value;                     // Valor del semaforo
     uint64_t * blocked_processes;       // Lista de procesos detenidos por el semaforo
     uint64_t * connected_processes;     // Procesos que utilizan el semaforo
-    uint32_t blocked_size;              // Cantidad de procesos bloqueados
-    uint32_t connected_size;            // Cantidad de procesos conectados
+    uint64_t blocked_size;              // Cantidad de procesos bloqueados
+    uint64_t connected_size;            // Cantidad de procesos conectados
     uint64_t id;                        // id del semaforo
     char * name;                        // Nombre del semaforo
 } sem_dump_t;

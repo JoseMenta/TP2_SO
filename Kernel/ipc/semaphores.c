@@ -8,6 +8,7 @@
 #include "../include/semaphores.h"
 #include "../include/mm.h"
 #include "../include/scheduler.h"
+#include "../include/stringLib.h"
 #define FREE        0
 #define OCCUPIED    1
 
@@ -190,13 +191,13 @@ static sem_t * create_semaphore(char * name, uint64_t value){
     // Agregamos el proceso que creo el semaforo a la lista de procesos conectados
     pid = get_current_pid();
     if(pid==0){
-        pid = 0;
+        pid = 1;
         //esto es para la inicializacion del pipe de teclado
         //como todavia no hay un procesos corriendo, pero sabemos que el que va a usar ese pipe en un
         //principio va a ser bash, entonces lo ponemos con 1
     }
 
-    pid_p = mm_alloc(sizeof(pid));
+    pid_p = mm_alloc(sizeof(uint64_t));
     if(pid_p == NULL){
         free_queueADT(sem->blocked_processes);
         free_orderListADT(sem->connected_processes);
@@ -301,7 +302,7 @@ sem_t * sem_open(char * name, uint64_t value, open_modes mode){
     // Si se encontro el semaforo, agregamos el proceso a la lista de procesos conectados si no lo estaba aun
     if(sem != NULL){
         pid = get_current_pid();
-        pid_p = mm_alloc(sizeof(pid));
+        pid_p = mm_alloc(sizeof(uint64_t));
         if(pid_p == NULL){
             release(&sem_manager.lock);
             return NULL;
@@ -371,7 +372,7 @@ int8_t sem_wait(sem_t * sem){
     // VUELVA A EJECUTAR EL DESBLOQUEADO
     while(sem->value == 0){
         pid = get_current_pid();
-        pid_p = mm_alloc(sizeof(pid));
+        pid_p = mm_alloc(sizeof(uint64_t));
         if(pid_p == NULL){
             release(&sem_manager.lock);
             return ERR_MM;

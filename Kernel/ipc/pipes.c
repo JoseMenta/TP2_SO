@@ -337,12 +337,12 @@ int read(int fd, char * buf, int count){
         sem_wait(pipe_mode->info->lock);
     }
     //para que devuelva -1 en el caso de eof
-    if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE){
+    if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]=='[' && pipe_mode->mode==CONSOLE){
         pipe_mode->info->index_read++;
         return -1;
     }
     //Si tengo algo para leer entonces no lo tengo que bloquear cuando termina
-    for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write && !(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE); read++){
+    for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write && !(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]=='[' && pipe_mode->mode==CONSOLE); read++){
         buf[read] = pipe_mode->info->buff[pipe_mode->info->index_read++ % PIPESIZE];
     }
     //TODO: revisar, nunca chequea que haya espacio, hay que testearlo

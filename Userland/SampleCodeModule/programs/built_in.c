@@ -126,8 +126,8 @@ void unblock(uint64_t arg_c, const char ** arg_v){
         throw_error("Error: el argumento ingresado para el pid no es valido");
         return;
     }
-    if(block_process(pid)==-1){
-        print_string("Ocurrio un error al intentar bloquear el proceso.\n Asegurese de que el proceso este bloqueado\n");
+    if(unblock_process(pid)==-1){
+        print_string("Ocurrio un error al intentar desbloquear el proceso.\n Asegurese de que el proceso este bloqueado\n");
     }
 }
 void wait_pid_command(uint64_t arg_c, const char ** arg_v){
@@ -142,23 +142,29 @@ void wait_pid_command(uint64_t arg_c, const char ** arg_v){
     }
     waitpid(pid);
 }
+
 void sem(uint64_t arg_c, const char ** arg_v){
+    sem_dump_t* aux_sem_dump;
     int32_t count = sys_sem_count();
-    sem_dump_t* aux = sys_mm_alloc(count*sizeof (sem_dump_t));
-    count = sem_info(aux,count);
-    for(int i = 0; i<count && aux[i].name!=NULL; i++){
+    aux_sem_dump = sys_mm_alloc(count*sizeof (sem_dump_t));
+    count = sem_info(aux_sem_dump,count);
+    for(int i = 0; i<count; i++){
+        if(aux_sem_dump[i].name!=NULL){
         print_string("Semaforo: ");
-        print_string(aux[i].name!=NULL?aux[i].name:"sin nombre");
+        print_string(aux_sem_dump[i].name!=NULL?aux_sem_dump[i].name:"sin nombre");
         print_string(", Valor: ");
-        print_number(aux[i].value);
+        print_number(aux_sem_dump[i].value);
         print_string("\n");
         print_string("Procesos bloqueados: ");
-        print_numbers(aux[i].blocked_processes,aux[i].blocked_size);
+        print_numbers(aux_sem_dump[i].blocked_processes,aux_sem_dump[i].blocked_size);
         print_string("\n");
         print_string("Procesos conectados: ");
-        print_numbers(aux[i].connected_processes,aux[i].connected_size);
+        print_numbers(aux_sem_dump[i].connected_processes,aux_sem_dump[i].connected_size);
         print_string("\n");
+        }
     }
+    free_sem_info(aux_sem_dump,count);
+    free(aux_sem_dump);
 }
 void pipe_info(uint64_t arg_c, const char ** arg_v){
     //TODO
