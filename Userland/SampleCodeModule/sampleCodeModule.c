@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /* sampleCodeModule.c */
 #include <libc.h>
 #include <tests.h>
@@ -14,20 +16,6 @@
 #include "./include/libc.h"
 #include "../include/programs.h"
 
-void aa(){
-    while(1){
-        print_string("a");
-        pause_ticks(1);
-    }
-}
-void bb(uint64_t pid){
-    waitpid(pid);
-    for(int i = 0; i<10; i++){
-        print_number( getpid());
-        pause_ticks(1);
-    }
-    return;
-}
 /*
  * Anecdota de un bug bastante feo
  * Cuando estuvimos testeando al scheduler con test_processes, decidimos
@@ -59,120 +47,9 @@ void bb(uint64_t pid){
  * scroll_up).
  * Tomando un mejor caso para la longitud del arreglo, creemos (y esperamos) que no vuelva el problema
  */
-void print_scheduler_info(){
-    char* status[] = {"Execute","Ready","Blocked","Finished"};
-    uint64_t processes = sys_get_process_count();//OJO si son muchos!!!!
-    process_info_t aux[8];
-    processes = sys_get_scheduler_info(aux,processes);
-    print_string("\n");//aca se rompe con new_pid = 71
-    char buf[20];
-    for(int i = 0; i<processes; i++){
-        print_number(aux[i].pid);
-        print_string(" ");
-        print_string(aux[i].name);
-        print_string(" ");
-        print_string(status[aux[i].status]);
-        print_string(" ");
-        print_number(aux[i].priority);
-        print_string(" ");
-        print_string(to_hex(buf,aux[i].bp));
-        print_string(" ");
-        print_string(to_hex(buf,aux[i].sp));
-        print_string(" ");
-        print_number(aux[i].foreground);
-        print_string("\n");
-    }
-}
+
 int main(uint64_t arg_c, char** arg_v) {
     bash(arg_c,arg_v);
-//    char* aux[] = {"4","1",NULL};
-//    executable_t prio_test = {"test_sync",&test_processes,1,aux,0};
-//    uint64_t pid = sys_exec(&prio_test);
-//    char aux2[20];
-//    snprintf(aux2,10,"%d",1);
-//    print_string(aux2,WHITE);
-//    while (1){
-//        write_pipe(1,"a",2);
-//        pause_ticks(1);
-//    }
-//    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
-//    uint64_t pid = sys_exec(&pipes_test);
-
-/*
-    char* aux[] = {"100","1",NULL};
-    executable_t prio_test = {"test_sync",&test_sync,2,aux,0};
-    uint64_t pid = sys_exec(&prio_test);
-//    while (1){
-//        print_scheduler_info();
-////        print_number(sys_get_process_count(),WHITE);
-//        pause_ticks(1);
-//    }
-*/
-
-//    waitpid(pid);
-    while (1){
-        print_string("a");
-        pause_ticks(1);
-    }
-//    for(int i = 0; i<100; i++){
-//        executable_t exec = {"test", &endless_loop_print,100000,NULL,0};
-//        uint64_t  pid = sys_exec(&exec);
-//        pause_ticks(4);
-//        terminate_process(pid);
-//        waitpid(pid);
-//    }
-//    print_string("Termino el test\n",WHITE);
-//    print_number(arg_c,WHITE);
-//    print_string(arg_v[0],WHITE);
-//    executable_t exec;
-//    exec.start = &aa;
-//    exec.name = "proceso 1";
-//    exec.arg_c = 0;
-//    exec.arg_v = NULL;
-//    uint64_t  pid = sys_exec(&exec);
-//    executable_t exec2;
-//    exec2.name = "proceso 2";
-//    exec2.start = &bb;
-//    exec2.arg_c = pid;
-//    exec2.arg_v = NULL;
-//    uint64_t pid2 = sys_exec(&exec2);
-//    print_number(sys_get_process_count(),WHITE);
-//    waitpid(pid);
-//    while(1){
-//        print_string("main ",WHITE);
-//        pause_ticks(1);
-//    }
-//    while (1){
-//        print_scheduler_info();
-//        unblock_process(pid);
-//        pause_ticks(1);
-//    }
-
-//    nice(pid2,0);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    block_process(pid);
-//    print_number(getpid(),WHITE);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    unblock_process(pid);
-//    waitpid(pid);
-//    waitpid(pid2);
-//    while (1){
-//        print_number(getpid(),WHITE);
-//        pause_ticks(1);
-//    }
-
-//    uint64_t a = 0;
-//    while (1){
-//        print_number(a++,WHITE);
-//        print_string(" ",WHITE);
-//    }
     return 0;
 
 }

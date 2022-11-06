@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>							// Define diferentes tipos de enteros, segun la cantidad de bits que ocupan (es de libreria estandar de C)
 #include <lib.h>
 #include <moduleLoader.h>

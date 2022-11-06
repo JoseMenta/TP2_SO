@@ -1,7 +1,7 @@
 include Makefile.inc
 
 KERNEL=kernel.bin
-#SOURCES=$(wildcard *.c) preconsejo de joaquin
+
 SOURCES=$(wildcard **/*.c)
 SOURCES_ASM=$(wildcard asm/*.asm)
 OBJECTS=$(SOURCES:.c=.o)

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <libc.h>
 #include <test_util.h>
 //TODO: sacar
@@ -89,12 +91,12 @@ void nice_command(uint64_t arg_c, const char ** arg_v){
         return;
     }
     uint64_t pid;
-    uint8_t prio;
+    int16_t prio;
     if((pid = satoi(arg_v[0])) <= 0){
         throw_error("Error: el argumento ingresado para el pid no es valido");
         return;
     }
-    if((prio = satoi(arg_v[1])) < 0 || prio>=5 || prio<0){
+    if((prio = satoi(arg_v[1])) < 0 || prio>=5){
         throw_error("Error: el argumento ingresado para la prioridad no es valido");
         return;
     }

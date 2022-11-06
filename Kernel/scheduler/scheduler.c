@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 //Inicio scheduler SO
 #include <scheduler.h>
 #include <RRADT.h>
@@ -22,14 +24,14 @@
 
 
 static void* stack_to_free = NULL;
-static RRADT rr = NULL;
+static RRADT round_robin = NULL;
 static uint64_t new_pid = 1;
 uint64_t scheduler_ticks = 0;
 uint64_t max_ticks_for_current = 0;
 static PCB* current_process=NULL;
 #define BASE_PRIORITY_FOREGROUND 1
 #define BASE_PRIORITY_BACKGROUND 3
-#define CHECK_PID(pid,elem) (pid>=1 && pid<new_pid && hashADT_get(hash,elem)!=NULL)
+#define CHECK_PID(pid,elem) ((pid)>=1 && (pid)<(new_pid) && hashADT_get(hash,elem)!=NULL)
 //en el pid=0, guardamos al proceso default
 extern void idle_process();
 static pipe_restrict * default_fds[3];
@@ -39,8 +41,8 @@ static HashADT hash = NULL;
 
 //inicializa las estructuras que va a utilizar el scheduler
 int initialize_scheduler(){
-    rr = new_RR();
-    if(rr==NULL){
+    round_robin = new_RR();
+    if(round_robin==NULL){
         return -1;
     }
     default_fds[0] = get_pipe_console_restrict();
@@ -91,14 +93,31 @@ int create_process(executable_t* executable){
     char** arg_v = executable->arg_v;
     if(new_process->arg_c!=0){
         arg_v = mm_alloc(executable->arg_c*sizeof (char*));
-        for(int i = 0;i<executable->arg_c; i++){
+        if(arg_v==NULL){
+            mm_free(new_process);
+            return -1;
+        }
+        for(int i = 0;i<executable->arg_c && executable->arg_v[i]!=NULL; i++){
             char* aux = mm_alloc((strlen(executable->arg_v[i])+1)*sizeof (char));
+            if(aux==NULL){
+                for(int j=0;j<i;j++){
+                    mm_free(arg_v[j]);
+                }
+                mm_free(arg_v);
+                mm_free(new_process);
+                return -1;
+            }
             strcpy(aux,executable->arg_v[i]);
             arg_v[i] = aux;
         }
     }
     new_process->arg_v = arg_v;
     if(create_new_process_context(new_process->arg_c,new_process->arg_v,executable->start,&bp,&sp)==-1){
+        for(int i = 0; i<new_process->arg_c;i++){
+            mm_free(new_process->arg_v[i]);
+        }
+        mm_free(new_process->arg_v);
+        mm_free(new_process);
 //        print("Error al crear el stack del proceso",WHITE,ALL);
         return -1;
     }
@@ -113,6 +132,11 @@ int create_process(executable_t* executable){
     new_process->waiting_processes = new_queueADT(elemType_compare_to); //para despertar a los que estan esperando solo si lo estan esperando
     if(new_process->waiting_processes==NULL){
 //        print("No se crea la lista de los que esperan",PINK,ALL);
+        for(int i = 0; i<new_process->arg_c;i++){
+            mm_free(new_process->arg_v[i]);
+        }
+        mm_free(new_process->arg_v);
+        mm_free(new_process);
         return -1;
     }
     //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
@@ -147,10 +171,19 @@ int create_process(executable_t* executable){
     new_pid++;
     hashADT_add(hash, new_process);
     if(hashADT_get(hash,new_process)==NULL){
+        for(int i = 0; i<new_process->arg_c;i++){
+            mm_free(new_process->arg_v[i]);
+        }
+        mm_free(new_process->arg_v);
+        mm_free(new_process);
         return -1;
     }
-    if( RR_add_process(rr,new_process,new_process->priority)==-1){
-//        print("Error al ingresar el proceso al hash",WHITE,ALL);
+    if( RR_add_process(round_robin,new_process,new_process->priority)==-1){
+        for(int i = 0; i<new_process->arg_c;i++){
+            mm_free(new_process->arg_v[i]);
+        }
+        mm_free(new_process->arg_v);
+        mm_free(new_process);
         return -1;
     }
     return new_process->pid;
@@ -171,7 +204,7 @@ int block_process(uint64_t pid){
     }
     //PCB* process = HashProcess_get(myHash, pid);
     //lo saco de la cola de listos (solo me sirve si no es el que esta corriendo)
-    RR_remove_process(rr,process->priority,process);
+    RR_remove_process(round_robin,process->priority,process);
     process->status=BLOCKED;
     //si es una syscall bloqueante, se debe llamar en ella al cambio de contexto si se desea bloquear al proceso que esta corriendo
     return 0;
@@ -206,7 +239,7 @@ int terminate_process(uint64_t pid){
         }
     }
 //    print("Se borraron los FDs.\n", WHITE, ALL);
-    RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
+    RR_remove_process(round_robin,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
 
     PCB* curr = NULL;
     //Desbloquea a todos los que lo estan esperando
@@ -255,8 +288,8 @@ int change_process_priority(uint64_t pid, uint8_t new_priority){
     //Lo tenemos que mover a la cola de la nueva prioridad si esta en el RR o deberia estar
 //    if(process->priority!=new_priority && (process->status==READY || process->status == EXECUTE)){
     if(process->priority!=new_priority && process->status==READY ){
-        RR_remove_process(rr,process->priority,process);
-        RR_add_process(rr,process,new_priority);
+        RR_remove_process(round_robin,process->priority,process);
+        RR_add_process(round_robin,process,new_priority);
     }
     process->priority=new_priority;
     return 0;
@@ -285,7 +318,7 @@ int unblock_process(uint64_t pid){
     //PCB* process = HashProcess_get(myHash, pid);
     process->status = READY;
     //lo agrego para que pueda seguir ejecutandose cuando sigue
-    if(RR_add_process(rr,process,process->priority)==-1){
+    if(RR_add_process(round_robin,process,process->priority)==-1){
 //        print("Error al agregar el proceso para ejecucion luego de desbloquearlo",WHITE,ALL);
     }
     return 0;
@@ -314,7 +347,7 @@ void* scheduler(void* curr_rsp){
 //        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!=hash[0]){
         if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= hashADT_get(hash,&aux)){
             current_process->status = READY;
-            if(RR_add_process(rr,current_process,current_process->priority)==-1){
+            if(RR_add_process(round_robin,current_process,current_process->priority)==-1){
 //                print("Error al agregar el proceso para la vuelta",WHITE,ALL);
             }
         }
@@ -322,7 +355,7 @@ void* scheduler(void* curr_rsp){
         current_process->sp = curr_rsp;
     }
     //Debemos buscar el siguiente proceso a ejecutar
-    if(RR_process_count(rr)==0){
+    if(RR_process_count(round_robin)==0){
         //si no hay procesos listos, debemos ejecutar al proceso default
         //Notar que no le ponemos el estado en EXECUTE para que intente salir en el proximo tt
 //        current_process = hash[0];
@@ -334,7 +367,7 @@ void* scheduler(void* curr_rsp){
     }
     scheduler_ticks = 0; //reiniciamos los ticks para el nuevo proceso
     //tenemos que seguir con el proximo proceso segun RR
-    current_process = RR_get_next(rr);
+    current_process = RR_get_next(round_robin);
     max_ticks_for_current = ticks_for_priority[current_process->priority];
     current_process->status = EXECUTE;
     free_unused_stack();

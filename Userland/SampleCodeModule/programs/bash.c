@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <bash.h>
 #include <programs.h>
 #include <libc.h>
@@ -30,7 +32,7 @@ void copy_token(char * token, int * start_token, int end_token);
 //---------------------------------------------------------------------------------
 void bash(uint64_t arg_c, char ** arg_v){
     if(arg_c!=0){
-        write(1, "error", 100);
+        write(1, "error", 6);
         throw_error("Error: el programa no recibe argumentos");
     }
     print_string("Bienvenido!\nQue modulo desea correr?");

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscalls.h>
 #include <video_driver.h>
 #include <keyboard.h>
@@ -20,31 +22,7 @@
 #include "../include/time.h"
 #include "../include/pipes.h"
 
-//TODO: cambiar a pipes para el read y el keyboard
 
-//----------------------------------------------------------------------
-// read_handler: handler para leer un caracter del teclado
-//----------------------------------------------------------------------
-// Argumentos:
-//  str: char* donde se debe guardar el caracter
-//----------------------------------------------------------------------
-// Retorno:
-//  0 si no hay caracteres para ller
-//  1 si hay caracteres para leer
-//----------------------------------------------------------------------
-/*
-int32_t read_handler(char* str){
-    extern queue_t queue;
-    //TODO: usar un pipe
-    if (is_empty(&queue)){
-        *str = '\0'; //no hay caracteres para imprimir
-        return 0;
-    }          // No hay para leer (el puntero de escritura y lectura estan en la misma posicion), por lo que se devuelve 0
-    *str = dequeue(&queue);           // Si hay para leer, guardamos el siguiente caracter en la primera posicion del string
-    str[1] = '\0';
-    return 1;                       // Devolvemos la cantidad de caracteres leidos
-}
- */
 //----------------------------------------------------------------------
 // read_handler: handler para leer del pipe de consola
 //----------------------------------------------------------------------
@@ -57,16 +35,6 @@ int32_t read_handler(char* str){
 int32_t read_handler(int fd, char * buf, int count) {
     return read(fd, buf, count);
 }
-    /*
-    pipe_info * console_pipe = get_pipe_console();
-    if(console_pipe->index_write == console_pipe->index_read){
-        *str = '\0';
-        return 0;
-    }else{
-        *str = console_pipe->buff[console_pipe->index_read++];
-        return 1;
-    }
-     */
 
 //----------------------------------------------------------------------
 // write_handler: imprime un string en la pantalla del proceso que lo llama
@@ -78,25 +46,6 @@ int32_t read_handler(int fd, char * buf, int count) {
 int32_t write_handler(int fd, const char * str, int count){
     return write(fd, str, count);        // Imprime por pantalla
 }
-//    if(process_array_is_empty()){
-//        //No se cargaron procesos, por default imprime en LEFT
-//        positionType position = ALL;
-//        print(str, format, position);
-//        return 0;
-//    }
-//----------------------------------------------------------------------
-// exit_handler: termina el proceso que lo llama
-//----------------------------------------------------------------------
-// Argumentos:
-//  void
-//----------------------------------------------------------------------
-// Retorno
-//  -1 si no hay procesos para terminar
-//  0 si logra terminar el proceso
-//----------------------------------------------------------------------
-//int32_t exit_handler(){
-//    return terminate_process(1);
-//}
 //----------------------------------------------------------------------
 // time_handler: obtiene la unidad del tiempo que se pide
 //----------------------------------------------------------------------
@@ -127,23 +76,7 @@ uint8_t time_handler(timeType time_unit){
 //  La cantidad de posiciones que se logro almacenar
 //----------------------------------------------------------------------
 int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
-    uint8_t i = 0;
-    // Empiezo a completar el arreglo, siempre y cuando la direccion consultada sea menor a la ultima
-    // Asi se evita overflow
-    for(; (i < MAX_ARRAY_SIZE) && (init_dir + i < MAX_MEM_ADDRESS); i++){
-//        arr[i] = get_data(init_dir + i);
-        arr[i] = *((uint8_t*)init_dir + i);//char* para que +i avance de a 1
-    }
-    if(init_dir + i == MAX_MEM_ADDRESS){
-//        arr[i++] = get_data(MAX_MEM_ADDRESS);
-        arr[i++] = *((uint8_t*)MAX_MEM_ADDRESS);
-    }
-    // Si aun quedan espacios libres (i < 32), se completa con NULL
-    for(int j = i; j < MAX_ARRAY_SIZE; j++){
-        arr[j] = 0;
-    }
-    // En i se almacenan la cantidad real de datos que se pudieron almacenar
-    return i;
+    return 0;
 }
 //----------------------------------------------------------------------
 // tick_handler: obtiene la cantidad de ticks que hizo el timer tick
@@ -343,7 +276,7 @@ void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time
                     &dup2_handler, &dup_handler,&pause_ticks_handler, &sleep_handler, &mm_info_handler, &sem_count_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=41){
+    if(syscall_num>=41){
         return NULL;
     }
     return syscalls[syscall_num];

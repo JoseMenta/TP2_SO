@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 // Implementación del Memory Manager Buddy
 // Algoritmo Buddy: https://www.youtube.com/watch?v=DRAHRJEAEso&ab_channel=GabrielParmer
 // Basado en: https://github.com/wuwenbin/buddy2

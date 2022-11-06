@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/pipes.h"
 #include <mm.h>
 #include <orderListADT.h>
@@ -106,8 +108,8 @@ int pipe(int fd[2]){
     //Modo escritura en el segundo fd
     fd[1] = get_next_fd();
     if(fd[1] == -1){
-        fd[0]=-1;
         mm_free(curren->fd[fd[0]]);
+        fd[0]=-1;
         mm_free(info);
         return -1;
     }

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <fibonacci.h>
 #include <libc.h>
 //---------------------------------------------------------------------------------
@@ -17,13 +19,13 @@ void fibonacci(uint64_t arg_c, const char ** arg_v){
     print_string("\n");
     print_number(num_2);
     print_string("\n");
-    while(1){
-        pause_ticks(5);
-        uint64_t aux = num_1 + num_2;
-        num_1 = num_2;
-        num_2 = aux;
-        print_number(aux);
-        print_string("\n");
-    }
+//    while(1){
+//        pause_ticks(5);
+//        uint64_t aux = num_1 + num_2;
+//        num_1 = num_2;
+//        num_2 = aux;
+//        print_number(aux);
+//        print_string("\n");
+//    }
     sys_exit();
 }

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <libc.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -58,7 +60,6 @@ void phylo(uint64_t arg_c, const char ** arg_v) {
 
     amount = INITIAL_NUMBER;
     size = INITIAL_NUMBER;
-    size = (size < MIN_PHYLO) ? MIN_PHYLO : size;
 
     // Creamos los filosofos
     phylos = malloc(size * sizeof(phylo_t));

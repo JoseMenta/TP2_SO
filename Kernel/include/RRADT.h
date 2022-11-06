@@ -1,6 +1,4 @@
-//
-// Created by Jose Menta on 22/10/2022.
-//
+
 
 #ifndef TP2_SO_ROUNDROBIN_H
 #define TP2_SO_ROUNDROBIN_H
@@ -8,9 +6,9 @@
 #include <stdint.h>
 #include <DS.h>
 #define PRIORITY_LEVELS 5
-//TODO: definir cuantos TT va a durar
-#define GET_QUANTUM_INTERVAL(level) (10/(level+1))
-#define CHECK_PRIORITY(priority) (priority>=0 && priority<PRIORITY_LEVELS)
+
+
+#define CHECK_PRIORITY(priority) ((priority)>=0 && (priority)<PRIORITY_LEVELS)
 
 typedef struct RRCDT * RRADT;
 

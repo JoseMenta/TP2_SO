@@ -1,53 +1,14 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <programs.h>
 #include <libc.h>
 #include "../include/libc.h"
-static const char * Names[COUNT_REGS] = { "R8: ", "R9: ", "R10: ", "R11: ", "R12: ", "R13: ", "R14: ", "R15: ", "RAX: ", "RBX: ", "RCX: ", "RDX: ", "RSI: ", "RDI: ", "RBP: ", "RSP: ", "RIP: ", "FLAGS: "};
+
 
 const time_func time_arr[] = {get_secs, 0, get_min, 0, get_hour, 0, get_day_week, get_day, get_month, get_year};
-//---------------------------------------------------------------------------------
-// help: imprime informacion sobre los programas disponibles
-//---------------------------------------------------------------------------------
-// Argumentos:
-//  arg_c: cantidad de argumentos del programa (0)
-//  arg_v: arreglo con los strings de los argumentos
-//---------------------------------------------------------------------------------
-//void help(uint64_t arg_c, const char ** arg_v){
-//    extern front_program_t programs[CANT_PROG];
-//    if(arg_c!=0){
-//        throw_error("Error: el programa no recibe argumentos");
-//    }
-//    print_string("Programas disponibles:\n");
-//    for(int i = 0; i<CANT_PROG;i++){
-//        print_string(programs[i].desc);
-//    }
-//    sys_exit();
-//}
 
-//---------------------------------------------------------------------------------
-// inforeg: imprime los registros guardados con la combinacion de teclas Control+s
-//---------------------------------------------------------------------------------
-// Argumentos:
-//  arg_c: cantidad de argumentos del programa (0)
-//  arg_v: arreglo con los strings de los argumentos
-//---------------------------------------------------------------------------------
-void inforeg(uint64_t arg_c, const char ** arg_v){
-    if(arg_c!=0){
-        throw_error("Error: El programa no recibe argumentos");
-        sys_exit();
-    }
-    print_string("Registros: \n");
-    // Pongo en reg los valores de los registros
-    uint64_t aux[COUNT_REGS];
-    sys_regs(aux);
-    char reg_str[20];
-    for(int i=0; i<COUNT_REGS; i++){
-        print_string(Names[i]);
-        to_hex(reg_str, aux[i]);
-        print_string(reg_str);
-        print_string("\n");
-    }
-    sys_exit();
-}
+
+
 
 
 //---------------------------------------------------------------------------------
@@ -76,7 +37,7 @@ void tiempo(uint64_t arg_c, const char ** arg_v) {
     int year = time_arr[YEAR]();
     if(hs < 3){                                 // Caso particular: Cuando en Greenwich es el dia siguiente al de Argentina
         year = (day == 1 && month==1)? year-1: year;
-        if(((year % 4 == 0)&&( year % 100 != 0)) || (year % 400== 0))
+        if(((year % 4 == 0)&&( year % 100 != 0)))
             day_months[2] = 29;
         month = (day == 1)? ((month == 1)? 12 : month-1) : month;
         day_month = (day_month == 1)? day_months[month] : day_month-1;
