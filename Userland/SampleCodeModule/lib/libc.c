@@ -16,13 +16,7 @@
 front_program_t programs[CANT_PROG] = {
         {"bash","\tbash: Crea un bash\n",&bash},
         {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
-        {"div0","\tdiv0: Genera una excepcion por division por cero\n",&zero_division_exc},
-        {"opcode","\topcode: Genera una excepcion por instruccion invalida\n",&invalid_opcode_exc},
-        {"inforeg","\tinforeg: en un momento con la combinacion Control+s\n",&inforeg},
-        {"printmem","\tprintmem: Dada una direccion de memoria como argumento, devuelve el vuelco de memoria de las 32 direcciones de memoria a partir de la indicada\n",&printmem},
         {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
-        {"primos","\tprimos: Despliega los numeros primos a partir del 2\n",&primos},
-        {"fibonacci","\tfibonacci: Despliega los numeros de la serie de Fibonacci\n",&fibonacci},
         {"test-processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
         {"test-prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
         {"test-sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
@@ -109,7 +103,7 @@ uint64_t strcmp(const char *X, const char *Y)
 // Retorno:
 //      caracter leido o -1 si se obtuvo EOF
 //---------------------------------------------------------------------------------
-uint8_t get_char(void){
+char get_char(void){
     char c[2];
     int ret = read(STDIN, c, 1);
     if(ret == -1){
@@ -155,14 +149,12 @@ uint32_t get_line(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
     c[1]='\0';
-    for(; (c[0] = get_char()) != '\n' && read<max_len-1;){
+    for(; (c[0] = get_char()) != '\n' && read<max_len-2;){
         if(c[0]!=ASCII_DELETE){
             buf[read]=c[0];
             read++;
-            write(STDOUT, c, 1);
         }else if(read>0){
             read--;
-            write(STDOUT, c, 1);
         }
 
     }
@@ -175,17 +167,18 @@ uint32_t get_string(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
     c[1]='\0';
-    for(; (c[0] = get_char()) != '\0' && read<max_len-1;){
+    for(; (c[0] = get_char()) != '\0' && read<max_len-2;){
         if(c[0]!=ASCII_DELETE){
             buf[read]=c[0];
             read++;
-            write(STDOUT, c, 1);
+//            write(STDOUT, c, 1);
         } else if(read>0){
             read--;
-            write(STDOUT, c, 1);
+//            write(STDOUT, c, 1);
         }
     }
     buf[read] = '\n';
+    buf[read+1] = '\0';
     return read;
 }
 

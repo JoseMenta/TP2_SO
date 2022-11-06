@@ -94,7 +94,7 @@ typedef struct {
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
 //#define NULL ((void*)0)
-#define CANT_PROG (31)
+#define CANT_PROG (25)
 #define STDOUT 1
 
 uint64_t strcmp(const char *X, const char *Y);
@@ -135,7 +135,7 @@ void sys_mm_info(mm_info_t* info);
 
 void * get_program(const char * str);
 char* get_program_name(void* program);
-uint8_t get_char(void);
+char get_char(void);
 uint8_t print_string(const char * s1);
 uint8_t print_string_with_padding(const char * s1, uint8_t len);
 void number_to_string(uint64_t num, char * str);

@@ -9,7 +9,7 @@
 #define IS_ALPHA(x) ((x) >= 'a' && (x) <= 'z') ? 1 : 0
 #define IS_REFERENCEABLE(x) ((x) <= KEYBOARD_REFERENCE_LENGTH && keyboard_reference[(x)]!='\0')
 
-static void copy_curr_context_to_inforeg_context();    // Funcion auxiliar para guardar el contexto que utiliza inforeg
+//static void copy_curr_context_to_inforeg_context();    // Funcion auxiliar para guardar el contexto que utiliza inforeg
 
 //El buffer guarda el ASCII del valor presionado en el teclado. Utiliza la estructura queue definida en queue.c
 queue_t queue = {{0}};
@@ -20,9 +20,9 @@ static int key_case_default = -1;       // Estado default del formato de la letr
 //otras funciones, como las del scheduler
 static int ctrl_pressed = 0;
 static int alt_pressed = 0;
-static int left_state = 1;
-static int right_state = 1;
-static int all_state = 1;
+//static int left_state = 1;
+//static int right_state = 1;
+//static int all_state = 1;
 uint8_t regs_saved = 0;
 
 uint64_t* get_inforeg_context();
@@ -58,7 +58,7 @@ void keyboard_handler(){
     uint8_t key = get_keyboard_scan_code();
 
     //Agrego la logica para cuando quiere volver
-    uint8_t want_to_return;
+//    uint8_t want_to_return;
     if(key == ESC){
         //TODO: hacer que mate a los foreground y vuelva a bash
     }
@@ -175,15 +175,15 @@ void keyboard_handler(){
 // La funcion guarda al contexto actual en el arreglo definido en libasm.asm, que
 // se utiliza luego por el comando inforeg
 //----------------------------------------------------------------------
-static void copy_curr_context_to_inforeg_context(){
-    regs_saved = 1;
-    uint64_t* curr_context = getCurrContext(); //Guardo el contexto en la interrupcion
-    uint64_t* inforeg_context = get_inforeg_context();
-    for(int i = 0; i<REGISTERS_COUNT; i++){
-        inforeg_context[i] = curr_context[i];//Copio el contexto para cuando lo llamen
-    }
-    return;
-}
+//static void copy_curr_context_to_inforeg_context(){
+//    regs_saved = 1;
+//    uint64_t* curr_context = getCurrContext(); //Guardo el contexto en la interrupcion
+//    uint64_t* inforeg_context = get_inforeg_context();
+//    for(int i = 0; i<REGISTERS_COUNT; i++){
+//        inforeg_context[i] = curr_context[i];//Copio el contexto para cuando lo llamen
+//    }
+//    return;
+//}
 //----------------------------------------------------------------------
 // clear_keyboard_handler: funcion que elimina el contenido del buffer
 //----------------------------------------------------------------------
@@ -194,7 +194,7 @@ static void copy_curr_context_to_inforeg_context(){
 // proceso en el scheduler) para limpiar el buffer e ignorar a los caracteres
 // ingresados en una pausa
 //----------------------------------------------------------------------
-void clear_keyboard_buffer(){
-    clear_queue(&queue);
-}
+//void clear_keyboard_buffer(){
+//    clear_queue(&queue);
+//}
 

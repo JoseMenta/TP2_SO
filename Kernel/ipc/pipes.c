@@ -189,7 +189,6 @@ int link_pipe_named(Pipe_modes mode, char * name){
 //-----------------------------------------------------------------------------------------
 int close_fd(int fd, uint64_t pid){
     pipe_restrict * pipe_mode = get_pcb_by_pid(pid)->fd[fd];
-
     pipe_mode->count_access--;
     pipe_mode->info->count_access--;
     //Libero si no tengo a nadie apuntandolo y si no queda nada por leer
@@ -252,6 +251,7 @@ int write(int fd, const char * buf, int count){
                 if(block_process_handler(get_current_pcb()->pid) == -1){
                     return -1;
                 }
+                sem_wait(pipe_mode->info->lock);
             }
             pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = buf[write];
         }
@@ -335,16 +335,21 @@ int read(int fd, char * buf, int count){
         if(block_process_handler(get_current_pcb()->pid) == -1){
             return -1;
         }
-//        sem_wait(pipe_mode->info->lock);
+        sem_wait(pipe_mode->info->lock);
     }
     //para que devuelva -1 en el caso de eof
     if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]=='[' && pipe_mode->mode==CONSOLE){
+        sem_post(pipe_mode->info->lock);
         pipe_mode->info->index_read++;
         return -1;
     }
     //Si tengo algo para leer entonces no lo tengo que bloquear cuando termina
     for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write && !(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]=='[' && pipe_mode->mode==CONSOLE); read++){
         buf[read] = pipe_mode->info->buff[pipe_mode->info->index_read++ % PIPESIZE];
+        if(pipe_mode->mode==CONSOLE){
+            //imprimimos el caracter por consola
+            print_char(pipe_mode->info->buff[(pipe_mode->info->index_read-1) % PIPESIZE],WHITE,ALL);
+        }
     }
     //TODO: revisar, nunca chequea que haya espacio, hay que testearlo
     buf[read] = '\0';

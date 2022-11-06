@@ -385,7 +385,6 @@ static void sort_process_info(process_info_t* processInfo, uint32_t n){
     }
 }
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count){
-    PCB wanted;
     int32_t index = 0;
     hashADT_to_begin(hash);
     while (hashADT_has_next(hash)&&index<max_count){
