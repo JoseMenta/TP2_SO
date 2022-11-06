@@ -3,6 +3,7 @@
 #include <libc.h>
 #include <io.h>
 
+#include "../include/libc.h"
 #define ERR_SIZE    40
 
 void cat_fn(char * buffer, unsigned int buff_pos){

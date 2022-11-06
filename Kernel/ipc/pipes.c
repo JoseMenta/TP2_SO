@@ -260,7 +260,7 @@ int write(int fd, const char * buf, int count){
     //No chequea nunca que haya espacio
     //TODO: revisar, lo saque poruqe nunca se verifica que haya espacio
     //hacer testeos
-//        pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
+        pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
     }
 
     //Desperta a todos los lectores que se habian bloqueado
@@ -335,7 +335,7 @@ int read(int fd, char * buf, int count){
         if(block_process_handler(get_current_pcb()->pid) == -1){
             return -1;
         }
-        sem_wait(pipe_mode->info->lock);
+//        sem_wait(pipe_mode->info->lock);
     }
     //para que devuelva -1 en el caso de eof
     if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]=='[' && pipe_mode->mode==CONSOLE){
@@ -347,7 +347,7 @@ int read(int fd, char * buf, int count){
         buf[read] = pipe_mode->info->buff[pipe_mode->info->index_read++ % PIPESIZE];
     }
     //TODO: revisar, nunca chequea que haya espacio, hay que testearlo
-//    buf[read] = '\0';
+    buf[read] = '\0';
 
     //Desperta a todos los escritores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){

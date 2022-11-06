@@ -201,14 +201,14 @@ int terminate_process(uint64_t pid){
 
     PCB* curr = NULL;
     //Desbloquea a todos los que lo estan esperando
-    queueADT_toBegin(process->waiting_processes);//esto falta
-//    while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
-//        unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
-//    }
-    while (queueADT_hasNext(process->waiting_processes)){
-        curr = queueADT_next(process->waiting_processes);
-        unblock_process(curr->pid);
+    while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
+        unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
     }
+//    queueADT_toBegin(process->waiting_processes);//esto falta
+//    while (queueADT_hasNext(process->waiting_processes)){
+//        curr = queueADT_next(process->waiting_processes);
+//        unblock_process(curr->pid);
+//    }
     free_queueADT(process->waiting_processes);
     for(int i = 0; i<process->arg_c; i++){
         mm_free(process->arg_v[i]);
@@ -217,8 +217,8 @@ int terminate_process(uint64_t pid){
         mm_free(process->arg_v);
     }
     //lo hago aca, para que no haya algun mm_alloc despues
-    free_process_stack(process->bp);
-//    stack_to_free = process->bp;
+//    free_process_stack(process->bp);
+    stack_to_free = process->bp;
     //No liberamos la memoria aca, pues la funcion scheduler que se va a llamar despues para cambiar el contexto hace
     //mm_alloc para estruturas auxiliares, y eso podria estar pisando el stack donde estamos hasta el cambio de contexto
     //con la funcion free_unused_stack, liberamos la memoria en un punto donde sabemos que no vamos a hacer mas mm_alloc
@@ -273,12 +273,12 @@ int unblock_process(uint64_t pid){
     }
     return 0;
 }
-//static void free_unused_stack(){
-//    if(stack_to_free!=NULL){
-//        free_process_stack(stack_to_free);
-//        stack_to_free = NULL;
-//    }
-//}
+static void free_unused_stack(){
+    if(stack_to_free!=NULL){
+        free_process_stack(stack_to_free);
+        stack_to_free = NULL;
+    }
+}
 //devuelve RSP del proceso que debe continuar en ejecucion
 void* scheduler(void* curr_rsp){
     //si debe seguir el proceso que esta en el momento
@@ -286,7 +286,7 @@ void* scheduler(void* curr_rsp){
     if(current_process!=NULL && current_process->status==EXECUTE && scheduler_ticks< max_ticks_for_current){
 //        current_process->sp = curr_rsp;
 //        return current_process->sp;
-//        free_unused_stack();
+        free_unused_stack();
         return curr_rsp;
     }
     //Si corresponde, guardamos al proceso que se estaba ejecutando para que siga luego
@@ -312,7 +312,7 @@ void* scheduler(void* curr_rsp){
         PCB aux;
         aux.pid = 0;
         current_process = hashADT_get(hash,&aux);
-//        free_unused_stack();
+        free_unused_stack();
         return current_process->sp;
     }
     scheduler_ticks = 0; //reiniciamos los ticks para el nuevo proceso
@@ -320,7 +320,7 @@ void* scheduler(void* curr_rsp){
     current_process = RR_get_next(rr);
     max_ticks_for_current = ticks_for_priority[current_process->priority];
     current_process->status = EXECUTE;
-//    free_unused_stack();
+    free_unused_stack();
     return current_process->sp;
 }
 
