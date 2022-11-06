@@ -315,24 +315,32 @@ void free_sem_info_handler(sem_dump_t * buffer, uint32_t length){
 int dup2_handler(int oldfd, int newfd){
     return dup2(oldfd, newfd);
 }
+
 int dup_handler(int oldfd){
     return dup(oldfd);
 }
-int32_t pause_ticks_handler(uint64_t ticks){
+
+void pause_ticks_handler(uint64_t ticks){
     add_timer(ticks);
     _int20();//veo cual sigue
 }
-int32_t mm_info_handler(mm_info_t* info){
+
+void mm_info_handler(mm_info_t* info){
     info->total_bytes = get_total_bytes();
     info->allocated_bytes = get_allocated_bytes();
     info->free_bytes = get_free_bytes();
     info->allocated_blocks = get_allocated_blocks();
 }
+
+void sleep_handler(uint32_t seconds){
+    pause_ticks_handler(seconds * 18);
+}
+
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
                   &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,
                     &pipe_handler, &open_fifo_handler, &link_pipe_named_handler, &close_fd_handler, &write_handler_pipe, &read_handler_pipe, &get_info_handler,
                     &sem_init_handler, &sem_open_handler, &sem_wait_handler, &sem_post_handler, &sem_close_handler, &sem_info_handler, &free_sem_info_handler,
-                    &dup2_handler, &dup_handler,&pause_ticks_handler, &mm_info_handler, &sem_count_handler};
+                    &dup2_handler, &dup_handler,&pause_ticks_handler, &sleep_handler, &mm_info_handler, &sem_count_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
     if(syscall_num<0 || syscall_num>=40){

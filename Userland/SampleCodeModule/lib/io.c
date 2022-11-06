@@ -6,6 +6,7 @@
 #define CHUNKS          10
 #define DELETE_ASCII    127
 #define MAX_SIZE        4294967290
+#define TAB_SPACE       4
 
 #define FULL_ERR        "\nNo se pueden almacenar mas teclas, por favor ingrese ENTER.\n"
 
@@ -31,17 +32,16 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
     }
 
     char letter;
-    uint8_t want_to_exit = 0;
 
-    while(!want_to_exit && (letter = get_char()) != 0){
+    while((letter = get_char()) != -1){
 
-        write(STDOUT, &letter, 1);
-
-        // TODO: VER SI SE IMPLEMENTA EL BORRAR TECLAS
         if (letter == DELETE_ASCII){
             if(buff_pos != 0){
-                //write(STDOUT, "\b", 1);
+                write(STDOUT, &letter, 1);
                 buffer[--buff_pos] = '\0';
+                if(buff_pos == 0){
+                    write(STDOUT, "\n", 1);
+                }
             }
         }
         else {
@@ -49,21 +49,32 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
                 size = strlen(FULL_ERR);
                 write(STDOUT, FULL_ERR, size);
             } else {
+                write(STDOUT, &letter, 1);
                 buffer[buff_pos++] = letter;
                 if(letter == '\n'){
-                    // Vemos si la persona desea terminar el programa escribiendo el mensaje de salida
-                    if(strcmp(buffer, EXIT_MSG) == 0){
-                        want_to_exit = 1;
+                    // Ejecutamos la funcion que se debe realizar al recibir un \n
+                    fn(buffer, buff_pos);
+                    clear_buffer(&buffer, buff_size);
+                    buff_pos = 0;
+                } else if (letter == '\t'){
+                    if(buff_pos + TAB_SPACE >= buff_size && resize_buffer(&buffer, &buff_size) == -1){
+                        size = strlen(FULL_ERR);
+                        write(STDOUT, FULL_ERR, size);
                     } else {
-                        // Ejecutamos la funcion que se debe realizar al recibir un \n
-                        fn(buffer, buff_pos);
-                        clear_buffer(&buffer, buff_size);
-                        buff_pos = 0;
+                        buff_pos--;
+                        for(uint8_t i = 0; i < TAB_SPACE; i++){
+                            buffer[buff_pos++] = ' ';
+                        }
                     }
                 }
             }
         }
     }
+
+    // Ejecutamos una ultima vez con las teclas escritas entre el ultimo \n y el CTRL+D
+    fn(buffer, buff_pos);
+    clear_buffer(&buffer, buff_size);
+    buff_pos = 0;
 
     free(buffer);
     write_err_msg(err_msg, msg_size, "Finalizo correctamente.");

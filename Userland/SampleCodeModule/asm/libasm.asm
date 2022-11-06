@@ -42,6 +42,7 @@ GLOBAL sys_sem_count
 GLOBAL sys_dup2
 GLOBAL sys_dup
 GLOBAL sys_pause_ticks
+GLOBAL sys_sleep
 GLOBAL sys_mm_info
 
 EXTERN print_string
@@ -737,11 +738,14 @@ sys_dup:
 sys_pause_ticks:
     syscall_macro 37
 
-sys_mm_info:
+sys_sleep:
     syscall_macro 38
 
-sys_sem_count:
+sys_mm_info:
     syscall_macro 39
+
+sys_sem_count:
+    syscall_macro 40
 
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero

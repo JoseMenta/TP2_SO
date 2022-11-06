@@ -107,13 +107,13 @@ uint64_t strcmp(const char *X, const char *Y)
 //      void
 //---------------------------------------------------------------------------------
 // Retorno:
-//      caracter leido o 0 si no se leyo un caracter
+//      caracter leido o -1 si se obtuvo EOF
 //---------------------------------------------------------------------------------
 uint8_t get_char(void){
     char c[2];
     int ret = read(STDIN, c, 1);
-    if(ret == 0){
-        return 0;
+    if(ret == -1){
+        return -1;
     } //Si no leyo caracteres
     return c[0];
 }
@@ -268,7 +268,8 @@ uint8_t print_string_with_padding(const char * s1, uint8_t len){
     aux[i]='\0';
     return write(STDOUT, aux, len);
 }
-uint8_t print_numbers(const uint64_t* nums, uint32_t len){
+
+void print_numbers(const uint64_t* nums, uint32_t len){
     if(nums==NULL){
         return;
     }
@@ -591,6 +592,20 @@ void p_error(char * str){
 //---------------------------------------------------------------------------------
 void pause_ticks(uint64_t ticks){
     sys_pause_ticks(ticks);
+}
+
+
+//---------------------------------------------------------------------------------
+// sleep: Pausa el proceso de la computadora por la cantidad de segundos indicados
+//---------------------------------------------------------------------------------
+// Argumentos:
+//   - seconds: Cantidad de segundos que se desea detener
+//---------------------------------------------------------------------------------
+// Retorno
+//   - void
+//---------------------------------------------------------------------------------
+void sleep(uint32_t seconds){
+    sys_sleep(seconds);
 }
 
 //---------------------------------------------------------------------------------
