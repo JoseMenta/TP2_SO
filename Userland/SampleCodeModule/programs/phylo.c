@@ -337,7 +337,7 @@ void phylo(uint64_t arg_c, const char ** arg_v) {
 
         }
 
-        pause_ticks(10);
+        sleep(1);
     }
 
     close_resources(print_process_pid);
@@ -368,8 +368,7 @@ static void philosophers(uint64_t arg_c, const char ** arg_v){
             // Para que funcione el borrado de filosofos cuando hay una cantidad impar de filosofos, debemos usar un semaforo auxiliar
             if(id == amount-2){
                 sem_post(aux_sem);
-                // TODO: CAMBIARLO A SLEEP
-                pause_ticks(10);
+                sleep(1);
                 sem_wait(aux_sem);
             }
 
@@ -379,8 +378,7 @@ static void philosophers(uint64_t arg_c, const char ** arg_v){
             // Para que funcione el borrado de filosofos cuando hay una cantidad par de filosofos, debemos usar un semaforo auxiliar
             if(id == amount-1){
                 sem_post(aux_sem);
-                // TODO: CAMBIARLO A SLEEP
-                pause_ticks(10);
+                sleep(1);
                 sem_wait(aux_sem);
             }
 
@@ -396,8 +394,7 @@ static void philosophers(uint64_t arg_c, const char ** arg_v){
         sem_post(print_mutex);
 
         // Comiendo
-        // TODO: CAMBIAR A SLEEP
-        pause_ticks(10);
+        sleep(1);
 
         // Tomamos el mutex para que no pueda imprimir cuando se cambia el estado
         sem_wait(print_mutex);
@@ -412,8 +409,7 @@ static void philosophers(uint64_t arg_c, const char ** arg_v){
 
 
         // Pensando
-        // TODO: CAMBIAR A SLEEP
-        pause_ticks(20);
+        sleep(2);
     }
 }
 
@@ -448,8 +444,7 @@ static void print_phylo_state(uint64_t arg_c, const char ** arg_v){
 
         sem_post(print_mutex);
 
-        // TODO: cambiarlo a sleep
-        pause_ticks(30);
+        sleep(3);
     }
 }
 

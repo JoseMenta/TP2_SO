@@ -15,7 +15,7 @@ void get_info(pipe_user_info * user_data, int * count);
 int dup2(int oldfd, int newfd);
 int dup(int oldfd);
 int pipe_initialize();
-int pipe_terminated();
+void pipe_terminated();
 pipe_info * get_pipe_console();
 pipe_restrict * get_pipe_console_restrict();
 int write_keyboard(const char * buf, int count);

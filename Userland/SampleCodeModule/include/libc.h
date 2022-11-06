@@ -121,7 +121,9 @@ int32_t sys_nice(uint64_t pid, uint8_t priority);
 int32_t sys_get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t sys_get_process_count();
 
-int32_t sys_pause_ticks(uint64_t ticks);
+void sys_pause_ticks(uint64_t ticks);
+void sys_sleep(uint32_t seconds);
+
 void* sys_mm_alloc(uint32_t wanted_size);
 void* malloc(uint32_t wanted_size);
 void sys_mm_free(void* p);
@@ -129,7 +131,7 @@ void free(void* p);
 
 int sys_dup2(int oldfd, int newfd);
 int sys_dup(int oldfd);
-int32_t sys_mm_info(mm_info_t* info);
+void sys_mm_info(mm_info_t* info);
 
 void * get_program(const char * str);
 char* get_program_name(void* program);
@@ -141,7 +143,7 @@ uint64_t string_to_number(const char * str, uint64_t * resp);
 uint8_t print_number(uint64_t number);
 //uint64_t strcmp(const char * s1, const char * s2);
 char * to_hex(char * str, uint64_t val);
-uint8_t print_numbers(const uint64_t* nums, uint32_t len);
+void print_numbers(const uint64_t* nums, uint32_t len);
 uint64_t uintToBase(uint64_t value, char * buffer, uint64_t base);
 void copy_str(char * dest, char * source);
 int32_t block_process(uint64_t pid);
@@ -164,6 +166,7 @@ uint64_t* get_registers(void);
 uint64_t str_tok(char * buffer, char sep);
 void throw_error(char * str);
 void pause_ticks(uint64_t ticks);
+void sleep(uint32_t seconds);
 uint32_t get_line(char* buf, uint32_t max_len);
 uint8_t blink(void);
 uint8_t clear(void);

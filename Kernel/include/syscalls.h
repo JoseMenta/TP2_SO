@@ -41,8 +41,8 @@ int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count)
 uint64_t process_count_handler();
 void* mm_alloc_handler(uint32_t wanted_size);
 void mm_free_handler(void* p);
-int32_t pause_ticks_handler(uint64_t ticks);
-int32_t mm_info_handler(mm_info_t* info);
+void pause_ticks_handler(uint64_t ticks);
+void mm_info_handler(mm_info_t* info);
 
 
 int pipe_handler(int fd[2]);

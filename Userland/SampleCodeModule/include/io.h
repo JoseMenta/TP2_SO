@@ -4,8 +4,6 @@
 
 #include <stdint.h>
 
-#define EXIT_MSG        "quit\n"
-
 // Funcion a ejecutar cuando se recibe el \n (con la informacion en el buffer, escrito hasta la posicion buff_pos)
 typedef void (* newline_read_fn) (char * buffer, unsigned int buff_pos);
 
