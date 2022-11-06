@@ -389,7 +389,7 @@ int64_t get_info(pipe_user_info * user_data, int64_t count){
         return -1;
     }
     char aux[2] = {orderListADT_size(pipes_list) + '0', '\0'};
-    print(aux, WHITE, ALL);
+    //print(aux, WHITE, ALL);
     uint32_t size =0;
     orderListADT_toBegin(pipes_list);
     pipe_info * info_next;

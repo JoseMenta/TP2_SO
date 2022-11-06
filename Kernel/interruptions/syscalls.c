@@ -263,6 +263,7 @@ void mm_info_handler(mm_info_t* info){
     info->allocated_bytes = get_allocated_bytes();
     info->free_bytes = get_free_bytes();
     info->allocated_blocks = get_allocated_blocks();
+    info->algorithm = MM_NAME;
 }
 
 void sleep_handler(uint32_t seconds){

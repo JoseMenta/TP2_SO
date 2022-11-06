@@ -39,11 +39,7 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
 
         if (letter == DELETE_ASCII){
             if(buff_pos != 0){
-                write(STDOUT, &letter, 1);
                 buffer[--buff_pos] = '\0';
-                if(buff_pos == 0){
-                    write(STDOUT, "\n", 1);
-                }
             }
         }
         else {
@@ -51,7 +47,6 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
                 size = strlen(FULL_ERR);
                 write(STDOUT, FULL_ERR, size);
             } else {
-//                write(STDOUT, &letter, 1); //esto hace que se este pasando todo lo que recibe
                 buffer[buff_pos++] = letter;
                 if(letter == '\n'){
                     // Ejecutamos la funcion que se debe realizar al recibir un \n

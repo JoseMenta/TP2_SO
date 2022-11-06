@@ -570,6 +570,10 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
         buffer[i].blocked_size = queueADT_size(curr_sem->blocked_processes);
         if(buffer[i].blocked_size != 0){
             buffer[i].blocked_processes = mm_alloc(buffer[i].blocked_size * sizeof(uint64_t));
+            if(buffer[i].blocked_processes == NULL){
+                sems_dump_free(buffer, i+1);
+                return 0;
+            }
         }else{
             buffer[i].blocked_processes = NULL;
         }
@@ -577,6 +581,10 @@ uint32_t sems_dump(sem_dump_t * buffer, uint32_t length){
         buffer[i].connected_size = orderListADT_size(curr_sem->connected_processes);
         if(buffer[i].connected_size != 0){
             buffer[i].connected_processes = mm_alloc(buffer[i].connected_size * sizeof(uint64_t));
+            if(buffer[i].connected_processes == NULL){
+                sems_dump_free(buffer, i+1);
+                return 0;
+            }
         }else{
             buffer[i].connected_processes = NULL;
         }

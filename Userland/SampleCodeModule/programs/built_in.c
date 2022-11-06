@@ -27,14 +27,17 @@ void help(uint64_t arg_c, const char ** arg_v){
 void mem(uint64_t arg_c, const char ** arg_v){
     mm_info_t aux;
     sys_mm_info(&aux);
-    print_string_with_padding("Total bytes:",40);
+    print_string_with_padding("Algoritmo:", 40);
+    print_string(aux.algorithm);
+    print_string("\n");
+    print_string_with_padding("Espacio total:",40);
     print_number(aux.total_bytes);
     print_string("\n");
-    print_string_with_padding("Allocated bytes:",40);
+    print_string_with_padding("Bytes ocupados:",40);
     print_number(aux.allocated_bytes);
-    print_string("\n");print_string_with_padding("Allocated blocks:",40);
+    print_string("\n");print_string_with_padding("Bloques ocupados:",40);
     print_number(aux.allocated_blocks);
-    print_string("\n");print_string_with_padding("Free bytes:",40);
+    print_string("\n");print_string_with_padding("Bytes libres:",40);
     print_number(aux.free_bytes);
     print_string("\n");
 }
@@ -67,10 +70,19 @@ void ps(uint64_t arg_c, const char ** arg_v){
     }
     sys_mm_free(aux);
 }
+
+// TODO: IMPLEMENTAR ESC PARA PODER TERMINAR ESTE PROGRAMA
 void loop(uint64_t arg_c, const char ** arg_v){
+    if(arg_c != 1){
+        throw_error("Error: el programa debe recibir la cantidad de segundos que debe esperar antes de repetir el loop");
+        return;
+    }
+    uint32_t seconds = string_to_number(arg_v[0], NULL);
     while(1){
+        print_string_with_padding("Hola, soy el proceso con pid: ", 30);
         print_number(getpid());
-        pause_ticks(10);
+        print_string("\n");
+        sleep(seconds);
     }
 }
 void kill(uint64_t arg_c, const char ** arg_v){
@@ -151,6 +163,7 @@ void sem(uint64_t arg_c, const char ** arg_v){
     aux_sem_dump = sys_mm_alloc(count*sizeof (sem_dump_t));
     count = sem_info(aux_sem_dump,count);
     for(int i = 0; i<count; i++){
+        print_string("-------------------------------------------------------------------------------\n");
         print_string("Semaforo: ");
         print_string(aux_sem_dump[i].name!=NULL?aux_sem_dump[i].name:"sin nombre");
         print_string(", Valor: ");
@@ -169,7 +182,7 @@ void sem(uint64_t arg_c, const char ** arg_v){
 
 void pipe_info(uint64_t arg_c, const char ** arg_v){
     if(arg_c != 1){
-        throw_error("Error: el programa recibe 1 o ningun argumento");
+        throw_error("Error: el programa debe recibir un argumento");
     }
     uint64_t count;
     string_to_number(arg_v[0], &count);
@@ -185,7 +198,8 @@ void pipe_info(uint64_t arg_c, const char ** arg_v){
         print_string("No se crearon pipes aun");
     }
     for(int i=0; i<size; i++){
-        print_string("\n\nNOMBRE: ");
+        print_string("-------------------------------------------------------------------------------\n");
+        print_string("NOMBRE: ");
         if(aux[i].name == NULL){
             print_string("Sin Nombre");
         }else{
@@ -203,6 +217,7 @@ void pipe_info(uint64_t arg_c, const char ** arg_v){
         for(int j=0; i<MAXLOCK && aux[i].pid_read_lock[j] != 0; j++){
             print_number(aux[i].pid_read_lock[j]);
         }
+        print_string("\n");
     }
     sys_mm_free(aux);
     return;

@@ -59,6 +59,7 @@ typedef struct{
     uint64_t free_bytes;
     uint64_t allocated_blocks;
     uint64_t total_bytes;
+    char * algorithm;
 }mm_info_t;
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
 
 #define ERR_SIZE    40
 
-#define RESP_MSG    "\n-------------------------------------------------\n"
+#define RESP_MSG    "\n-------------------------------------------------------------------------------\n"
 #define BYTES_RESP "Total de bytes: "
 #define WORDS_RESP "Total de palabras: "
 #define LINES_RESP "Total de lineas: "
