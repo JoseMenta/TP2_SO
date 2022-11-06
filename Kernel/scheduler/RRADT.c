@@ -25,9 +25,9 @@ RRADT new_RR(){
         (ans->levels)[i] = new_RRLevel();
         if((ans->levels)[i]==NULL){
             for(int j = 0; j<i; j++){
-                free_RRLevel((ans->levels)[i]);
-                return NULL;
+                free_RRLevel((ans->levels)[j]);
             }
+            return NULL;
         }
     };
     ans->current_level = 0;

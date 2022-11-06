@@ -99,7 +99,7 @@ int create_process(executable_t* executable){
     }
     new_process->arg_v = arg_v;
     if(create_new_process_context(new_process->arg_c,new_process->arg_v,executable->start,&bp,&sp)==-1){
-        print("Error al crear el stack del proceso",WHITE,ALL);
+//        print("Error al crear el stack del proceso",WHITE,ALL);
         return -1;
     }
     new_process->bp = bp;
@@ -111,6 +111,10 @@ int create_process(executable_t* executable){
     new_process->priority = (executable->foreground)?BASE_PRIORITY_FOREGROUND:BASE_PRIORITY_BACKGROUND;
     new_process->waiting_count = 0;
     new_process->waiting_processes = new_queueADT(elemType_compare_to); //para despertar a los que estan esperando solo si lo estan esperando
+    if(new_process->waiting_processes==NULL){
+//        print("No se crea la lista de los que esperan",PINK,ALL);
+        return -1;
+    }
     //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
     //Si no, podria despertar al padre de un pipe y no tiene que ser asi
     if(executable->fds == NULL){
@@ -143,7 +147,7 @@ int create_process(executable_t* executable){
     new_pid++;
     hashADT_add(hash, new_process);
     if( RR_add_process(rr,new_process,new_process->priority)==-1){
-        print("Error al ingresar el proceso al hash",WHITE,ALL);
+//        print("Error al ingresar el proceso al hash",WHITE,ALL);
         return -1;
     }
     return new_process->pid;
@@ -180,13 +184,14 @@ int terminate_process(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
     if(!CHECK_PID(pid,&wanted)){
-        print("Se desea terminar un procceso que no existe",WHITE,ALL);
+//        print("Se desea terminar un procceso que no existe",WHITE,ALL);
         return -1;
     }
 //    PCB* process = hash[pid];
     PCB* process = hashADT_get(hash,&wanted);
+//    print("Obtuve el PCB en terminate.\n", WHITE, ALL);
     if(process->status==FINISHED){
-        print("Se desea terminar un procceso ya terminado",WHITE,ALL);
+//        print("Se desea terminar un procceso ya terminado",WHITE,ALL);
         return -1;
     }
     process->status = FINISHED;
@@ -197,11 +202,14 @@ int terminate_process(uint64_t pid){
             close_fd(i, pid);
         }
     }
+//    print("Se borraron los FDs.\n", WHITE, ALL);
     RR_remove_process(rr,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
 
     PCB* curr = NULL;
     //Desbloquea a todos los que lo estan esperando
+//    print("Voy a liberar a los que hicieron waitpid sobre mi.\n", WHITE, ALL);
     while ((curr = queueADT_get_next( process->waiting_processes))!=ELEM_NOT_FOUND){
+//        print("Desbloquea", BLUE, ALL);
         unblock_process(curr->pid);//desbloqueamos al que lo esta esperando
     }
 //    queueADT_toBegin(process->waiting_processes);//esto falta
@@ -209,6 +217,7 @@ int terminate_process(uint64_t pid){
 //        curr = queueADT_next(process->waiting_processes);
 //        unblock_process(curr->pid);
 //    }
+//    print("Liberando recursos.\n", WHITE, ALL);
     free_queueADT(process->waiting_processes);
     for(int i = 0; i<process->arg_c; i++){
         mm_free(process->arg_v[i]);
@@ -223,6 +232,7 @@ int terminate_process(uint64_t pid){
     //mm_alloc para estruturas auxiliares, y eso podria estar pisando el stack donde estamos hasta el cambio de contexto
     //con la funcion free_unused_stack, liberamos la memoria en un punto donde sabemos que no vamos a hacer mas mm_alloc
     //en el contexto del proceso terminado
+//    print("Saliendo de terminate.\n", WHITE, ALL);
     return 0;
 }
 //cambia la prioridad de un proceso dado su pid
@@ -256,20 +266,24 @@ int unblock_process(uint64_t pid){
         //ACA
         //La unica manera en la que puede no estar es porque
         //se termino al proceso, si no no se saca del hash
-        print("El pid no es valido o no esta en el hash",WHITE,ALL);
+//        print("El pid no es valido o no esta en el hash",WHITE,ALL);
         return -1;
     }
 //    PCB* process = hash[pid];
     PCB* process = hashADT_get(hash,&wanted);
     if(process->status!=BLOCKED){
-        print("El pid no esta bloqueado o no esta en el hash",WHITE,ALL);
+        //Puede entrar aca si tiene timers luego de que hay
+//        print("El pid no esta bloqueado",WHITE,ALL);
+        if(process->status==FINISHED){
+//            print("El proceso ya ha terminado",WHITE,ALL);
+        }
         return -1;
     }
     //PCB* process = HashProcess_get(myHash, pid);
     process->status = READY;
     //lo agrego para que pueda seguir ejecutandose cuando sigue
     if(RR_add_process(rr,process,process->priority)==-1){
-        print("Error al agregar el proceso para ejecucion luego de desbloquearlo",WHITE,ALL);
+//        print("Error al agregar el proceso para ejecucion luego de desbloquearlo",WHITE,ALL);
     }
     return 0;
 }
@@ -298,7 +312,7 @@ void* scheduler(void* curr_rsp){
         if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= hashADT_get(hash,&aux)){
             current_process->status = READY;
             if(RR_add_process(rr,current_process,current_process->priority)==-1){
-                print("Error al agregar el proceso para la vuelta",WHITE,ALL);
+//                print("Error al agregar el proceso para la vuelta",WHITE,ALL);
             }
         }
         //si no, fue bloqueado o terminado (en todos los casos guardamos a sp)
@@ -328,34 +342,42 @@ int waitPid(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
     if(!CHECK_PID(pid,&wanted)){
-        print("Se esta esperando a un proceso inexistente",WHITE,ALL);
+//        print("Se esta esperando a un proceso inexistente",RED,ALL);
         return -1;
     }
     PCB* waited = hashADT_get(hash,&wanted);
+//    print("Obtuve el PCB.\n", RED, ALL);
     //Me agrego a la lista de los que estan esperando para que me despierte cuando termine
 //    if(hash[pid]->status!=FINISHED){
     if(waited->status!=FINISHED){
 //        queueADT_insert(hash[pid]->waiting_processes,current_process);
         if(queueADT_insert(waited->waiting_processes,current_process)==-1){
-            print("Error al ingresar el proceso a la lista de esperando",WHITE,ALL);
+//            print("Error al ingresar el proceso a la lista de esperando",RED,ALL);
         }
     }
+
+//    print("El proceso no esta finalizado.\n", RED, ALL);
 
     while(waited->status!=FINISHED){
         (waited->waiting_count)++;
         //Si el proceso no termino
         //bloqueo al proceso que llama a wait
+//        print("Me bloqueo.\n", WHITE, ALL);
         block_process(current_process->pid);
+//        print("Me bloqueo.\n", RED, ALL);
         _int20();
         (waited->waiting_count)--;
     }
+//    print("Pude salir.\n", WHITE, ALL);
     int ans = waited->status;
 //    (hash[pid]->waiting_count)--;
     if(waited->waiting_count==0){
+//        print("VOy a borrar waited del hash.\n", RED, ALL);
         //si soy el ultimo en hacer wait, lo saco del hash
         hashADT_delete(hash,waited);
         mm_free(waited);
     }
+//    print("Saliendo de waitpid.\n", WHITE, ALL);
     return ans;
 }
 uint64_t get_current_pid(){

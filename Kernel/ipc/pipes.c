@@ -4,6 +4,7 @@
 #include <scheduler.h>
 #include <syscalls.h>
 #include <video_driver.h>
+#include <stringLib.h>
 
 //TODO: sacar
 #include "../include/syscalls.h"
@@ -141,9 +142,7 @@ int open_fifo(Pipe_modes mode, char * name){
         mm_free(info);
         return -1;
     }
-    if(orderListADT_size(pipes_list) == 1){
-        print("es 1 antes\n", WHITE, ALL);
-    }
+
 
     get_current_pcb()->fd[fd] = create_restrict_pipe(mode, info);
 
@@ -151,9 +150,6 @@ int open_fifo(Pipe_modes mode, char * name){
         print("da -1", WHITE, ALL);
     }
 
-    if(orderListADT_size(pipes_list) == 1){
-        print("es 1", WHITE, ALL);
-    }
     return fd;
 }
 

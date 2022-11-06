@@ -166,7 +166,7 @@ void sem(uint64_t arg_c, const char ** arg_v){
 }
 
 void pipe_info(uint64_t arg_c, const char ** arg_v){
-    if(arg_c>1){
+    if(arg_c != 1){
         throw_error("Error: el programa recibe 1 o ningun argumento");
     }
     uint64_t count;

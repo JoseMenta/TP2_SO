@@ -8,7 +8,7 @@
 #include "../include/test_util.h"
 
 #define SEM_ID "/sem_sync"
-#define TOTAL_PAIR_PROCESSES 5
+#define TOTAL_PAIR_PROCESSES 2
 
 int64_t global;  //shared memory
 
@@ -31,7 +31,9 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
     if ((n = satoi(argv[0])) <= 0) return -1;
     if ((inc = satoi(argv[1])) == 0) return -1;
     if ((use_sem = satoi(argv[2])) < 0) return -1;
+
     sem_t sem;
+
     if (use_sem)
 //        if (!my_sem_open(SEM_ID, 1)){
         if((sem=sem_open(SEM_ID,1, O_NULL))==NULL){
@@ -71,12 +73,14 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
     char * argvInc[] = {argv[0], "1", argv[1], NULL};
 
     sem_t sem;
+
     if((sem = sem_init(SEM_ID, 1)) == NULL){
         print_string("test_sync: ERROR opening semaphore\n");
         return -1;
     }
 
     global = 0;
+
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
@@ -89,8 +93,12 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
     }
 
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
+//        print_string(" ");
+//        print_number(pids_sync[i]);
         waitpid(pids_sync[i]);
 //        my_wait(pids[i]);
+//        print_string(" ");
+//        print_number(pids_sync[i+TOTAL_PAIR_PROCESSES]);
         waitpid(pids_sync[i+TOTAL_PAIR_PROCESSES]);
 //        my_wait(pids[i + TOTAL_PAIR_PROCESSES]);
     }

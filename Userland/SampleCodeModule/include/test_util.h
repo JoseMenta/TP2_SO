@@ -10,4 +10,5 @@ int64_t satoi(const char* str);
 void bussy_wait(uint64_t n);
 void endless_loop();
 void endless_loop_print(uint64_t argc, char *argv[]);
+void * memset(void * destiation, int32_t c, uint64_t length); //se encuentra definida en _loader.c
 #endif //TP2_SO_TEST_UTIL_H
