@@ -1,5 +1,5 @@
 # ITBA - 72.11 - Sistemas Operativos - TP02
-## jOSe 2.0
+## chaOS 2.0
 ### Grupo 07
 
 El repositorio es una extensión del sistema operativo Pure64, aplicando los conocimientos y conceptos aprendidos durante las clases teóricas y prácticas en la materia. Además, permite ejecutar programas que se detallarán más adelante.
