@@ -3,7 +3,7 @@
 #include <libc.h>
 #include <test_util.h>
 
-
+#define LOOP_WAIT 10000000
 
 //---------------------------------------------------------------------------------
 // help: imprime informacion sobre los programas disponibles
@@ -93,16 +93,22 @@ void ps(uint64_t arg_c, const char ** arg_v){
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
 void loop(uint64_t arg_c, const char ** arg_v){
-    if(arg_c != 1){
-        throw_error("Error: el programa debe recibir la cantidad de segundos que debe esperar antes de repetir el loop");
+    if(arg_c != 0){
+        throw_error("Error: el no recibe argumentos");
         return;
     }
-    uint32_t seconds = string_to_number(arg_v[0], NULL);
+//    uint32_t seconds = string_to_number(arg_v[0], NULL);
     while(1){
+        //Se elimina el mecanismo de espera bloqueante para poder testar el bloqueo y desbloqueo de procesos
+        //Si no, se puede estar bloqueando a un proceso que ya esta bloqueado porque esta esperando
         print_string_with_padding("Hola, soy el proceso con pid: ", 30);
         print_number(getpid());
         print_string("\n");
-        sleep(seconds);
+        bussy_wait(LOOP_WAIT);
+//        print_string_with_padding("Hola, soy el proceso con pid: ", 30);
+//        print_number(getpid());
+//        print_string("\n");
+//        sleep(seconds);
     }
 }
 

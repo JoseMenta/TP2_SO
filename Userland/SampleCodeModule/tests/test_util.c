@@ -65,15 +65,12 @@ void endless_loop(){
 }
 
 void endless_loop_print(uint64_t wait){
-    //print_string("llegue");
+
     int64_t pid = getpid();
-//    int64_t pid = my_getpid();
 
     while(1){
-//        printf("%d ",pid);
         print_number(pid);
         print_string(" ");
         bussy_wait(1000000);
     }
-    return;
 }
