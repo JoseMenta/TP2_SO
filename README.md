@@ -74,14 +74,14 @@ make run
 
 
 ## Programas del SO
-### shell
+### sh
 ````shell
-bash
+sh
 ````
 Es el intérprete de comandos del sistema operativo. Cada vez que se inicie la máquina, este será el programa que se ejecutará inicialmente por defecto.
 <br />![Mensaje de bienvenida al ejecutar el intérprete de comandos](images/shell_1.png?raw=true)
 
-Mediante este programa podrá ejecutar el resto de programas que ofrece el sistema operativo. Incluso, puede ejecutar una nueva instancia de la shell ingresando el comando _bash_.
+Mediante este programa podrá ejecutar el resto de programas que ofrece el sistema operativo. Incluso, puede ejecutar una nueva instancia de la shell ingresando el comando _sh_.
 <br />![Ejecución de una nueva instancia de la shell](images/shell_2.png?raw=true)
 
 

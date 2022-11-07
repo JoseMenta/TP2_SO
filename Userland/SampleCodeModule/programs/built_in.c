@@ -32,6 +32,9 @@ void help(uint64_t arg_c, const char ** arg_v){
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
 void mem(uint64_t arg_c, const char ** arg_v){
+    if(arg_c!=0){
+        throw_error("Error: el programa no recibe argumentos");
+    }
     mm_info_t aux;
     sys_mm_info(&aux);
     print_string_with_padding("Algoritmo:", 40);
@@ -57,6 +60,9 @@ void mem(uint64_t arg_c, const char ** arg_v){
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
 void ps(uint64_t arg_c, const char ** arg_v){
+    if(arg_c!=0){
+        throw_error("Error: el programa no recibe argumentos");
+    }
     char* status[] = {"Execute","Ready","Blocked","Finished"};
     uint64_t processes = sys_get_process_count();//OJO si son muchos!!!!
     process_info_t* aux = sys_mm_alloc(processes*sizeof (process_info_t));
@@ -312,7 +318,7 @@ void pipe_info(uint64_t arg_c, const char ** arg_v){
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
 void write_pipe_name(uint64_t arg_c, const char ** arg_v){
-    int fd = open_fifo(O_RDWR, "PorFavor");
+    int fd = open_fifo(O_RDWR, "fifo1");
     print_string_fd("con aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", fd);
     close_fd(fd);
     return;
@@ -326,40 +332,12 @@ void write_pipe_name(uint64_t arg_c, const char ** arg_v){
 //  arg_v: arreglo con los strings de los argumentos
 //---------------------------------------------------------------------------------
 void read_pipe_name(uint64_t arg_c, const char ** arg_v){
-    int fd = open_fifo(O_RDWR, "PorFavor");
+    int fd = open_fifo(O_RDWR, "fifo1");
     char buf[20];
     int i;
     while( (i = read(fd, buf, 1) ) != -1){
         write(STDOUT, buf, i);
     }
     close_fd(fd);
-    return;
-}
-
-//---------------------------------------------------------------------------------
-// write_pipe_common: Imprimir en STDOUT
-//---------------------------------------------------------------------------------
-// Argumentos:
-//  arg_c: cantidad de argumentos del programa
-//  arg_v: arreglo con los strings de los argumentos
-//---------------------------------------------------------------------------------
-void write_pipe_common(uint64_t arg_c, const char ** arg_v){
-    print_string("Comun\n");
-    return;
-}
-
-//---------------------------------------------------------------------------------
-// read_pipe_common: leer de STDIN
-//---------------------------------------------------------------------------------
-// Argumentos:
-//  arg_c: cantidad de argumentos del programa
-//  arg_v: arreglo con los strings de los argumentos
-//---------------------------------------------------------------------------------
-void read_pipe_common(uint64_t arg_c, const char ** arg_v){
-    char buf[15];
-    int i;
-    while( (i = read(STDIN, buf, 1) ) != -1){
-        write(STDOUT, buf, i);
-    }
     return;
 }

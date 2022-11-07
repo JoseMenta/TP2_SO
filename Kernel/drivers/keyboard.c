@@ -47,7 +47,7 @@ void keyboard_handler(){
 
     //Agrego la logica para cuando quiere volver
     if(key == ESC){
-        //  kill_foreground_process();
+        kill_foreground_process();
     }
 
     // Logica para escribir en mayuscula
