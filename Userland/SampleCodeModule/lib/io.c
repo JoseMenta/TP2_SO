@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <io.h>
 #include <stddef.h>
 #include <libc.h>
@@ -31,11 +33,7 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
     while((letter = get_char()) != -1){
         if (letter == DELETE_ASCII){
             if(buff_pos != 0){
-                write(STDOUT, &letter, 1);
                 buffer[--buff_pos] = '\0';
-                if(buff_pos == 0){
-                    write(STDOUT, "\n", 1);
-                }
             }
         }
         else {

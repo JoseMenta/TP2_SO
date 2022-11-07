@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <mm.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -6,8 +8,6 @@
 //La posicion desde donde reservamos memoria
 extern uint8_t endOfKernel;
 
-//La memoria la vemos como un arreglo de uint8_t (para movernos de a 1 byte)
-//TODO: ver lo de getStackBase para corregir eso si no le damos el stack con el mm
 static const uint8_t* start_address = (uint8_t*) 0x600000;
 static const uint8_t* end_address = (uint8_t*)0x800000;
 static uint64_t allocated_bytes=0;
@@ -64,9 +64,6 @@ void mm_init(){
 //  espacio, se devuelve NULL
 //----------------------------------------------------------------------
 void* mm_alloc(uint32_t wanted_size){
-    //TODO: ver el manejo de la concurrencia aca, si tengo que usar cli y sti cuando manejo la lista
-    //No es necesario, tenemos solo 1 core y no es desalojable el kernel
-    //Pero en teoria si seria necesario
     //Si no esta seteado el entorno para el mm, tengo que inicializar al mm
     if(end_block==NULL){
         mm_init();
@@ -74,12 +71,13 @@ void* mm_alloc(uint32_t wanted_size){
     if(wanted_size==0){
         return NULL;
     }
-    if(wanted_size>0){
-        if(wanted_size+block_size>heap_size-allocated_bytes){
-            return NULL;
-        }
-        wanted_size+=block_size;
+    //TODO: cambio de PVS
+//    if(wanted_size>0){
+    if(wanted_size+block_size>heap_size-allocated_bytes){
+        return NULL;
     }
+    wanted_size+=block_size;
+//    }
     //Ya sabemos que deberia haber espacio (si manejamos bien la fragmentacion)
     block_t* curr = start_block.next_free_block;
     block_t* prev = &start_block;
@@ -96,9 +94,9 @@ void* mm_alloc(uint32_t wanted_size){
     }
     //Le damos la posicion siguente a cuando termina la estructura del bloque (block_t)
     //OJO con estas sumas, hay que castear a uint8_t!!!
-    ans = (void *) ((uint8_t*)prev->next_free_block) + block_size;
-    //Lo anterior es lo mismo que hacer
-//    ans = curr + block_size;
+    //TODO: revisar este cambio, me lo dijo PVS
+    ans = (void *) (((uint8_t*)prev->next_free_block) + block_size);
+
 
     //Sacamos al bloque de la lista de libres
     prev->next_free_block = curr -> next_free_block;
@@ -113,6 +111,7 @@ void* mm_alloc(uint32_t wanted_size){
     }
     allocated_bytes += curr->block_size;
     allocated_blocks++;
+
     curr->next_free_block = NULL;
     return ans;
 

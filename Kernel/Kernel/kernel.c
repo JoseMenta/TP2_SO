@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>
 #include <string.h>
 #include <lib.h>
@@ -100,106 +102,7 @@ void * initializeKernelBinary()
 	ncNewline();
 	return getStackBase();
 }
-void testMM(){
-    uint8_t * dir = mm_alloc(10);
-    if(dir<=&endOfKernel){
-        ncPrint("Error1: la direccion de salida es menor a la inicial");
-        ncNewline();
-    }
-    *dir='1';
-    uint8_t* dir2 = mm_alloc(20);
-    if(dir>=dir2){
-        ncPrint("Error2: la segunda direccion que se dio fue menor o igual a la primera");
-        ncNewline();
-    }
-    *dir2 = '2';
-    if(*dir!='1'){
-        ncPrint("Error: No se preseva el valor escrito en la direccion dir");
-        ncNewline();
-    }
-    if(*dir2!='2'){
-        ncPrint("Error: No se preseva el valor escrito en la direccion dir2");
-        ncNewline();
-    }
-    ncNewline();
-    mm_free(dir);
-    uint8_t* dir3 = mm_alloc(8);
-    if(dir3!=dir){
-        ncPrint("Error3: el MM no esta reutilizando los bloques liberados");
-        ncNewline();
-        ncPrint("Dir: ");
-        ncPrintHex((uint64_t)dir);
-        ncPrint("Dir3: ");
-        ncPrintHex((uint64_t)dir3);
-        ncNewline();
-    }
-    uint8_t* dir4 = mm_alloc(30);
-    uint8_t* dir5 = mm_alloc(40);
-    mm_free(dir4);
-    mm_free(dir5);
-    uint8_t * dir6 = mm_alloc(70);
-    if(dir4!=dir6){
-        ncPrint("Error4: el MM no esta manejando bien la fragmentacion (union de derecha)");
-        ncNewline();
-        ncPrint("Dir4: ");
-        ncPrintHex((uint64_t)dir4);
-        ncPrint("Dir5: ");
-        ncPrintHex((uint64_t)dir5);
-        ncPrint("Dir6: ");
-        ncPrintHex((uint64_t)dir6);
-        ncNewline();
-    }
-    uint8_t* dir7 = mm_alloc(100);
-    //Libero para ver si junta los bloques liberados de adelante y atras
-    if(*dir2!='2'){
-        ncPrint("Error: No se preseva el valor escrito en la direccion dir2");
-        ncNewline();
-    }
-    mm_free(dir2);
-    mm_free(dir7);
-    mm_free(dir3);
-    mm_free(dir6);//espero que esto se junte con los bloques 3 y 7
-    uint8_t* dir8 = mm_alloc(200);
-    if(dir8!=dir3){
-        ncPrint("Error5: el MM no esta manejando bien la fragmentacion (ambas uniones)");
-        ncNewline();
-        ncPrint("Dir3: ");
-        ncPrintHex((uint64_t)dir3);
-        ncPrint("Dir8: ");
-        ncPrintHex((uint64_t)dir8);
-    }
-    mm_free(dir8);
-    uint8_t* dir9 = mm_alloc(10);
-    uint8_t* dir10 = mm_alloc(20);
-    mm_free(dir9);
-    mm_free(dir10); //espero que este se junte con el bloque 9
-    uint8_t* dir11 = mm_alloc(30);
-    if(dir9!=dir11){
-        ncPrint("Error6: el MM no esta manejando bien la fragmentacion (union de izquierda)");
-        ncNewline();
-        ncPrint("Dir9: ");
-        ncPrintHex((uint64_t)dir9);
-        ncPrint("Dir11: ");
-        ncPrintHex((uint64_t)dir11);
-    }
-    if(dir!=dir11){
-        ncPrint("Error7: el MM no esta reutilizando bloques liberados");
-        ncNewline();
-        ncPrint("Dir: ");
-        ncPrintHex((uint64_t)dir);
-        ncPrint("Dir11: ");
-        ncPrintHex((uint64_t)dir11);
-    }
-    if(dir2<&endOfKernel ||dir3<&endOfKernel ||dir4<&endOfKernel || dir5<&endOfKernel ||dir6<&endOfKernel ||dir7<&endOfKernel ||dir8<&endOfKernel ||dir9<&endOfKernel ||dir10<&endOfKernel ||dir11<&endOfKernel){
-        ncPrint("Error8: el MM esta yendo antes de la direccion inicial");
-        ncNewline();
-    }
-    uint8_t * dir12 = mm_alloc(0x400000);
-    if(dir12!=NULL){
-        ncPrint("Error9: el MM esta dando memoria que no tiene");
-        ncNewline();
-    }
-}
+
 
 // Es la primera funcion que se ejecutará una vez se halla cargado el SO en el sistema
 int main()
@@ -227,8 +130,6 @@ int main()
 
     print_lines();
     ncClear();
-//    mm_init();
-//    testMM();
 //    print("Pasa el testeo del mm\n",WHITE,ALL);
     pipe_initialize();
     initialize_scheduler();

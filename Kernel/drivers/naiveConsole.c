@@ -1,8 +1,10 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <naiveConsole.h>
 
 static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base);
 
-static char buffer[64] = { '0' };						// Se cuenta con un buffer de 64 caracteres
+static char buffer[64] = { 0 };						// Se cuenta con un buffer de 64 caracteres
 static uint8_t * const video = (uint8_t*)0xB8000;			// La placa de video comienza en la direccion 0xB8000
 static uint8_t * currentVideo = (uint8_t*)0xB8000;			// Indica la posicion actual donde se esta imprimiendo por pantalla
 static const uint32_t width = 80;							// La pantalla es una matriz de 80x25 caracteres (largoXalto)

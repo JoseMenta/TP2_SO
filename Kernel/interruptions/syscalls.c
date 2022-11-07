@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscalls.h>
 #include <video_driver.h>
 #include <keyboard.h>
@@ -70,23 +72,7 @@ uint8_t time_handler(timeType time_unit){
 //  La cantidad de posiciones que se logro almacenar
 //----------------------------------------------------------------------
 int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
-    uint8_t i = 0;
-    // Empiezo a completar el arreglo, siempre y cuando la direccion consultada sea menor a la ultima
-    // Asi se evita overflow
-    for(; (i < MAX_ARRAY_SIZE) && (init_dir + i < MAX_MEM_ADDRESS); i++){
-//        arr[i] = get_data(init_dir + i);
-        arr[i] = *((uint8_t*)init_dir + i);//char* para que +i avance de a 1
-    }
-    if(init_dir + i == MAX_MEM_ADDRESS){
-//        arr[i++] = get_data(MAX_MEM_ADDRESS);
-        arr[i++] = *((uint8_t*)MAX_MEM_ADDRESS);
-    }
-    // Si aun quedan espacios libres (i < 32), se completa con NULL
-    for(int j = i; j < MAX_ARRAY_SIZE; j++){
-        arr[j] = 0;
-    }
-    // En i se almacenan la cantidad real de datos que se pudieron almacenar
-    return i;
+    return 0;
 }
 
 
@@ -277,6 +263,7 @@ void mm_info_handler(mm_info_t* info){
     info->allocated_bytes = get_allocated_bytes();
     info->free_bytes = get_free_bytes();
     info->allocated_blocks = get_allocated_blocks();
+    info->algorithm = MM_NAME;
 }
 void sleep_handler(uint32_t seconds){
     pause_ticks_handler(seconds * 18);
@@ -291,7 +278,7 @@ void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time
                     &dup2_handler, &dup_handler,&pause_ticks_handler, &sleep_handler, &mm_info_handler, &sem_count_handler};
 
 void* syscall_dispatcher(uint64_t syscall_num){
-    if(syscall_num<0 || syscall_num>=41){
+    if(syscall_num>=41){
         return NULL;
     }
     return syscalls[syscall_num];

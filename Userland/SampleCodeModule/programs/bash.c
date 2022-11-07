@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <bash.h>
 
 
@@ -27,7 +29,7 @@ void bash(uint64_t arg_c, char ** arg_v){
     }
     print_string("Bienvenido!\nQue modulo desea correr?");
     while(1){
-        print_string("\n$ ");
+        print_string("\n$> ");
         int len = get_line(buffer,MAX_BUFFER_SIZE);
         if(len==MAX_BUFFER_SIZE-1 && buffer[len-1]=='\n'){
             print_string("No fue posible leer lo ingresado, por favor intente nuevamente\n$");
@@ -129,7 +131,7 @@ void analyze_buffer(void) {
         }
         print_string("\n");
         executable_t exec_a = {get_program_name(program_a),program_a,i,aux_a,!background,NULL};
-        print_string("\n");
+        //print_string("\n");
         int pid = sys_exec(&exec_a);
         if(!background){
             waitpid(pid);
@@ -189,12 +191,10 @@ void analyze_buffer(void) {
     char* aux_b[] = {arg_b[0],arg_b[1], arg_b[2]};
 
     //tengo que crear el pipe
-    print_string("\n");
     int fd[2];
     pipe(fd);
     int newFdLeft[DEFAULTFD] =  {0, fd[1], 2};
     int newFdRight[DEFAULTFD] =  {fd[0], 1, 2};
-    print_string("\n");
     executable_t exec_a = {get_program_name(program_a),program_a,arg_c_a,aux_a,!background, newFdLeft};
     uint64_t pidLeft = sys_exec(&exec_a);
     close_fd(fd[1]);

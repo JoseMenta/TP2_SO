@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <libc.h>
 #include <os_tests.h>
 #include <built_in.h>
@@ -39,8 +41,6 @@ front_program_t programs[CANT_PROG] = {
 };
 
 
-
-void number_to_string(uint64_t number, char * str);
 
 
 
@@ -209,7 +209,7 @@ uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
 uint8_t print_string_with_padding(const char * s1, uint8_t len){
     char aux[len+1];
     int i = 0;
-    for(;s1[i]!='\0' && i<len;i++){
+    for(;i<len && s1[i]!='\0';i++){
         aux[i]=s1[i];
     }
     for(;i<len;i++){
@@ -309,7 +309,7 @@ uint8_t print_number_fd(uint64_t number, int fd){
 // Retorno:
 //      cantidad de caracteres escritos
 //---------------------------------------------------------------------------------
-void number_to_string(uint64_t num, char * str){
+void number_to_string(int64_t num, char * str){
     // Si el numero es 0, devuelvo el string 0 y ya esta
     if(num == 0){
         str[0] = '0';

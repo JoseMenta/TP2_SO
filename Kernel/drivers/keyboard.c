@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <keyboard.h>
 #include <scheduler.h>
 #include <interrupts.h>
@@ -21,14 +23,14 @@ static int keyboard_reference[] = {'\0','\0','1','2','3','4','5',
                                    '\0','a','s','d','f','g','h','j',
                                    'k','l',';','\'','|','\0','\\',
                                    'z','x','c','v','b','n','m',',',
-                                   '.','/','\0', '\0', ALT, ' '};
+                                   '.','/','\0', '\0', ALT, ' ',' '};
 //teclado windows
-/*static int keyboard_reference2[] = {'0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-                                    '\'', '¡', '0', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
-                                    'o', 'p', '\'', '+', '\n', '0', 'a', 's', 'd', 'f', 'g', 'h',
-                                    'j', 'k', 'l', 'ñ', '{', '0', '^', '0', 'z', 'x', 'c', 'v',
-                                    'b', 'n', 'm', ',', '.', '-', '^', '0', '0', '\t'}
-*/
+//static int keyboard_reference2[] = {'0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+//                                    '\'', '¡', '0', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
+//                                    'o', 'p', '\'', '+', '\n', '0', 'a', 's', 'd', 'f', 'g', 'h',
+//                                    'j', 'k', 'l', 'ñ', '{', '0', '^', '0', 'z', 'x', 'c', 'v',
+//                                    'b', 'n', 'm', ',', '.', '-', '^', '0', '0', '\t'}
+
 
 //----------------------------------------------------------------------
 // keyboard_handler: handler para la interrupcion del teclado
@@ -88,14 +90,10 @@ void keyboard_handler(){
         }
         else if (key_case > 0 && IS_ALPHA(keyboard_reference[key])){
             // Es una mayuscula
-            //buffer[write] = keyboard_reference[key] - UPPER_OFFSET;
-            //enqueue(&queue,keyboard_reference[key] - UPPER_OFFSET);
             char aux = keyboard_reference[key] - UPPER_OFFSET;
             write_keyboard( &aux, 1);
         } else {
             // Es una minuscula u otro tipo de caracter que no es letra
-            //buffer[write] = keyboard_reference[key];
-            //enqueue(&queue,keyboard_reference[key]);
             char aux = keyboard_reference[key];
             write_keyboard( &aux, 1);
 

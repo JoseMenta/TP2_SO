@@ -1,6 +1,8 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <exceptions.h>
 #include <scheduler.h>
-#include <video_driver.h>
+#include <pipes.h>
 #include <syscalls.h>
 #include <video_driver.h>
 #include <interrupts.h>
@@ -19,7 +21,7 @@ static const char * Names[] = { "R8: ", "R9: ", "R10: ", "R11: ", "R12: ", "R13:
 //----------------------------------------------------------------------
 void exceptionDispatcher(int exception) {
 	exceptions[exception]();
-    terminate_process(1);//Matamos al programa que lanzo la excepcion
+    exit_handler();
 	return;
 }
 
@@ -27,8 +29,7 @@ void exceptionDispatcher(int exception) {
 // zero_division: Excepcion ejecutada al realizarse una division por cero (exceptionID = 0)
 //-----------------------------------------------------------------------
 void zero_division() {
-	write(STDERR, "EXCEPCION generada: Division por cero\n", 100);
-	print_registers();
+	write(STDERR, "EXCEPCION generada: Division por cero\n", 39);
 
 }
 
@@ -37,28 +38,7 @@ void zero_division() {
 // zero_division: Excepcion ejecutada al utilizar un operador invalido (exceptionID = 6)
 //-----------------------------------------------------------------------
 void invalid_opcode() {
-	write(STDERR, "EXCEPCION generada: Invalid opcode\n", 100);
-	print_registers();
+	write(STDERR, "EXCEPCION generada: Invalid opcode\n", 36);
 }
 
 
-//-----------------------------------------------------------------------
-// print_registers: Imprime el estado de los registros
-//-----------------------------------------------------------------------
-// Argumentos:
-//  void
-//-----------------------------------------------------------------------
-void print_registers(){
-	write(STDERR, "Registros al momento de la excepcion: \n", 100);
-	// Pongo en reg los valores de los registros
-    uint64_t * reg = getCurrContext();
-    char reg_str[20];
-    // Al llamar a write_handler, se consulta la posicion del proceso que se encuentra corriendo actualmente
-    // y lo imprime en dicha posicion
-	for(int i=0; i<=RFLAGS; i++){
-		write(STDERR,Names[i], 100);
-		to_hex(reg_str, reg[i]);
-        write(STDERR,reg_str,100);
-        write(STDERR,"\n", 4);
-	}
-}

@@ -1,10 +1,13 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>
 #include <stddef.h>
 #include <libc.h>
 #include <io.h>
 
 #define ERR_SIZE    40
-#define RESP_MSG    "\n-------------------------------------------------\n"
+
+#define RESP_MSG    "\n-------------------------------------------------------------------------------\n"
 #define BYTES_RESP "Total de bytes: "
 #define WORDS_RESP "Total de palabras: "
 #define LINES_RESP "Total de lineas: "
@@ -14,6 +17,7 @@
 static unsigned int bytes_counted, words_counted, lines_counted;
 static void write_results(void);
 void wc_fn(char * buffer, unsigned int buff_pos);
+
 
 
 //---------------------------------------------------------------------------------

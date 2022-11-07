@@ -59,6 +59,7 @@ typedef struct{
     uint64_t free_bytes;
     uint64_t allocated_blocks;
     uint64_t total_bytes;
+    char * algorithm;
 }mm_info_t;
 // SEMAFOROS -----------------------------------------------------------------------------------------------------------------
 
@@ -151,7 +152,7 @@ char* get_program_name(void* program);
 char get_char(void);
 uint8_t print_string(const char * s1);
 uint8_t print_string_with_padding(const char * s1, uint8_t len);
-void number_to_string(uint64_t num, char * str);
+void number_to_string(int64_t num, char * str);
 uint64_t string_to_number(const char * str, uint64_t * resp);
 uint8_t print_number(uint64_t number);
 char * to_hex(char * str, uint64_t val);

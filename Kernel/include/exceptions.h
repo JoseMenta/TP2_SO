@@ -6,7 +6,8 @@
 
 void zero_division();
 void invalid_opcode();
-void print_registers();
+
+
 typedef void (* exception) ();
 
 #endif

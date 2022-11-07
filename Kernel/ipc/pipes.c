@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "../include/pipes.h"
 #include <mm.h>
 #include <orderListADT.h>
 #include <scheduler.h>
@@ -90,8 +93,8 @@ int pipe(int fd[2]){
     //Modo escritura en el segundo fd
     fd[1] = get_next_fd();
     if(fd[1] == -1){
-        fd[0]=-1;
         mm_free(curren->fd[fd[0]]);
+        fd[0]=-1;
         mm_free(info);
         return -1;
     }
@@ -368,8 +371,6 @@ int64_t get_info(pipe_user_info * user_data, int64_t count){
     if(user_data == NULL){
         return -1;
     }
-    char aux[2] = {orderListADT_size(pipes_list) + '0', '\0'};
-    print(aux, WHITE, ALL);
     uint32_t size =0;
     orderListADT_toBegin(pipes_list);
     pipe_info * info_next;

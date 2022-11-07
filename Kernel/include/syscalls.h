@@ -9,12 +9,20 @@ typedef enum {SEC = 0, MIN = 2, HOUR = 4, DAY_WEEK = 6, DAY_MONTH = 7, MONTH = 8
 #define MAX_ARRAY_SIZE 32
 #define MAX_MEM_ADDRESS 0xFFFFFFFF8                             // A partir de la proxima direccion, falla (suponemos que es un seg fault)
 
+#ifdef BUDDY
+#define MM_NAME "buddy"
+#endif
+
+#ifdef HEAP
+#define MM_NAME "heap"
+#endif
 
 typedef struct{
     uint64_t allocated_bytes;
     uint64_t free_bytes;
     uint64_t allocated_blocks;
     uint64_t total_bytes;
+    char * algorithm;
 }mm_info_t;
 
 int32_t read_handler(int fd, char * buf, int count);            // Lee por pantalla el siguiente caracter y lo copia en str

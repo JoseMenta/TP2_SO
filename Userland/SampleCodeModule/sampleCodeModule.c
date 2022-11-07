@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /* sampleCodeModule.c */
 #include <libc.h>
 #include <bash.h>
@@ -6,20 +8,6 @@
 #include <test_util.h>
 
 
-void aa(){
-    while(1){
-        print_string("a");
-        pause_ticks(1);
-    }
-}
-void bb(uint64_t pid){
-    waitpid(pid);
-    for(int i = 0; i<10; i++){
-        print_number( getpid());
-        pause_ticks(1);
-    }
-    return;
-}
 /*
  * Anecdota de un bug bastante feo
  * Cuando estuvimos testeando al scheduler con test_processes, decidimos
@@ -51,30 +39,9 @@ void bb(uint64_t pid){
  * scroll_up).
  * Tomando un mejor caso para la longitud del arreglo, creemos (y esperamos) que no vuelva el problema
  */
-void print_scheduler_info(){
-    char* status[] = {"Execute","Ready","Blocked","Finished"};
-    uint64_t processes = sys_get_process_count();//OJO si son muchos!!!!
-    process_info_t aux[8];
-    processes = sys_get_scheduler_info(aux,processes);
-    print_string("\n");//aca se rompe con new_pid = 71
-    char buf[20];
-    for(int i = 0; i<processes; i++){
-        print_number(aux[i].pid);
-        print_string(" ");
-        print_string(aux[i].name);
-        print_string(" ");
-        print_string(status[aux[i].status]);
-        print_string(" ");
-        print_number(aux[i].priority);
-        print_string(" ");
-        print_string(to_hex(buf,aux[i].bp));
-        print_string(" ");
-        print_string(to_hex(buf,aux[i].sp));
-        print_string(" ");
-        print_number(aux[i].foreground);
-        print_string("\n");
-    }
-}
+
 int main(uint64_t arg_c, char** arg_v) {
     bash(arg_c,arg_v);
+    return 0;
+
 }
