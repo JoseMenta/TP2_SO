@@ -20,3 +20,4 @@ Image/*.icloud
 PVS-Studio.log
 report.tasks
 strace_out
+.config
