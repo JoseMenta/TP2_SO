@@ -130,9 +130,9 @@ Otorga un detalle de los procesos en ejecución (EXECUTE), en la cola de listos 
 ***
 ### loop
 ````shell
-loop <seconds>
+loop
 ````
-Es un programa simple, el cual solamente imprime un saludo e indica su pid infinitamente. Este programa debe recibir un único argumento que indique la cantidad de segundos que debe detenerse hasta volver a imprimir el mensaje. Para frenar su ejecución, se debe usar el comando que mata procesos, la tecla **ESC**.
+Es un programa simple, el cual solamente imprime un saludo e indica su pid infinitamente. Para frenar su ejecución, se debe usar el comando que mata procesos, la tecla **ESC**.
 <br />![Ejecución de loop imprimiendo su mensaje cada 2 segundos](images/loop_1.png?raw=true)
 
 
