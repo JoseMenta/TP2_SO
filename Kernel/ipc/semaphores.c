@@ -520,7 +520,6 @@ uint32_t sem_count(){
     uint32_t ans = 0;
     acquire(&sem_manager.lock);
     // Verificamos que se haya inicializado el manejador de semaforos
-    //TODO: verificar si deberia irse aca, creo que si porque no hay semaforos que mostrar
     if(sem_manager.semaphores == NULL){
         semaphore_manager_init();
         release(&sem_manager.lock);

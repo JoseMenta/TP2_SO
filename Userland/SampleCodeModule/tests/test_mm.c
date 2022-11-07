@@ -6,7 +6,6 @@
 #include <test_util.h>
 #include <libc.h>
 
-//TODO: sacar
 #include "../include/test_util.h"
 #include "../include/libc.h"
 #define MAX_BLOCKS 128

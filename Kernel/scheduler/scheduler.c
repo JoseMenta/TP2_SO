@@ -31,7 +31,6 @@ static int ticks_for_priority[PRIORITY_LEVELS] = {10,8,6,4,2};
 static HashADT hash = NULL;
 
 
-// TODO: ver preentrega que hacer con los IFs que hicimos para los print si tenemos que manejar el error
 
 //----------------------------------------------------------------------
 // initialize_scheduler: inicializa las estructuras que va a utilizar el scheduler

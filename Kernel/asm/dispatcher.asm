@@ -81,7 +81,6 @@ process_wrapper:
 ;   ERROR: Devuelve -1
 ;   EXITO: Devuelve la dirección del registro RSP
 ; ---------------------------------------------------------------------------------
-;TODO: se esta guardando cualquier cosa en el arg_c
 create_new_process_context:
     push rbp
     mov rbp, rsp

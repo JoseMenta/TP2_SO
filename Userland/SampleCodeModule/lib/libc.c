@@ -4,7 +4,6 @@
 #include <os_tests.h>
 #include <built_in.h>
 #include <bash.h>
-//TODO: sacar
 #include "../include/libc.h"
 #include "../include/bash.h"
 #include "../include/os_tests.h"

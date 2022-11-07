@@ -665,7 +665,6 @@ get_registers:
 
     push rax
     call get_rip                            ; Logica para poder obtener el registro RIP
-                                            ; TODO: Colocar el get_rip arriba de todo para tener el rip mas cerca al pedido
 
 get_rip_return:
     mov qword [reg+128], rax                ; Guardo en el arreglo, el valor de RIP

@@ -32,7 +32,6 @@ static void insert_block_into_free_list(block_t* new_block);
 static block_t start_block;
 //El fin de la lista
 static block_t* end_block=NULL;
-//TODO: ver si es mejor que reciba a los limites por parametro
 void mm_init(){
     block_t * first_block;
 
@@ -46,7 +45,6 @@ void mm_init(){
     end_block->next_free_block=NULL;
 
     first_block = (block_t*) start_address;
-    //TODO: ver si hay que restarle el block_size o si lo considera despues en los malloc
     first_block->block_size = (((uint8_t*)end_block)-((uint8_t*)start_address));
     heap_size = first_block->block_size;
     first_block->next_free_block = end_block;
@@ -71,7 +69,7 @@ void* mm_alloc(uint32_t wanted_size){
     if(wanted_size==0){
         return NULL;
     }
-    //TODO: cambio de PVS
+
 //    if(wanted_size>0){
     if(wanted_size+block_size>heap_size-allocated_bytes){
         return NULL;
