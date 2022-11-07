@@ -36,7 +36,7 @@ int pipe_initialize(){
     if(pipes_list == NULL){
         return -1;
     }
-    console_pipe = create_info_pipe("CONSOLE\0");
+    console_pipe = create_info_pipe("KEYBOARD\0");
     console_pipe_restrict = create_restrict_pipe(CONSOLE, console_pipe);
     error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
     orderListADT_add(pipes_list, console_pipe);
