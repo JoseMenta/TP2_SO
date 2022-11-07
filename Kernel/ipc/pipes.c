@@ -250,9 +250,6 @@ int write(int fd, const char * buf, int count){
             pipe_mode->info->buff[pipe_mode->info->index_write++ % PIPESIZE] = buf[write];
         }
     }
-    if(pipe_mode->mode!=CONSOLE){
-        pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
-    }
 
     //Despertar a todos los lectores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
@@ -345,7 +342,6 @@ int read(int fd, char * buf, int count){
             print_char(pipe_mode->info->buff[(pipe_mode->info->index_read-1) % PIPESIZE],WHITE,ALL);
         }
     }
-    buf[read] = '\0';
 
     //Desperta a todos los escritores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_write_lock[i] != 0; i++){
