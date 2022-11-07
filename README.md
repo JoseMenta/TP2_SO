@@ -23,9 +23,8 @@ docker pull agodio/itba-so:1.0
 
 #### MacOS
 * Contar con una versión de Docker en el dispositivo.
-* Contar con multipass, un sistema similar a WSL para MacOS (ver más en https://multipass.run).
-* El mismo debe configurarse para poder conectarse utilizando el protocolo ssh y transmitir un entorno gráfico mediante el programa XQuartz (ver más en: https://www.xquartz.org)
-* Contar con permisos de superusuario en la instancia de multipass.
+* Contar con una versión de Qemu. 
+* Contar con permisos de superusuario.
 
 #### Windows
 * Tener configurado WSL 2.
@@ -177,12 +176,12 @@ Imprime el estado de los semáforos activos, indicando su nombre, su valor, el p
 
 
 ***
-### info.pipe
+### pipe
 ````shell
 info.pipe <amount>
 ````
 Similar a _sem_ pero, en este caso, imprime el estado de los pipes activos en el sistema operativo. Indica el nombre del pipe, el índice de lectura y de escritura, el pid de los procesos bloqueados (por lectura y escritura) y el pid de los procesos conectados al pipe. Si el pipe no tiene nombre (unnamed fifo), aparecerá la frase “sin nombre”. El comando debe recibir un argumento, el cual indica la cantidad de pipes que se desea consultar su estado.
-<br />![Estado del pipe de teclado](images/info.pipe_1.png?raw=true)
+<br />![Estado del pipe de teclado](images/pipe_1.png?raw=true)
 
 
 ***
