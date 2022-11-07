@@ -184,7 +184,8 @@ uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
         }else if(read>0){
             buf[read]='\0';
             read--;
-        }if(read == 0){
+        }
+        if(read == 0){
             write(fd, " ", 1);
         }
     }
