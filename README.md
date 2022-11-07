@@ -90,7 +90,9 @@ Mediante este programa podrá ejecutar el resto de programas que ofrece el siste
 ````shell
 <prog_a> <| <prog_b>> <&>
 ````
-El intérprete de comandos permite ejecutar programas en background si se agrega el carácter ‘&’ al final del comando. De igual manera, es posible definir un pipe entre dos procesos escribiendo _<prog_a> | <prog_b>_, siendo _prog_a_ el programa, junto a sus argumentos, que redirigirá su salida estándar y _prog_b_ el programa, junto a sus argumentos, que redirigirá su entrada estándar. Esto permite, por ejemplo, redirigir la salida de wc para que su resultado se imprima sin vocales escribiendo el comando _wc | filter_. Cabe aclarar que si se utiliza ‘&’ y ‘|’ en el mismo comando, ambos programas se ejecutarán en background.
+El intérprete de comandos permite ejecutar programas en background si se agrega el carácter ‘&’ al final del comando. 
+<br />De igual manera, es posible definir un pipe entre dos procesos escribiendo _<prog_a> | <prog_b>_, siendo _prog_a_ el programa, junto a sus argumentos, que redirigirá su salida estándar y _prog_b_ el programa, junto a sus argumentos, que redirigirá su entrada estándar. 
+<br />Esto permite, por ejemplo, redirigir la salida de wc para que su resultado se imprima sin vocales escribiendo el comando _wc | filter_. Cabe aclarar que si se utiliza ‘&’ y ‘|’ en el mismo comando, ambos programas se ejecutarán en background.
 <br />![Redirigiendo la salida estándar de wc a la entrada estándar de filter](images/pipes_1.png?raw=true)
 <br />![Redirigiendo la salida estándar de ps a la entrada estándar de filter, y en background](images/back&pipes_1.png?raw=true)
 
@@ -112,7 +114,7 @@ Este programa permite conocer todos los programas con los que cuenta el sistema 
 ````shell
 mem
 ````
-Otorga un detalle del estado de la memoria dinámica. El mismo indica el algoritmo utilizado, el espacio total de la memoria en bytes, la cantidad de bytes ocupados, la cantidad de bloques/nodos ocupados y la cantidad de bytes libres. Para ejecutarlo, se debe usar el comando _mem_.
+Otorga un detalle del estado de la memoria dinámica. El mismo indica el algoritmo utilizado, el espacio total de la memoria en bytes, la cantidad de bytes ocupados, la cantidad de bloques/nodos ocupados y la cantidad de bytes libres.
 <br />![Ejecución de mem](images/mem_1.png?raw=true)
 
 
