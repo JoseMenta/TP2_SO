@@ -1,11 +1,7 @@
 #include <HashADT.h>
 #include <mm.h>
 #include <stddef.h>
-// #include <stdio.h>
 
-//TODO: sacar
-#include "../include/HashADT.h"
-#include "../include/mm.h"
 typedef struct HashCDT{
     orderListADT lists[SIZE];       // Listas del hash
     prehash_function pre_hash;      // Funcion de prehasheo
@@ -14,7 +10,9 @@ typedef struct HashCDT{
 } HashCDT;
 
 
-// La funcion de hasheo
+//----------------------------------------------------------------------
+// hash: Funcion de Hasheo
+//----------------------------------------------------------------------
 static uint64_t hash(uint64_t value){
     return value % SIZE;
 }
@@ -193,6 +191,9 @@ uint32_t hashADT_size(HashADT table){
 }
 
 
+//----------------------------------------------------------------------
+// Funciones para Iterador del Hash
+//----------------------------------------------------------------------
 void hashADT_to_begin(HashADT table){
     table->iterator_index = 0;
     table->curr_initialized = 0;
@@ -214,6 +215,8 @@ int hashADT_has_next(HashADT table){
 void* hashADT_next(HashADT table){
     return orderListADT_next(table->lists[table->iterator_index]);
 }
+
+
 //----------------------------------------------------------------------
 // free_hashADT: Destruye la tabla
 //----------------------------------------------------------------------
@@ -228,17 +231,5 @@ void free_hashADT(HashADT table){
     }
     mm_free(table);
 }
-
-/*
-//Para testeo
-void dump(HashADT table){
-    printf("\n------\n");
-    for(int i=0; i<SIZE; i++){
-        printf("\n%d) ", i);
-        printList(table->lists[i]);
-    }
-    printf("\n------\n");
-}
-*/
 
 

@@ -60,6 +60,7 @@ section .text
     pop rbp
     ret
 %endmacro
+
 ;-------------------------------------------------------------------------------------
 ; sys_write: Llama a la sys_call de escritura
 ;-------------------------------------------------------------------------------------
@@ -72,17 +73,6 @@ section .text
 ;------------------------------------------------------------------------------------
 sys_write:
     syscall_macro 1
-;    push rbp
-;    mov rbp, rsp            ; Armado de stack frame
-;
-;;    mov rbx, rdi            ; La sys_call recibe por rbx el string a imprimir
-;;    mov rcx, rsi            ; La sys_call recibe por rcx el formato
-;    mov rax, 1
-;    int 80h
-;
-;    mov rsp, rbp            ; Desarmado de stack frame
-;    pop rbp
-;    ret
 
 
 ;-------------------------------------------------------------------------------------
@@ -96,16 +86,6 @@ sys_write:
 ;------------------------------------------------------------------------------------
 sys_read:
     syscall_macro 0
-;    push rbp
-;    mov rbp, rsp
-;
-;;    mov rbx, rdi            ; La sys_call recibe por rbx la posicion de memoria donde se guarda el caracter
-;    mov rax, 0
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
 
 
 ;-------------------------------------------------------------------------------------
@@ -118,17 +98,7 @@ sys_read:
 ;------------------------------------------------------------------------------------
 sys_exec:
     syscall_macro 2
-;    push rbp
-;    mov rbp, rsp
-;
-;;    mov rbx, rdi
-;;    mov rcx, rsi
-;    mov rax, 2
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_exit: Finaliza el proceso ejecutandose en el momento
@@ -141,15 +111,7 @@ sys_exec:
 ;------------------------------------------------------------------------------------
 sys_exit:
     syscall_macro 3
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 3
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_time: Devuelve el valor para la unidad de tiempo pasado
@@ -162,16 +124,7 @@ sys_exit:
 ;------------------------------------------------------------------------------------
 sys_time:
     syscall_macro 4
-;    push rbp
-;    mov rbp, rsp
-;
-;;    mov rbx, rdi
-;    mov rax, 4
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_mem:  Dado un arreglo de 32 bytes y una direccion de memoria, completa el arreglo con la informacion
@@ -186,17 +139,7 @@ sys_time:
 ;------------------------------------------------------------------------------------
 sys_mem:
     syscall_macro 5
-;    push rbp
-;    mov rbp, rsp
-;
-;;    mov rcx, rsi
-;;    mov rbx, rdi
-;    mov rax, 5
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_tick: Devuelve los ticks transcurridos desde que inicio la computadora
@@ -209,15 +152,7 @@ sys_mem:
 ;------------------------------------------------------------------------------------
 sys_tick:
     syscall_macro 6
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 6
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_blink: Realiza un parpadeo en la pantalla
@@ -230,15 +165,7 @@ sys_tick:
 ;------------------------------------------------------------------------------------
 sys_blink:
     syscall_macro 7
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 7
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_clear: Limpia la terminal
@@ -251,15 +178,7 @@ sys_blink:
 ;------------------------------------------------------------------------------------
 sys_clear:
     syscall_macro 9
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 9
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_regs: Devuelve el estado de los registros de la ultima vez que se realizo CTRL+S
@@ -272,16 +191,7 @@ sys_clear:
 ;------------------------------------------------------------------------------------
 sys_regs:
     syscall_macro 8
-;    push rbp
-;    mov rbp, rsp
-;
-;;    mov rbx, rdi
-;    mov rax, 8
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_block: Bloquea al proceso con el pid indicado (debe usarse solo para testeos)
@@ -297,15 +207,7 @@ sys_regs:
 ;------------------------------------------------------------------------------------
 sys_block:
     syscall_macro 10
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 10
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_unblock: Desbloquea al proceso con el pid indicado (debe usarse solo para testeos)
@@ -322,15 +224,7 @@ sys_block:
 ;------------------------------------------------------------------------------------
 sys_unblock:
     syscall_macro 13
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 13
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_waitpid: Espera a la terminacion de un proceso, posiblemente bloqueando al que
@@ -344,15 +238,7 @@ sys_unblock:
 ;------------------------------------------------------------------------------------
 sys_waitpid:
     syscall_macro 11
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 11
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_yield: Libera al procesador
@@ -365,15 +251,7 @@ sys_waitpid:
 ;------------------------------------------------------------------------------------
 sys_yield:
     syscall_macro 12
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 12
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_terminate: Termina al proceso con el pid indicado
@@ -386,15 +264,7 @@ sys_yield:
 ;------------------------------------------------------------------------------------
 sys_terminate:
     syscall_macro 14
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 14
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_getpid: Devuelve el pid del proceso actual
@@ -407,15 +277,8 @@ sys_terminate:
 ;------------------------------------------------------------------------------------
 sys_getpid:
     syscall_macro 16
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 16
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
+
 ;-------------------------------------------------------------------------------------
 ; sys_nice: Cambia la prioridad del proceso con el pid indicado
 ;-------------------------------------------------------------------------------------
@@ -428,15 +291,7 @@ sys_getpid:
 ;------------------------------------------------------------------------------------
 sys_nice:
     syscall_macro 15
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 15
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_get_scheduler_info: Obtinene la informacion del scheduler
@@ -450,15 +305,7 @@ sys_nice:
 ;------------------------------------------------------------------------------------
 sys_get_scheduler_info:
     syscall_macro 17
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 17
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_get_process_count: Obtiene la cantidad maxima de procesos cuya informacion
@@ -472,15 +319,7 @@ sys_get_scheduler_info:
 ;------------------------------------------------------------------------------------
 sys_get_process_count:
     syscall_macro 18
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 18
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 
 ;-------------------------------------------------------------------------------------
@@ -494,15 +333,7 @@ sys_get_process_count:
 ;------------------------------------------------------------------------------------
 sys_mm_alloc:
     syscall_macro 19
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 19
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_mm_free: Libera memoria en el heap
@@ -515,15 +346,7 @@ sys_mm_alloc:
 ;------------------------------------------------------------------------------------
 sys_mm_free:
     syscall_macro 20
-;    push rbp
-;    mov rbp, rsp
-;
-;    mov rax, 20
-;    int 80h
-;
-;    mov rsp, rbp
-;    pop rbp
-;    ret
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_pipe: Crear un pipe
@@ -536,6 +359,7 @@ sys_mm_free:
 ;------------------------------------------------------------------------------------
 sys_pipe:
     syscall_macro 21
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_open_fifo: Crear un pipe con identificador/fifo
@@ -551,6 +375,7 @@ sys_pipe:
 sys_open_fifo:
     syscall_macro 22
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_link_pipe_named: conectarse a un fifo/pipe con identificador
 ;-------------------------------------------------------------------------------------
@@ -564,6 +389,7 @@ sys_open_fifo:
 sys_link_pipe_named:
     syscall_macro 23
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_close_fd: cerrar el fd
 ;-------------------------------------------------------------------------------------
@@ -575,6 +401,7 @@ sys_link_pipe_named:
 ;------------------------------------------------------------------------------------
 sys_close_fd:
     syscall_macro 24
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_write: escribir en un fd
@@ -590,6 +417,7 @@ sys_close_fd:
 sys_write_pipe:
     syscall_macro 25
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_read: leer de un fd
 ;-------------------------------------------------------------------------------------
@@ -604,6 +432,7 @@ sys_write_pipe:
 sys_read_pipe:
     syscall_macro 26
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_get_info: obtener la informacion de los pipes del sistema
 ;-------------------------------------------------------------------------------------
@@ -615,6 +444,7 @@ sys_read_pipe:
 ;------------------------------------------------------------------------------------
 sys_get_info:
     syscall_macro 27
+
 
 ;----------------------------------------------------------------------
 ; sem_init: Crea un nuevo semaforo
@@ -629,6 +459,7 @@ sys_get_info:
 ;----------------------------------------------------------------------
 sys_sem_init:
     syscall_macro 28
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_open: Se conecta a un semaforo ya creado
@@ -647,6 +478,7 @@ sys_sem_init:
 sys_sem_open:
     syscall_macro 29
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_sem_wait: Realiza la operacion wait en el semaforo
 ;-------------------------------------------------------------------------------------
@@ -658,6 +490,7 @@ sys_sem_open:
 ;------------------------------------------------------------------------------------
 sys_sem_wait:
     syscall_macro 30
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_post: Realiza la operacion post en el semaforo
@@ -671,6 +504,7 @@ sys_sem_wait:
 sys_sem_post:
     syscall_macro 31
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_sem_close: Se desconecta del semaforo
 ;-------------------------------------------------------------------------------------
@@ -682,6 +516,7 @@ sys_sem_post:
 ;------------------------------------------------------------------------------------
 sys_sem_close:
     syscall_macro 32
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump: Devuelve la informacion de los semaforos activos
@@ -698,6 +533,7 @@ sys_sem_close:
 sys_sem_info:
     syscall_macro 33
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_sem_dump_free: Libera los recursos creados en sys_sems_dump
 ;-------------------------------------------------------------------------------------
@@ -709,6 +545,7 @@ sys_sem_info:
 ;------------------------------------------------------------------------------------
 sys_free_sem_info:
     syscall_macro 34
+
 
 ;-------------------------------------------------------------------------------------
 ; sys_dup2: Duplicar la referencia de un fd en otro
@@ -723,6 +560,7 @@ sys_free_sem_info:
 sys_dup2:
     syscall_macro 35
 
+
 ;-------------------------------------------------------------------------------------
 ; sys_dup: Duplicar la referencia de un fd en el proximo fd libre
 ;-------------------------------------------------------------------------------------
@@ -735,6 +573,10 @@ sys_dup2:
 sys_dup:
     syscall_macro 36
 
+
+;-------------------------------------------------------------------------------------
+; Sys_calls de manejo de ticks
+;-------------------------------------------------------------------------------------
 sys_pause_ticks:
     syscall_macro 37
 
@@ -746,6 +588,7 @@ sys_mm_info:
 
 sys_sem_count:
     syscall_macro 40
+
 
 ;-------------------------------------------------------------------------------------
 ; zero_division_exc: Programa para generar un excepcion de division por cero

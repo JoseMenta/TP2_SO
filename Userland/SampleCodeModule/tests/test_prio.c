@@ -3,9 +3,6 @@
 #include <libc.h>
 #include <test_util.h>
 
-//TODO: sacar
-#include "../include/test_util.h"
-#include "../include/libc.h"
 #define MINOR_WAIT 1000000 // TODO: Change this value to prevent a process from flooding the screen
 #define WAIT      40000000 // TODO: Change this value to make the wait long enough to see theese processes beeing run at least twice
 

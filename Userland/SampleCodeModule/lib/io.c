@@ -2,17 +2,11 @@
 #include <stddef.h>
 #include <libc.h>
 
-#define INITIAL_SIZE    10
-#define CHUNKS          10
-#define DELETE_ASCII    127
-#define MAX_SIZE        4294967290
-#define TAB_SPACE       4
-
-#define FULL_ERR        "\nNo se pueden almacenar mas teclas, por favor ingrese ENTER.\n"
 
 static int8_t resize_buffer(char ** buffer, unsigned int * buff_size);
 static void write_err_msg(char ** buffer, unsigned int buffer_size, char * err_msg);
 static void clear_buffer(char ** buffer, unsigned int buff_size);
+
 
 // ------------------------------------------------------------------------------
 // io_logic: Recibe las teclas, las imprime por pantalla y ejecuta una funcion al recibir un \n
@@ -22,7 +16,9 @@ static void clear_buffer(char ** buffer, unsigned int buff_size);
 //  err_msg: Arreglo para enviar el mensaje de error, en caso de haber uno
 //  msg_size: Tamaño del arreglo err_msg
 // ------------------------------------------------------------------------------
-// Devuelve -1 en caso de error, 0 en caso de exito
+// Retorno:
+//  Devuelve -1 en caso de error, 0 en caso de exito
+// ------------------------------------------------------------------------------
 int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
     unsigned int size = 0, buff_size = INITIAL_SIZE, buff_pos = 0;
     char * buffer = malloc(INITIAL_SIZE * sizeof(char));
@@ -32,9 +28,7 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
     }
 
     char letter;
-
     while((letter = get_char()) != -1){
-
         if (letter == DELETE_ASCII){
             if(buff_pos != 0){
                 write(STDOUT, &letter, 1);
@@ -49,7 +43,6 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
                 size = strlen(FULL_ERR);
                 write(STDOUT, FULL_ERR, size);
             } else {
-//                write(STDOUT, &letter, 1); //esto hace que se este pasando todo lo que recibe
                 buffer[buff_pos++] = letter;
                 if(letter == '\n'){
                     // Ejecutamos la funcion que se debe realizar al recibir un \n
@@ -84,14 +77,16 @@ int8_t io_logic(newline_read_fn fn, char ** err_msg, unsigned int msg_size){
 
 // ------------------------------------------------------------------------------
 // resize_buffer: Expande el buffer, actualizando la variable buff_size
+// Al finalizar se habra expandido el tamaño del buffer y actualizado buff_size a su nuevo tamaño
 // ------------------------------------------------------------------------------
 // Argumentos:
-//  buffer: Puntero al buffer
-//  buff_size: Puntero al tamaño actual del buffer
+//      buffer: Puntero al buffer
+//      buff_size: Puntero al tamaño actual del buffer
 // ------------------------------------------------------------------------------
-// Al finalizar se habra expandido el tamaño del buffer y actualizado buff_size a su nuevo tamaño
-// En caso de error, deja todo como estaba
-// Devuelve -1 en caso de error, 0 en caso de exito
+// Retorno:
+//      Devuelve -1 en caso de error y deja como estaba
+//      0 en caso de exito
+// ------------------------------------------------------------------------------
 static int8_t resize_buffer(char ** buffer, unsigned int * buff_size){
     if(*buff_size + CHUNKS > MAX_SIZE){
         return -1;
@@ -126,7 +121,9 @@ static int8_t resize_buffer(char ** buffer, unsigned int * buff_size){
     return 0;
 }
 
-
+// ------------------------------------------------------------------------------
+// write_err_msg: Escribir mensaje de error en buffer
+// ------------------------------------------------------------------------------
 static void write_err_msg(char ** buffer, unsigned int buffer_size, char * err_msg){
     unsigned int i = 0;
     for(; i < buffer_size-1 && err_msg[i] != '\0'; i++){
@@ -135,7 +132,9 @@ static void write_err_msg(char ** buffer, unsigned int buffer_size, char * err_m
     (*buffer)[i] = '\0';
 }
 
-
+// ------------------------------------------------------------------------------
+// clear_buffer: Limpiar el buffer con /0 en sus posiciones
+// ------------------------------------------------------------------------------
 static void clear_buffer(char ** buffer, unsigned int buff_size){
     for(unsigned int i = 0; i < buff_size; i++){
         (*buffer)[i] = '\0';

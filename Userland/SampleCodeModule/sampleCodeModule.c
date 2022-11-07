@@ -1,18 +1,10 @@
 /* sampleCodeModule.c */
 #include <libc.h>
-#include <tests.h>
-#include <programs.h>
 #include <bash.h>
 #include <libc.h>
-#include <primos.h>
 #include <os_tests.h>
+#include <test_util.h>
 
-//TODO: sacar
-#include "./include/os_tests.h"
-#include "./include/primos.h"
-#include "./include/test_util.h"
-#include "./include/libc.h"
-#include "../include/programs.h"
 
 void aa(){
     while(1){
@@ -85,94 +77,4 @@ void print_scheduler_info(){
 }
 int main(uint64_t arg_c, char** arg_v) {
     bash(arg_c,arg_v);
-//    char* aux[] = {"4","1",NULL};
-//    executable_t prio_test = {"test_sync",&test_processes,1,aux,0};
-//    uint64_t pid = sys_exec(&prio_test);
-//    char aux2[20];
-//    snprintf(aux2,10,"%d",1);
-//    print_string(aux2,WHITE);
-//    while (1){
-//        write_pipe(1,"a",2);
-//        pause_ticks(1);
-//    }
-//    executable_t pipes_test = {"test_pipes",&test_pipes,0,NULL,0, NULL};
-//    uint64_t pid = sys_exec(&pipes_test);
-
-/*
-    char* aux[] = {"100","1",NULL};
-    executable_t prio_test = {"test_sync",&test_sync,2,aux,0};
-    uint64_t pid = sys_exec(&prio_test);
-//    while (1){
-//        print_scheduler_info();
-////        print_number(sys_get_process_count(),WHITE);
-//        pause_ticks(1);
-//    }
-*/
-
-//    waitpid(pid);
-    while (1){
-        print_string("a");
-        pause_ticks(1);
-    }
-//    for(int i = 0; i<100; i++){
-//        executable_t exec = {"test", &endless_loop_print,100000,NULL,0};
-//        uint64_t  pid = sys_exec(&exec);
-//        pause_ticks(4);
-//        terminate_process(pid);
-//        waitpid(pid);
-//    }
-//    print_string("Termino el test\n",WHITE);
-//    print_number(arg_c,WHITE);
-//    print_string(arg_v[0],WHITE);
-//    executable_t exec;
-//    exec.start = &aa;
-//    exec.name = "proceso 1";
-//    exec.arg_c = 0;
-//    exec.arg_v = NULL;
-//    uint64_t  pid = sys_exec(&exec);
-//    executable_t exec2;
-//    exec2.name = "proceso 2";
-//    exec2.start = &bb;
-//    exec2.arg_c = pid;
-//    exec2.arg_v = NULL;
-//    uint64_t pid2 = sys_exec(&exec2);
-//    print_number(sys_get_process_count(),WHITE);
-//    waitpid(pid);
-//    while(1){
-//        print_string("main ",WHITE);
-//        pause_ticks(1);
-//    }
-//    while (1){
-//        print_scheduler_info();
-//        unblock_process(pid);
-//        pause_ticks(1);
-//    }
-
-//    nice(pid2,0);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    block_process(pid);
-//    print_number(getpid(),WHITE);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    pause_ticks(3);
-//    unblock_process(pid);
-//    waitpid(pid);
-//    waitpid(pid2);
-//    while (1){
-//        print_number(getpid(),WHITE);
-//        pause_ticks(1);
-//    }
-
-//    uint64_t a = 0;
-//    while (1){
-//        print_number(a++,WHITE);
-//        print_string(" ",WHITE);
-//    }
-    return 0;
-
 }

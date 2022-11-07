@@ -16,4 +16,9 @@ void wc(uint64_t arg_c, const char ** arg_v);
 void filter(uint64_t arg_c, const char ** arg_v);
 void pipe_info(uint64_t arg_c, const char ** arg_v);
 void phylo(uint64_t arg_c, const char ** arg_v);
+void write_pipe_name(uint64_t arg_c, const char ** arg_v);
+void read_pipe_name(uint64_t arg_c, const char ** arg_v);
+void write_pipe_common(uint64_t arg_c, const char ** arg_v);
+void read_pipe_common(uint64_t arg_c, const char ** arg_v);
+
 #endif //TP2_SO_BUILT_IN_H

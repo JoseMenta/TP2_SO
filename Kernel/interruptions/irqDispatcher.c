@@ -2,12 +2,13 @@
 #include <stdint.h>
 #include <keyboard.h>
 #include <naiveConsole.h>
+
 static void int_20();
 static void int_21();
-
 typedef void (* handler) ();
 
 handler handlers[2] = {int_20, int_21};              // Arreglo de punteros a funcion de interrupciones
+
 //----------------------------------------------------------------------
 // irqDispatcher: funcion para llamar a los handlers de las interrupciones
 //----------------------------------------------------------------------

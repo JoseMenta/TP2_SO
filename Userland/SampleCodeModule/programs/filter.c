@@ -15,6 +15,13 @@ void filter_fn(char * buffer, unsigned int buff_pos){
     }
 }
 
+//---------------------------------------------------------------------------------
+// filter: Filtra las vocales del input.
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void filter(uint64_t arg_c, const char ** arg_v){
     if(arg_c != 0){
         throw_error("Error: el programa no recibe argumentos.");

@@ -2,9 +2,6 @@
 #include <test_util.h>
 #include <libc.h>
 
-//TODO: sacar
-#include "../include/test_util.h"
-#include "../include/libc.h"
 
 enum State {RUNNING, BLOCKED_1, KILLED};
 

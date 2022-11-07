@@ -11,6 +11,18 @@
 #define IS_Q(c)         ((c) == 'q' || (c) == 'Q')
 #define IS_EVEN(x)      ((x) % 2 == 0)
 
+#define FIRST_MSG   "Estado de los filosofos:\n(C: comiendo, P: pensando, H: hambriento)\n-------------------------------------------------------------------------------\n"
+#define LAST_MSG    "\n-------------------------------------------------------------------------------\nPulse la tecla A si desea agregar un filosofo, o R si desea eliminar uno.\nPulse la tecla Q si desea finalizar el programa.\n\n"
+#define RESIZE_ERR  "No se pudo agregar un nuevo filosofo.\n"
+#define REMOVE_ERR  "Ya no se pueden eliminar mas filosofos.\n"
+#define ADD_ERR     "Ya no se pueden agregar mas filosofos.\n"
+
+#define ADDING_MSG  "\nAgregando filosofo...\n"
+#define ADDED_MSG   "Agregado!\n\n\n"
+#define REMOVING_MSG "\nEliminando filosofo...\n"
+#define REMOVED_MSG "Eliminado!\n\n\n"
+
+
 typedef enum { EATING = 0, THINKING, HUNGRY } phylo_states;
 
 typedef struct phylo {
@@ -28,16 +40,6 @@ static uint64_t amount = INITIAL_NUMBER;
 static uint64_t size = INITIAL_NUMBER;
 
 
-#define FIRST_MSG   "Estado de los filosofos:\n(C: comiendo, P: pensando, H: hambriento)\n-------------------------------------------------------------------------------\n"
-#define LAST_MSG    "\n-------------------------------------------------------------------------------\nPulse la tecla A si desea agregar un filosofo, o R si desea eliminar uno.\nPulse la tecla Q si desea finalizar el programa.\n\n"
-#define RESIZE_ERR  "No se pudo agregar un nuevo filosofo.\n"
-#define REMOVE_ERR  "Ya no se pueden eliminar mas filosofos.\n"
-#define ADD_ERR     "Ya no se pueden agregar mas filosofos.\n"
-
-#define ADDING_MSG  "\nAgregando filosofo...\n"
-#define ADDED_MSG   "Agregado!\n\n\n"
-#define REMOVING_MSG "\nEliminando filosofo...\n"
-#define REMOVED_MSG "Eliminado!\n\n\n"
 
 static void print_phylo_state(uint64_t arg_c, const char ** arg_v);
 static void philosophers(uint64_t arg_c, const char ** arg_v);
@@ -106,9 +108,7 @@ void phylo(uint64_t arg_c, const char ** arg_v) {
     for (i = 0; i < amount; i++) {
         char arg[21];
         char * args[] = {arg};
-        //print_number(i);
         number_to_string(i, arg);
-        //print_string(arg);
         executable_t aux = {"philosopher", &philosophers, 1, args, 0, NULL};
         if ((phylos[i].pid = sys_exec(&aux)) == -1) {
             p_error("Error - Creando un filosofo.\n");

@@ -1,12 +1,8 @@
-
 #include <orderListADT.h>
 #include <mm.h>
 #include <stddef.h>
-// #include <stdio.h>
+#include <orderListADT.h>
 
-//TODO: sacar
-#include "../include/orderListADT.h"
-#include "../include/mm.h"
 typedef struct node{
     void * data;                    // Dato generico a guardar
     struct node * next;             // Proximo nodo en la lista
@@ -18,6 +14,12 @@ typedef struct list_t{
     compare_function cmp;           // Funcion de comparacion
     uint64_t size;                  // Cantidad de elementos
 } list_t;
+
+static node_t * add_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size);
+static node_t * delete_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size, void ** response);
+static void * get_rec(node_t * node, void * elem_id, compare_function cmp);
+static void free_rec(node_t * node);
+
 
 //----------------------------------------------------------------------
 // new_orderListADT: Crea una nueva lista ordenada
@@ -44,6 +46,25 @@ orderListADT new_orderListADT(compare_function cmp){
     return list;
 }
 
+//----------------------------------------------------------------------
+// orderListADT_add: Agrega un nuevo elemento a la lista
+//----------------------------------------------------------------------
+// Argumentos:
+//  myListADT: la lista sobre el cual agregar
+//  elem: el elemento a agregar
+//----------------------------------------------------------------------
+// Retorno:
+//  Devuelve 1 si lo pudo agregar
+//  Devuelve -1 si no lo pudo agregar
+//----------------------------------------------------------------------
+int8_t orderListADT_add(orderListADT myListADT, void * elem){
+    if(myListADT == NULL || elem == NULL){
+        return -1;
+    }
+    myListADT->first = add_rec(myListADT->first, elem, myListADT->cmp, &myListADT->size);
+    return 1;
+}
+
 // Funcion recursiva para agregar a la lista
 static node_t * add_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size){
     // Si es el final de la lista o el proximo es mayor, lo agrego ahora
@@ -66,44 +87,6 @@ static node_t * add_rec(node_t * node, void * elem, compare_function cmp, uint64
     return node;
 }
 
-//----------------------------------------------------------------------
-// orderListADT_add: Agrega un nuevo elemento a la lista
-//----------------------------------------------------------------------
-// Argumentos:
-//  myListADT: la lista sobre el cual agregar
-//  elem: el elemento a agregar
-//----------------------------------------------------------------------
-// Retorno:
-//  Devuelve 1 si lo pudo agregar
-//  Devuelve -1 si no lo pudo agregar
-//----------------------------------------------------------------------
-int8_t orderListADT_add(orderListADT myListADT, void * elem){
-    if(myListADT == NULL || elem == NULL){
-        return -1;
-    }
-    myListADT->first = add_rec(myListADT->first, elem, myListADT->cmp, &myListADT->size);
-    return 1;
-}
-
-
-static node_t * delete_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size, void ** response){
-    // Si llego al final de la lista o el nodo es mayor al actual, entonces el elemento no esta
-    if(node == NULL || cmp(node->data, elem) > 0){
-        response = NULL;
-        return node;
-    }
-    // Si la funcion cmp da 0, entonces lo encontre
-    if(cmp(node->data, elem) == 0){
-        node_t * aux = node->next;
-        *response = node->data;
-        mm_free(node);
-        *size = *size - 1;
-        return aux;
-    }
-    // En cualquier otro caso debo seguir recorriendo la lista para ver si lo encuentro
-    node->next = delete_rec(node->next, elem, cmp, size, response);
-    return node;
-}
 
 //----------------------------------------------------------------------
 // orderListADT_delete: Elimina un elemento de la lista
@@ -123,6 +106,28 @@ void * orderListADT_delete(orderListADT myListADT, void * elem){
     myListADT->first = delete_rec(myListADT->first, elem, myListADT->cmp, &myListADT->size, &response);
     return response;
 }
+
+// Funcion recursiva para eliminar de la lista
+static node_t * delete_rec(node_t * node, void * elem, compare_function cmp, uint64_t * size, void ** response){
+    // Si llego al final de la lista o el nodo es mayor al actual, entonces el elemento no esta
+    if(node == NULL || cmp(node->data, elem) > 0){
+        response = NULL;
+        return node;
+    }
+    // Si la funcion cmp da 0, entonces lo encontre
+    if(cmp(node->data, elem) == 0){
+        node_t * aux = node->next;
+        *response = node->data;
+        mm_free(node);
+        *size = *size - 1;
+        return aux;
+    }
+    // En cualquier otro caso debo seguir recorriendo la lista para ver si lo encuentro
+    node->next = delete_rec(node->next, elem, cmp, size, response);
+    return node;
+}
+
+
 
 //----------------------------------------------------------------------
 // orderListADT_edit: Edita un elemento de la lista
@@ -153,19 +158,6 @@ void * orderListADT_edit(orderListADT myListADT, void * prev_elem, void * new_el
     return response;
 }
 
-static void * get_rec(node_t * node, void * elem_id, compare_function cmp){
-    // Si llegue al final de la lista o el siguiente es mayor, entonces no lo encontre
-    if(node == NULL || cmp(node->data, elem_id) > 0){
-        return NULL;
-    }
-    // Si la funcion de comparacion da 0, entonces lo encontre
-    if(cmp(node->data, elem_id) == 0){
-        return node->data;
-    }
-    // En otro caso, debo seguir recorriendo la lista
-    return get_rec(node->next, elem_id, cmp);
-}
-
 //----------------------------------------------------------------------
 // orderListADT_get: Devuelve un elemento de la lista
 //----------------------------------------------------------------------
@@ -185,6 +177,22 @@ void * orderListADT_get(orderListADT myListADT, void * elem_id){
     }
     return get_rec(myListADT->first, elem_id, myListADT->cmp);
 }
+
+
+static void * get_rec(node_t * node, void * elem_id, compare_function cmp){
+    // Si llegue al final de la lista o el siguiente es mayor, entonces no lo encontre
+    if(node == NULL || cmp(node->data, elem_id) > 0){
+        return NULL;
+    }
+    // Si la funcion de comparacion da 0, entonces lo encontre
+    if(cmp(node->data, elem_id) == 0){
+        return node->data;
+    }
+    // En otro caso, debo seguir recorriendo la lista
+    return get_rec(node->next, elem_id, cmp);
+}
+
+
 
 //----------------------------------------------------------------------
 // orderListADT_size: Devuelve la cantidad de elementos en la lista
@@ -214,14 +222,6 @@ uint8_t orderListADT_is_empty(orderListADT myListADT){
 }
 
 
-static void free_rec(node_t * node){
-    if(node == NULL){
-        return;
-    }
-    free_rec(node->next);
-    mm_free(node);
-}
-
 //----------------------------------------------------------------------
 // free_orderListADT: Destruye la lista
 //----------------------------------------------------------------------
@@ -236,6 +236,14 @@ void free_orderListADT(orderListADT myListADT){
     }
     free_rec(myListADT->first);
     mm_free(myListADT);
+}
+
+static void free_rec(node_t * node){
+    if(node == NULL){
+        return;
+    }
+    free_rec(node->next);
+    mm_free(node);
 }
 
 
@@ -283,15 +291,3 @@ void * orderListADT_next(orderListADT myListADT){
     myListADT->current = myListADT->current->next;
     return aux;
 }
-
-//
-////Para testeo
-//void printList(orderListADT myListADT){
-//    if(myListADT == NULL)
-//        return;
-//    node_t * aux = myListADT->first;
-//    while(aux != NULL){
-//        printf(" %d ->", *(uint32_t *)aux->data);
-//        aux = aux->next;
-//    }
-//}

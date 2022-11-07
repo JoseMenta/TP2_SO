@@ -1,17 +1,13 @@
-#include "../include/pipes.h"
 #include <mm.h>
 #include <orderListADT.h>
 #include <scheduler.h>
 #include <syscalls.h>
 #include <video_driver.h>
 #include <stringLib.h>
+#include <keyboard.h>
+#include <pipes.h>
+#include <semaphores.h>
 
-//TODO: sacar
-#include "../include/syscalls.h"
-#include "../include/semaphores.h"
-#include "../include/mm.h"
-#include "../include/video_driver.h"
-#include "../include/keyboard.h"
 orderListADT pipes_list = NULL;
 static pipe_info * console_pipe = NULL;
 static pipe_restrict * console_pipe_restrict = NULL;
@@ -42,22 +38,10 @@ int pipe_initialize(){
     error_pipe_restrict = create_restrict_pipe(CONSOLE_ERR, console_pipe);
     orderListADT_add(pipes_list, console_pipe);
     return 0;
-    /*
-    get_current_pcb()->fd[0] = console_pipe_restrict;
-    get_current_pcb()->fd[1] = console_pipe_restrict;
-    get_current_pcb()->fd[2] = error_pipe_restrict;
-    for(int i=3; i<MAXFD; i++){
-        get_current_pcb()->fd[i] = NULL;
-    }
-     */
 }
 
 //-----------------------------------------------------------------------------------------
 //pipe_end: Finalizar el manejo de los pipes
-//-----------------------------------------------------------------------------------------
-//Argumentos:
-//-----------------------------------------------------------------------------------------
-//Retorno:
 //-----------------------------------------------------------------------------------------
 void pipe_terminated(){
     free_orderListADT(pipes_list);
@@ -65,7 +49,7 @@ void pipe_terminated(){
 }
 
 //-----------------------------------------------------------------------------------------
-//Obtener las variables globales, para que sean static
+//Funciones para obtencion de variables globales
 //-----------------------------------------------------------------------------------------
 pipe_info * get_pipe_console(){
     return console_pipe;
@@ -78,7 +62,7 @@ pipe_restrict * get_pipe_console_restrict(){
 }
 
 //-----------------------------------------------------------------------------------------
-//pipe: Crea de un pipe
+//pipe: Crear un pipe
 //-----------------------------------------------------------------------------------------
 //Argumentos:
 //  fd[2] = puntero donde almaceno los fd del pipe
@@ -119,7 +103,7 @@ int pipe(int fd[2]){
 
 
 //-----------------------------------------------------------------------------------------
-//open_fifo: Crea un fifo
+//open_fifo: Crea un fifo/pipe con identificador
 //-----------------------------------------------------------------------------------------
 //Argumentos:
 //  mode = modo del fd
@@ -135,19 +119,19 @@ int open_fifo(Pipe_modes mode, char * name){
     if(info == NULL){
         info = create_info_pipe(name);
     }
+
     //Un fifo admite cualquiera de los 3 modos
     int fd = get_next_fd();
     if(fd==-1){
-        print("fallo fd", WHITE, ALL);
         mm_free(info);
         return -1;
     }
 
 
     get_current_pcb()->fd[fd] = create_restrict_pipe(mode, info);
-
     if(orderListADT_add(pipes_list, info) == -1){
-        print("da -1", WHITE, ALL);
+        mm_free(info);
+        return -1;
     }
 
     return fd;
@@ -167,15 +151,14 @@ int open_fifo(Pipe_modes mode, char * name){
 int link_pipe_named(Pipe_modes mode, char * name){
     int fd = get_next_fd();
     if(fd==-1){
-        print("fallo fd del link", WHITE, ALL);
         return -1;
     }
-    //Creo una structura igual para la comparacion
+
+    //Creo una estructura igual para la comparacion
     pipe_info aux;
     aux.name=name;
     pipe_info * info = orderListADT_get(pipes_list, &aux);
     if(info == NULL){
-        print("fallo  creacion de info", WHITE, ALL);
         return -1;
     }
 
@@ -191,18 +174,21 @@ int link_pipe_named(Pipe_modes mode, char * name){
 //  info_pipe = modo del fd
 //-----------------------------------------------------------------------------------------
 //Retorno:
-//  fd de donde se referencia el fifo, -1 en caso de error
+//  -1 en caso de error, 0 en caso de exito
 //-----------------------------------------------------------------------------------------
 int close_fd(int fd, uint64_t pid){
     pipe_restrict * pipe_mode = get_pcb_by_pid(pid)->fd[fd];
     pipe_mode->count_access--;
     pipe_mode->info->count_access--;
+
     //Libero si no tengo a nadie apuntandolo y si no queda nada por leer
     if(pipe_mode->info->count_access == 0 && pipe_mode->info->index_write == pipe_mode->info->index_read){
         orderListADT_delete(pipes_list, pipe_mode->info);
         sem_close(pipe_mode->info->lock);
         mm_free(pipe_mode->info);
     }
+
+    //Libero si no tengo a nadie apuntandolo
     if(pipe_mode->count_access == 0){
         mm_free(pipe_mode);
     }
@@ -220,7 +206,7 @@ int close_fd(int fd, uint64_t pid){
 //  count: cantidad de caracteres a escribir
 //-----------------------------------------------------------------------------------------
 //Retorno:
-//  fd de donde se referencia el fifo, -1 en caso de error
+//  cantidad de caracteres escritos
 //-----------------------------------------------------------------------------------------
 int write(int fd, const char * buf, int count){
     pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
@@ -253,7 +239,6 @@ int write(int fd, const char * buf, int count){
                 pipe_mode->info->pid_write_lock[index_block] = get_current_pcb()->pid;
                 pipe_mode->info->pid_write_lock[index_block+1] = 0;
                 sem_post(pipe_mode->info->lock);
-                //print("block", WHITE, ALL);
                 if(block_process_handler(get_current_pcb()->pid) == -1){
                     return -1;
                 }
@@ -263,13 +248,10 @@ int write(int fd, const char * buf, int count){
         }
     }
     if(pipe_mode->mode!=CONSOLE){
-    //No chequea nunca que haya espacio
-    //TODO: revisar, lo saque poruqe nunca se verifica que haya espacio
-    //hacer testeos
         pipe_mode->info->buff[pipe_mode->info->index_write % PIPESIZE] = '\0';
     }
 
-    //Desperta a todos los lectores que se habian bloqueado
+    //Despertar a todos los lectores que se habian bloqueado
     for(int i=0; i<MAXLOCK && pipe_mode->info->pid_read_lock[i] != 0; i++){
         unblock_process_handler(pipe_mode->info->pid_read_lock[i]);
         pipe_mode->info->pid_read_lock[i] = 0;
@@ -278,6 +260,16 @@ int write(int fd, const char * buf, int count){
     return write;
 }
 
+//-----------------------------------------------------------------------------------------
+//write_keyboard: Escribir al buffer mediante el keyboar, logica especial por ser no bloqueante
+//-----------------------------------------------------------------------------------------
+//Argumentos:
+//  buf: char* a imprimir
+//  count: cantidad de caracteres a escribir
+//-----------------------------------------------------------------------------------------
+//Retorno:
+//  cantidad de caracteres escritos
+//-----------------------------------------------------------------------------------------
 int write_keyboard(const char * buf, int count){
     int write;
 
@@ -309,7 +301,7 @@ int write_keyboard(const char * buf, int count){
 //  count: cantidad de caracteres a leer
 //-----------------------------------------------------------------------------------------
 //Retorno:
-//  fd de donde se referencia el fifo, -1 en caso de error
+//  cantidad de caracteres leidos
 //-----------------------------------------------------------------------------------------
 int read(int fd, char * buf, int count){
     pipe_restrict * pipe_mode = get_current_pcb()->fd[fd];
@@ -319,37 +311,30 @@ int read(int fd, char * buf, int count){
     int read;
     //lock del mutex del pipe
     sem_wait(pipe_mode->info->lock);
+
     //No tengo nada para leer
     while(pipe_mode->info->index_read == pipe_mode->info->index_write){
-        //char aux[2] = {pipe_mode->info->count_access +'0', '\0'};
-        //print("--pipe", WHITE, ALL);
-        //print(aux, WHITE, ALL);
-        //char aux2[2] = {pipe_mode->count_access +'0', '\0'};
-        //print("\nrestrict", WHITE, ALL);
-        //print(aux2, WHITE, ALL);
         if(pipe_mode->info->count_access == pipe_mode->count_access){
-            //print("aca", WHITE, ALL);
             sem_post(pipe_mode->info->lock);
             return -1;
         }
+
         //Bloqueo al proceso actual
         int index_block = index_lock_pid(pipe_mode->info->pid_read_lock);
         pipe_mode->info->pid_read_lock[index_block] = get_current_pcb()->pid;
         pipe_mode->info->pid_read_lock[index_block+1] = 0;
-        //TODO revisar concurrencia
         sem_post(pipe_mode->info->lock);
         if(block_process_handler(get_current_pcb()->pid) == -1){
             return -1;
         }
         sem_wait(pipe_mode->info->lock);
     }
-    //para que devuelva -1 en el caso de eof
+    //Devuelve -1 en el caso de eof
     if(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE){
         sem_post(pipe_mode->info->lock);
         pipe_mode->info->index_read++;
         return -1;
     }
-    //Si tengo algo para leer entonces no lo tengo que bloquear cuando termina
     for(read = 0; read < count && pipe_mode->info->index_read != pipe_mode->info->index_write && !(pipe_mode->info->buff[pipe_mode->info->index_read % PIPESIZE]==EOF && pipe_mode->mode==CONSOLE); read++){
         buf[read] = pipe_mode->info->buff[pipe_mode->info->index_read++ % PIPESIZE];
         if(pipe_mode->mode==CONSOLE){
@@ -357,7 +342,6 @@ int read(int fd, char * buf, int count){
             print_char(pipe_mode->info->buff[(pipe_mode->info->index_read-1) % PIPESIZE],WHITE,ALL);
         }
     }
-    //TODO: revisar, nunca chequea que haya espacio, hay que testearlo
     buf[read] = '\0';
 
     //Desperta a todos los escritores que se habian bloqueado
@@ -365,9 +349,7 @@ int read(int fd, char * buf, int count){
         unblock_process_handler(pipe_mode->info->pid_write_lock[i]);
         pipe_mode->info->pid_write_lock[i] = 0;
     }
-//    if(pipe_mode->mode==CONSOLE){
-//        print(buf, WHITE, ALL);
-//    }
+
     sem_post(pipe_mode->info->lock);
     return read;
 }
@@ -476,7 +458,6 @@ int64_t pipe_compare(pipe_info * elem1, pipe_info * elem2){
 //-----------------------------------------------------------------------------------------
 pipe_info * create_info_pipe(char * name){
     pipe_info * aux = mm_alloc(sizeof(pipe_info));
-//    aux->lock = mm_alloc(sizeof (sem_t));
     if((aux->lock=sem_init(NULL, 1)) == NULL){
         mm_free(aux->lock);
         mm_free(aux);
@@ -489,7 +470,7 @@ pipe_info * create_info_pipe(char * name){
         aux->name[strlen(name)] = '\0';
         strcpy(aux->name, name);
     }
-    //print(aux->name, WHITE, ALL);
+
     aux->count_access=0;
     aux->index_write=0;
     aux->index_read=0;

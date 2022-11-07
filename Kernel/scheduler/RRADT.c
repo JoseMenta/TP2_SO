@@ -1,14 +1,8 @@
-//
-// Created by Jose Menta on 22/10/2022.
-//
 
 #include <RRADT.h>
 #include <mm.h>
 #include <RRLevelADT.h>
-//TODO: sacar
-#include "../include/RRLevelADT.h"
-#include "../include/RRADT.h"
-#include "../include/mm.h"
+
 
 struct RRCDT{
     RRLevelADT levels[PRIORITY_LEVELS];

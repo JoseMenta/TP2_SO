@@ -8,7 +8,11 @@ static uint8_t * currentVideo = (uint8_t*)0xB8000;			// Indica la posicion actua
 static const uint32_t width = 80;							// La pantalla es una matriz de 80x25 caracteres (largoXalto)
 static const uint32_t height = 25;
 
-void ncPrint(const char * string)							// Imprime un string pasado por parametros
+
+//----------------------------------------------------------------------
+// ncPrint: imprime por naiveConsole un string
+//----------------------------------------------------------------------
+void ncPrint(const char * string)
 {
 	int i;
 
@@ -16,51 +20,76 @@ void ncPrint(const char * string)							// Imprime un string pasado por parametr
 		ncPrintChar(string[i]);
 }
 
-void ncPrintChar(char character)							// Imprime un char pasado por parametros
+//----------------------------------------------------------------------
+// ncPrintChar: imprime por naiveConsole un char
+//----------------------------------------------------------------------
+void ncPrintChar(char character)
 {
 	*currentVideo = character;
-	currentVideo += 2;										// Se suma 2 pues la posicion siguiente a la de un caracter se define el formato con la que se imprime (color de fondo y letra) 
+    // Se suma 2 pues la posicion siguiente a la de un caracter se define el formato con la que se imprime (color de fondo y letra)
+	currentVideo += 2;
 }
 
-void ncNewline()											// Realiza un salto de linea
-{
+//----------------------------------------------------------------------
+// ncNewline: funcion para impresion de salto de linea
+//----------------------------------------------------------------------
+void ncNewline(){
 	do
 	{
-		ncPrintChar(' ');									// Basicamente es imprimir un espacio en los caracteres que falten para completar la linea
+		ncPrintChar(' ');
 	}
 	while((uint64_t)(currentVideo - video) % (width * 2) != 0);
 }
 
-void ncPrintDec(uint64_t value)								// Imprime un numero en formato decimal
+//----------------------------------------------------------------------
+// ncPrintDec: Imprime un numero en formato decimal
+//----------------------------------------------------------------------
+void ncPrintDec(uint64_t value)
 {
 	ncPrintBase(value, 10);
 }
 
-void ncPrintHex(uint64_t value)								// Imprime un numero en formato hexadecimal
+//----------------------------------------------------------------------
+// ncPrintDec: Imprime un numero en formato hexadecimal
+//----------------------------------------------------------------------
+void ncPrintHex(uint64_t value)
 {
 	ncPrintBase(value, 16);
 }
 
-void ncPrintBin(uint64_t value)								// Imprime un numero en formato binario
+//----------------------------------------------------------------------
+// ncPrintDec: Imprime un numero en formato binario
+//----------------------------------------------------------------------
+void ncPrintBin(uint64_t value)
 {
 	ncPrintBase(value, 2);
 }
 
-void ncPrintBase(uint64_t value, uint32_t base)				// Imprime un numero en base pasado por parametros
+//----------------------------------------------------------------------
+// ncPrintBase: Imprime un numero en base pasado por parametros
+//----------------------------------------------------------------------
+void ncPrintBase(uint64_t value, uint32_t base)
 {
-    uintToBase(value, buffer, base);						// Guarda el string del numero en el buffer
+    uintToBase(value, buffer, base);
     ncPrint(buffer);
 }
 
-void ncClear()												// Borra todo lo que aparezca en pantalla
+//----------------------------------------------------------------------
+// ncClear: Borra lo que aparezca en pantalla
+//----------------------------------------------------------------------
+void ncClear()
 {
 	int i;
 
 	for (i = 0; i < height * width; i++)
-		video[i * 2] = ' ';									// Basicamente es imprimir un espacio en todos los caracteres de la pantalla
+        // Basicamente es imprimir un espacio en todos los caracteres de la pantalla
+		video[i * 2] = ' ';
 	currentVideo = video;
 }
 
+//----------------------------------------------------------------------
+// uintToBase: pasaje de uint a base
+//----------------------------------------------------------------------
 static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base)
 {
 	char *p = buffer;

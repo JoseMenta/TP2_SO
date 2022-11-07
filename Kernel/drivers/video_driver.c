@@ -1,56 +1,15 @@
 #include <video_driver.h>
 #include <keyboard.h>
-//TODO: sacar
-#include "../include/video_driver.h"
-#include "../include/keyboard.h"
-#define WIDTH 160
-#define HEIGHT 25
-#define NEXT_COL 2
-#define MID_WIDTH (WIDTH/2)
 
-#define L_ROW_START 0
-#define L_COL_START 0
-
-#define L_ROW_END (HEIGHT - 1)
-#define L_COL_END (MID_WIDTH - 2 * NEXT_COL)
-
-#define R_ROW_START 0
-#define R_COL_START (MID_WIDTH + NEXT_COL)
-
-#define R_ROW_END (HEIGHT - 1)
-#define R_COL_END (WIDTH - NEXT_COL)
-
-#define A_ROW_START 0
-#define A_COL_START 0
-
-#define A_ROW_END (HEIGHT - 1)
-#define A_COL_END (WIDTH - NEXT_COL)
-
-#define SCREEN_ENDED(pos) ((pos).row_current == (pos).row_end && (pos).col_current == (pos).col_end)
-#define VIDEO_OFFSET(pos) (WIDTH*((pos).row_current) + (pos).col_current)
-
-//TODO: sacar magic numbers
-typedef struct{
-    uint32_t row_start;             // La fila inicial
-    uint32_t col_start;             // La columna inicial
-    uint32_t row_current;           // La fila actual
-    uint32_t col_current;           // La columna actual
-    uint32_t row_end;               // La fila final
-    uint32_t col_end;               // La columna final
-} coordinatesType;
-
+//uint8_t para que cuando hacemos ++, vaya avanzando de a 1 byte
+static uint8_t * const video_start = (uint8_t *) 0xB8000;
 void next(coordinatesType * position);
 void print_aux(uint8_t * curr, char c, formatType letterFormat, positionType position);
+
 
 coordinatesType coordinates[3] = {  {A_ROW_START, A_COL_START, A_ROW_START, A_COL_START, A_ROW_END, A_COL_END},
                                     {L_ROW_START, L_COL_START, L_ROW_START, L_COL_START, L_ROW_END, L_COL_END},
                                     {R_ROW_START, R_COL_START, R_ROW_START, R_COL_START, R_ROW_END, R_COL_END} };
-
-// Con estas variables podemos calcular la posicion donde se debe imprimir un caracter con la formula:
-//                              video_start + WIDTH * row + column
-
-//uint8_t para que cuando hacemos ++, vaya avanzando de a 1 byte
-static uint8_t * const video_start = (uint8_t *) 0xB8000;
 
 
 //-----------------------------------------------------------------------
@@ -170,7 +129,6 @@ void new_line(positionType position){
 //-----------------------------------------------------------------------
 // Funcion auxiliar para obtener la siguiente posicion donde tiene que ir el offset según la porcion indicado por parametro
 //-----------------------------------------------------------------------
-
 void next(coordinatesType * position){
     // Si se llego al final de una fila, paso a la proxima fila y al principio de ella
     if(position->col_current == position->col_end){
@@ -219,7 +177,7 @@ void scroll_up(positionType position){
         *(video_start + c.row_current * WIDTH + c.col_current) = *(video_start + (c.row_current+1) * WIDTH + c.col_current);
         *(video_start + c.row_current * WIDTH + c.col_current + 1) = *(video_start + (c.row_current+1) * WIDTH + c.col_current + 1);
     }
-    // Nos paramos en la fila anterior pues todo se subio una fila arriba
+    // Nos paramos en la fila anterior pues se subio una fila arriba
     if(coordinates[position].row_current >= 1){
         // Si habia llegado a la ultima fila, debo borrar los caracteres en esa fila
         if(coordinates[position].row_current == coordinates[position].row_end){//Aca se esta rompiendo hash[70]
@@ -232,7 +190,7 @@ void scroll_up(positionType position){
         }
         coordinates[position].row_current--;
     }
-        // En cambio, si estoy en la primera fila, se borro todo, por lo que se debe empezar desde el principio
+        // En cambio, si estoy en la primera fila, se borro completo, por lo que se debe empezar desde el principio
     else {
         coordinates[position].col_current = coordinates[position].col_start;
     }

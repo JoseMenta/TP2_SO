@@ -8,9 +8,8 @@
 #include <mm.h>
 #include <scheduler.h>
 #include <pipes.h>
-#include "../include/scheduler.h"
-#include "../include/pipes.h"
-#include "../include/video_driver.h"
+
+
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -114,10 +113,6 @@ void testMM(){
         ncNewline();
     }
     *dir2 = '2';
-//    ncPrint("Dir: ");
-//    ncPrintHex((uint64_t)dir);
-//    ncPrint("Dir2: ");
-//    ncPrintHex((uint64_t)dir2);
     if(*dir!='1'){
         ncPrint("Error: No se preseva el valor escrito en la direccion dir");
         ncNewline();
@@ -155,7 +150,7 @@ void testMM(){
         ncNewline();
     }
     uint8_t* dir7 = mm_alloc(100);
-    //Libero todo para ver si junta los bloques liberados de adelante y atras
+    //Libero para ver si junta los bloques liberados de adelante y atras
     if(*dir2!='2'){
         ncPrint("Error: No se preseva el valor escrito en la direccion dir2");
         ncNewline();
@@ -206,7 +201,8 @@ void testMM(){
     }
 }
 
-int main()													// Es la primera funcion que se ejecutará una vez se halla cargado el SO en el sistema
+// Es la primera funcion que se ejecutará una vez se halla cargado el SO en el sistema
+int main()
 {
 //    load_idt();
 	ncPrint("[Kernel Main]");
@@ -250,7 +246,6 @@ int main()													// Es la primera funcion que se ejecutará una vez se hal
     //    aca habilitamos las interrupciones, para que el scheduler ya tenga a donde ir en la primera
     load_idt();
     while(1);//para que espere hasta el tt y se vaya al bash
-    //pipe_terminated();
     //((EntryPoint)sampleCodeModuleAddress)();
     print("Computadora apagada",WHITE,ALL);
     clear(ALL);

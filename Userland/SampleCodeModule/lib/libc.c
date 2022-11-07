@@ -1,5 +1,4 @@
 #include <libc.h>
-#include <programs.h>
 #include <os_tests.h>
 #include <built_in.h>
 #include <bash.h>
@@ -7,25 +6,18 @@
 #include "../include/libc.h"
 #include "../include/bash.h"
 #include "../include/os_tests.h"
-#include "../include/test_pipes.h"
 #include "../include/built_in.h"
 
 #define MAX_NUMBER_LENGTH 21
 
 
 front_program_t programs[CANT_PROG] = {
-        {"bash","\tbash: Crea un bash\n",&bash},
+        {"sh","\tsh: Shell de usuario que permita ejecutar las aplicaciones\n",&bash},
         {"help","\thelp: Despliega los distintos comandos disponibles\n",&help},
-        {"tiempo","\ttiempo: Fecha y hora actuales (GMT -3)\n",&tiempo},
-        {"test-processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
-        {"test-prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
-        {"test-sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
-        {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
         {"mem","\tmem: Imprime el estado de la memoria\n",&mem},
         {"ps","\tps: Imprime la lista de todos los procesos y sus propiedades\n",&ps},
         {"loop","\tloop: Imprime su ID cada 2 segundos\n",&loop},
         {"kill","\tkill: Mata a un proceso dado su ID\n",&kill},
-        {"waitpid","\twaitpid: Espera a un proceso dado su ID (o eliminar zombies)\n",&wait_pid_command},
         {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice_command},
         {"block","\tblock: Bloquea a un proceso dado su ID\n",&block},
         {"unblock","\tunblock: Desbloquea a un proceso dado su ID\n",&unblock},
@@ -35,11 +27,15 @@ front_program_t programs[CANT_PROG] = {
         {"filter","\tfilter: Filtra las vocales del input por entrada estandar\n",&filter},
         {"pipe","\tpipe: Imprime una lista de los pipes con sus propiedades\n",&pipe_info},
         {"phylo","\tphylo: Implementacion del problema de los filosofos comensales con una cantidad dinamica de los mismos\n",&phylo},
-        {"write.name", "\twrite_pipe\n", &write_pipe_name},
-        {"read.name", "\tread_pipe\n", &read_pipe_name},
-        {"write.common", "\twrite_pipe_c\n", &write_pipe_common},
-        {"read.common", "\tread_pipe_c\n", &read_pipe_common},
-        {"info.pipe", "\tinfo del pipe\n", &pipe_info}
+        {"waitpid","\twaitpid: Espera a un proceso dado su ID (o eliminar zombies)\n",&wait_pid_command},
+        {"test-processes","\ttest_processes: Testeo del scheduler creando y matando procesos\n",&test_processes},
+        {"test-prio","\ttest_prio: Testeo del manejo de prioridades en el scheduler\n",&test_prio},
+        {"test-sync","\ttest_sync: Testeo del funcionamiento de los semaforos\n",&test_sync},
+        {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
+        {"write-fifo", "\twrite-fifo: escribir en un pipe con nombre\n", &write_pipe_name},
+        {"read-fifo", "\tread-fifo: leer de un pipe con nombre\n", &read_pipe_name},
+        {"write-common", "\twrite_common: escribir por salida standart\n", &write_pipe_common},
+        {"read-common", "\tread_common: leer por salida standart\n", &read_pipe_common},
 };
 
 
@@ -145,7 +141,6 @@ uint8_t get_char_fd(int fd){
 //      Devuelve a la linea o max_len caracteres, lo que ocurra antes
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
-//TODO: solucionar el tema de eliminar, a veces funciona y a veces no
 uint32_t get_line(char* buf, uint32_t max_len){
     int read = 0;
     char c[2];
@@ -155,31 +150,15 @@ uint32_t get_line(char* buf, uint32_t max_len){
             buf[read]=c[0];
             read++;
         }else if(read>0){
+            buf[read]='\0';
             read--;
-        }
-
-    }
-    buf[read] = '\n';
-    buf[read+1] = '\0';
-    return read;
-}
-
-uint32_t get_string(char* buf, uint32_t max_len){
-    int read = 0;
-    char c[2];
-    c[1]='\0';
-    for(; (c[0] = get_char()) != '\0' && read<max_len-2;){
-        if(c[0]!=ASCII_DELETE){
-            buf[read]=c[0];
-            read++;
-//            write(STDOUT, c, 1);
-        } else if(read>0){
-            read--;
-//            write(STDOUT, c, 1);
+        }else{
+            write(STDOUT, " ", 1);
         }
     }
     buf[read] = '\n';
     buf[read+1] = '\0';
+    buf[read+2] = '\0';
     return read;
 }
 
@@ -196,49 +175,26 @@ uint32_t get_string(char* buf, uint32_t max_len){
 //      Devuelve a la linea o max_len caracteres, lo que ocurra antes
 //      Por lo tanto, si el valor devuelto es max_len-1, se debe chequear si el ultimo caracter es \n (buf[max_len-2] o buf[ret-1])
 //---------------------------------------------------------------------------------
-
 uint32_t get_line_fd(char* buf, uint32_t max_len, int fd){
     int read = 0;
-    char c;
-    for(; (c = get_char_fd(fd)) != '\n' && read<max_len; read++){
-        buf[read]=c;
+    char c[2];
+    c[1]='\0';
+    for(; (c[0] = get_char_fd(fd)) != '\n' && read<max_len-2;){
+        if(c[0]!=ASCII_DELETE){
+            buf[read]=c[0];
+            read++;
+        }else if(read>0){
+            buf[read]='\0';
+            read--;
+        }if(read == 0){
+            write(fd, " ", 1);
+        }
     }
     buf[read] = '\n';
+    buf[read+1] = '\0';
     return read;
 }
 
-/*
-uint32_t get_line(char* buf, uint32_t max_len){
-    uint32_t curr = 0;
-    int finished = 0;
-//    max_len--; //para poder hacer buf[i+1] sin problema en el caso donde entra justo
-    do{
-        long aux = 0;
-        //si le paso maximo 10, lee 9 caracteres y el \0 y devuelve 9
-        aux = read(STDIN,buf,(max_len-curr));
-        print_number(aux);
-        write(STDOUT,buf,aux);
-        for(uint32_t i = curr; i<curr+aux && !finished; i++){
-            print_string("entre");
-            print_string(&buf[i]);
-            print_string("dsp");
-            if(buf[i]=='\n'){
-                print_string("hola");
-                buf[i+1]='\0';
-                curr = i+1;//le devuelvo la cantidad de caracteres incluyendo el \n
-                finished = 1;
-            }
-        }
-        if(!finished){
-            curr+=aux;
-            if(curr+1==max_len){//aux<=max_len-curr => aux+curr<=max_len
-                finished=1;
-            }
-        }
-    } while (!finished);
-    return curr;
-}
-*/
 
 //---------------------------------------------------------------------------------
 // print_string_with_padding: imprime un String completando con espacios el tamaño libre
@@ -263,6 +219,15 @@ uint8_t print_string_with_padding(const char * s1, uint8_t len){
     return write(STDOUT, aux, len);
 }
 
+//---------------------------------------------------------------------------------
+// print_numbers: imprime un vector de numeros
+//---------------------------------------------------------------------------------
+// Argumentos:
+//      nums: array de numeros
+//      len: dimension del array
+//---------------------------------------------------------------------------------
+// Retorno:
+//---------------------------------------------------------------------------------
 void print_numbers(const uint64_t* nums, uint32_t len){
     if(nums==NULL){
         return;
@@ -272,6 +237,8 @@ void print_numbers(const uint64_t* nums, uint32_t len){
         print_string(" ");
     }
 }
+
+
 //---------------------------------------------------------------------------------
 // printString: imprime un String
 //---------------------------------------------------------------------------------
@@ -284,6 +251,7 @@ void print_numbers(const uint64_t* nums, uint32_t len){
 uint8_t print_string(const char * s1){
     return write(STDOUT, s1, strlen(s1));
 }
+
 
 //---------------------------------------------------------------------------------
 // printString_fd: imprime un String en fd
@@ -313,6 +281,7 @@ uint8_t print_number(uint64_t number){
     number_to_string(number, str);
     return print_string(str);
 }
+
 
 //---------------------------------------------------------------------------------
 // printNumber_fd: imprime un Numero en fd
@@ -382,9 +351,16 @@ void number_to_string(uint64_t num, char * str){
     str[i] = '\0';
 }
 
-
-// Dado el string de un numero, devuelve su entero correspondiente
-// Tambien se puede recibir el resultado por puntero
+//---------------------------------------------------------------------------------
+// string_to_number: Dado el string de un numero, devuelve su entero correspondiente
+//---------------------------------------------------------------------------------
+// Argumentos:
+//   str: el numero en string
+//   resp: el puntero al valor del numero
+//---------------------------------------------------------------------------------
+// Retorno:
+//      numero convertido
+//---------------------------------------------------------------------------------
 uint64_t string_to_number(const char * str, uint64_t * resp){
     uint64_t i = 0;
     uint64_t res = 0;
@@ -431,6 +407,7 @@ char* get_program_name(void* program){
     }
     return NULL;
 }
+
 //-----------------------------------------------------------------------
 // uintToBase: Convierte un entero en la base indica por parametro en un string
 //-----------------------------------------------------------------------
@@ -568,11 +545,6 @@ void p_error(char * str){
     write(STDERR, "\n", 1);
     write(STDERR, str, size);
     write(STDERR, "\n", 2);
-    // print_string("\n", WHITE);
-    // print_string(str, STDERR);
-    // print_string("\n\n", WHITE);
-//    exit();
-//TODO: revisar de hacer un error expulsivo y otro no quizas
 }
 
 //---------------------------------------------------------------------------------

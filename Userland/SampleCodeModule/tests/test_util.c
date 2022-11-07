@@ -3,8 +3,6 @@
 #include "syscall.h"
 #include <libc.h>
 
-//TODO: sacar
-#include "../include/libc.h"
 
 //Random
 static uint32_t m_z = 362436069;

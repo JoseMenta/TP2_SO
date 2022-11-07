@@ -4,29 +4,25 @@
 #include <io.h>
 
 #define ERR_SIZE    40
-
 #define RESP_MSG    "\n-------------------------------------------------\n"
 #define BYTES_RESP "Total de bytes: "
 #define WORDS_RESP "Total de palabras: "
 #define LINES_RESP "Total de lineas: "
 #define NEW_LINE    "\n"
-
 #define IS_BLANK(c) ((c) == '\n' || (c) == '\t' || (c) == ' ')
 
 static unsigned int bytes_counted, words_counted, lines_counted;
 static void write_results(void);
+void wc_fn(char * buffer, unsigned int buff_pos);
 
-void wc_fn(char * buffer, unsigned int buff_pos){
-    uint8_t in_blank = 1;
 
-    bytes_counted += buff_pos;
-    for(unsigned int i = 0; i < buff_pos; i++){
-        words_counted += (IS_BLANK(buffer[i]) && !in_blank) ? 1 : 0;
-        lines_counted += (buffer[i] == '\n') ? 1 : 0;
-        in_blank = IS_BLANK(buffer[i]);
-    }
-}
-
+//---------------------------------------------------------------------------------
+// wc: Cuenta la cantidad de líneas del input.
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (0)
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void wc(uint64_t arg_c, const char ** arg_v){
     bytes_counted = words_counted = lines_counted = 0;
 
@@ -45,6 +41,17 @@ void wc(uint64_t arg_c, const char ** arg_v){
     free(err_buffer);
 
     write_results();
+}
+
+void wc_fn(char * buffer, unsigned int buff_pos){
+    uint8_t in_blank = 1;
+
+    bytes_counted += buff_pos;
+    for(unsigned int i = 0; i < buff_pos; i++){
+        words_counted += (IS_BLANK(buffer[i]) && !in_blank) ? 1 : 0;
+        lines_counted += (buffer[i] == '\n') ? 1 : 0;
+        in_blank = IS_BLANK(buffer[i]);
+    }
 }
 
 

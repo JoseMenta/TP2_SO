@@ -59,55 +59,6 @@ GLOBAL create_new_process_context
 
 SECTION .text
 
-;idle_process:
-;    sti
-;    hlt
-;    jmp idle_process
-
-
-;syscall_handler:
-;    push_state_no_rax
-;    push rdi
-;    mov rdi, rax ;pasamos el numero de la syscall
-;;    call syscall_dispatcher
-;    pop rdi
-;    cmp rax, 0
-;    je fin
-;    call rax ;llamamos a la funcion que nos devuelve el dispatcher
-;    ;llamamos al scheduler para ver quien sigue
-;fin:
-;    int 20h
-;    pop_state_no_rax
-;    iretq
-
-;TODO: hacer que las syscalls reciban los parametros por los registros de 64 bits
-;rax->syscall_number
-;rdi->arg[0]
-;rsi->arg[1]
-;rdx->arg[2]
-;rcx->arg[3]
-
-
-; ---------------------------------------------------------------------------------
-; context_switch_handler
-; ---------------------------------------------------------------------------------
-; Se encarga de realizar el cambio de contexto entre dos procesos: El que se está ejecutando se detiene,
-; y alguno de los procesos que está en la cola de listos comienza su ejecucion
-; ---------------------------------------------------------------------------------
-;context_switch_handler:
-;
-;    push_state
-;
-;    mov rdi, rsp
-;    call scheduler                           ; scheduler es la funcion encargada de recibir el SP del proceso ejecutandose y otorgar el SP del proceso a ejecutar
-;    mov rsp, rax
-;
-;    mov al, 20h                              ; Aviso al PIC que termino la interrupcion
-;    out 20h, al
-;
-;    pop_state
-;
-;    iretq
 
 ;wrapper para los procesos para que no tengan que ejecutar exit (pueden hacer return)
 process_wrapper:

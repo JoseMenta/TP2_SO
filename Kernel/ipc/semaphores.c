@@ -4,13 +4,15 @@
 #include <mm.h>
 #include <scheduler.h>
 
-// TODO: sacar
-#include "../include/semaphores.h"
-#include "../include/mm.h"
-#include "../include/scheduler.h"
-#include "../include/stringLib.h"
-#define FREE        0
-#define OCCUPIED    1
+typedef struct {
+    uint64_t next_sem_id;                   // Guarda el id del proximo semaforo que se cree
+    orderListADT semaphores;                // Lista con los semaforos activos
+    uint8_t lock;                           // Lock para manejar las solicitudes de los distintos semaforos
+} manager_t;
+
+
+static manager_t sem_manager = {0, NULL, FREE};
+
 
 // Realiza la operacion _xchg de ASM
 extern uint8_t _xchg(uint8_t * lock, uint8_t value);
@@ -44,15 +46,6 @@ int64_t cmp_process(uint64_t * p1, uint64_t * p2){
 int64_t cmp_semaphores(sem_t * s1, sem_t * s2){
     return s1->id - s2->id;
 }
-
-typedef struct {
-    uint64_t next_sem_id;                   // Guarda el id del proximo semaforo que se cree
-    orderListADT semaphores;                // Lista con los semaforos activos
-    uint8_t lock;                           // Lock para manejar las solicitudes de los distintos semaforos
-} manager_t;
-
-
-static manager_t sem_manager = {0, NULL, FREE};
 
 //----------------------------------------------------------------------
 // acquire: Intenta tomar el semaforo
@@ -138,7 +131,17 @@ static sem_t * find_sem_by_name(char * name){
 }
 
 
-// Devuelve un nuevo semaforo con el nombre name y con el valor inicial value
+//----------------------------------------------------------------------
+// create_semaphore: Crea un nuevo semaforo
+//----------------------------------------------------------------------
+// Argumentos:
+//  name: nombre del semaforo (puede ser NULL)
+//  value: valor inicial del semaforo
+//----------------------------------------------------------------------
+// Retorno:
+//  Devuelve el semaforo con dicho nombre
+//  Devuelve NULL en caso de error
+//----------------------------------------------------------------------
 static sem_t * create_semaphore(char * name, uint64_t value){
 
     uint64_t pid = 0, * pid_p = NULL, name_size = 0;
@@ -502,6 +505,15 @@ int8_t sem_close(sem_t * sem){
     return OK;
 }
 
+
+//----------------------------------------------------------------------
+// sem_count: retorna la cantidad de semaforos actuales
+//----------------------------------------------------------------------
+// Argumentos:
+//----------------------------------------------------------------------
+// Retorno:
+//  Cantidad de semaforos actuales
+//----------------------------------------------------------------------
 uint32_t sem_count(){
     uint32_t ans = 0;
     acquire(&sem_manager.lock);

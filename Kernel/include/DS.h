@@ -1,6 +1,3 @@
-//
-// Created by Jose Menta on 22/10/2022.
-//
 
 #ifndef TP2_SO_DS_H
 #define TP2_SO_DS_H

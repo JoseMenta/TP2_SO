@@ -30,6 +30,8 @@ int32_t clear_handler(void);
 uint8_t get_time(timeType time_unit);                           // Llama al RTC con la unidad indicada
 uint8_t get_data(uint64_t address_dir);                         // Devuelve el dato de 8 bits almacenado en la direccion de memoria indicada por parametros
 uint64_t* get_inforeg_context();                                // Devuelve el arreglo con el estado de los registros cuando se realizo CTRL+S por ultima vez
+
+// Syscalls de scheduler
 int32_t block_process_handler(uint64_t pid);
 int32_t waitpid_handler(uint64_t pid);
 int32_t yield_handler(void);
@@ -39,12 +41,14 @@ int32_t nice_handler(uint64_t pid, uint8_t priority);
 uint64_t getpid_handler();
 int32_t scheduler_info_handler(process_info_t* processInfo,  uint32_t max_count);
 uint64_t process_count_handler();
+
+// Syscalls de mm
 void* mm_alloc_handler(uint32_t wanted_size);
 void mm_free_handler(void* p);
 void pause_ticks_handler(uint64_t ticks);
 void mm_info_handler(mm_info_t* info);
 
-
+// Syscalls de pipes
 int pipe_handler(int fd[2]);
 int open_fifo_handler(Pipe_modes mode, char * name);
 int link_pipe_named_handler(Pipe_modes mode, char * name);

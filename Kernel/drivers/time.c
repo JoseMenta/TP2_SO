@@ -3,18 +3,17 @@
 #include <stdint.h>
 #include <orderListADT.h>
 #include <mm.h>
-//TODO: sacar
-#include "../include/orderListADT.h"
-#include "../include/mm.h"
-#include "../include/scheduler.h"
+
 uint64_t ticks = 0;
 extern uint64_t scheduler_ticks;
+orderListADT pending_timers = NULL;
 
-typedef struct{
-    uint64_t pid;
-    uint64_t final_tick; //el tick donde termina el timer
-}timer_t;
-//Se ordenan ascendentemente por final_tick y luego por pid
+
+//----------------------------------------------------------------------
+// compare_timer:
+//      Funcion de comparacion entre timers para ADT
+//      Se ordenan ascendentemente por final_tick y luego por pid
+//----------------------------------------------------------------------
 int64_t compare_timer(void* e1, void* e2){
     timer_t* t1 = e1;
     timer_t* t2 = e2;
@@ -23,7 +22,7 @@ int64_t compare_timer(void* e1, void* e2){
     }
     return t1->final_tick - t2->final_tick;
 }
-orderListADT pending_timers = NULL;
+
 
 //----------------------------------------------------------------------
 // timer_handler: handler para timer tick
@@ -34,7 +33,7 @@ orderListADT pending_timers = NULL;
 // La funcion incrementa un contador de ticks (que se utiliza para pausar
 // algunos procesos) y llama al scheduler para cambiar el contexto
 //----------------------------------------------------------------------
-void timer_handler() {							    // Es la funcion que se ejecuta cuando ocurra la interrupcion del timer tick (Incrementa la cantidad de ticks)
+void timer_handler() {
 	ticks++;
     scheduler_ticks++;
     if(pending_timers==NULL){
@@ -51,6 +50,7 @@ void timer_handler() {							    // Es la funcion que se ejecuta cuando ocurra l
     }
 }
 
+
 int32_t add_timer(uint64_t wanted_ticks){
     timer_t* aux = mm_alloc(sizeof (timer_t));
     if(aux==NULL){
@@ -62,10 +62,19 @@ int32_t add_timer(uint64_t wanted_ticks){
     block_process(get_current_pid());
     return 0;
 }
-uint64_t ticks_elapsed() {							// Devuelve la cantidad de veces que se ejecuto la interrupcion del timer tick desde que se inicio el sistema
+
+//----------------------------------------------------------------------
+// ticks_elapsed:
+//      Devuelve la cantidad de veces que se ejecuto la interrupcion del timer tick desde que se inicio el sistema
+//----------------------------------------------------------------------
+uint64_t ticks_elapsed() {
 	return ticks;
 }
 
-uint64_t seconds_elapsed() {					    // Devuelve la cantidad de segundos que transcurrieron desde que se inicio el sistema (Se realiza un tick cada 18,2 segs)
+//----------------------------------------------------------------------
+// seconds_elapsed:
+//      Devuelve la cantidad de segundos que transcurrieron desde que se inicio el sistema (Se realiza un tick cada 18,2 segs)
+//----------------------------------------------------------------------
+uint64_t seconds_elapsed() {
 	return ticks / 18;
 }

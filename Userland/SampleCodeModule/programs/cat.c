@@ -3,13 +3,19 @@
 #include <libc.h>
 #include <io.h>
 
-#include "../include/libc.h"
 #define ERR_SIZE    40
 
 void cat_fn(char * buffer, unsigned int buff_pos){
     write(STDOUT, buffer, buff_pos);
 }
 
+//---------------------------------------------------------------------------------
+// cat: Imprime el stdin tal como lo recibe
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void cat(uint64_t arg_c, const char ** arg_v){
     if(arg_c != 0){
         throw_error("Error: el programa no recibe argumentos.");

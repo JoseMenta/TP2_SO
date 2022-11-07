@@ -6,6 +6,10 @@
 #include <queueADT.h>
 #include <orderListADT.h>
 
+#define FREE        0
+#define OCCUPIED    1
+
+
 // Codigo de errores del semaforo
 // OK: La operacion se realizo exitosamente
 // ERR_MM: Error en la alocacion de memoria

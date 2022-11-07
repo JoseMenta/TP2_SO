@@ -1,40 +1,31 @@
 #include <bash.h>
-#include <programs.h>
-#include <libc.h>
 
-//TODO: sacar
-#include "../include/libc.h"
-//
-#define MAX_BUFFER_SIZE 128         // Tamaño maximo de caracteres que puede almacenar el buffer
-#define MAX_ARGS_SIZE 3            // La cantidad máxima de argumentos que vamos a aceptar en un programa
 
 char buffer[MAX_BUFFER_SIZE];       // lo hacemos global para evitar posibles problemas de stack
 char arg_a[MAX_ARGS_SIZE][MAX_BUFFER_SIZE] = {{0}};         // Argumentos del programa A
 char arg_b[MAX_ARGS_SIZE][MAX_BUFFER_SIZE] = {{0}};        // Argumentos del programa B
 uint64_t characters_in_line = 0;
+
 void analyze_buffer(void);
 void clean_buffer(void);
 void copy_token(char * token, int * start_token, int end_token);
 
 //---------------------------------------------------------------------------------
-// bash: Programa a correr al inciar el UserSpace
+// bash:
+//      Es el programa encargado de interpretar lo que entra el usuario con el teclado
+//      y ejecutar los otros programas si corresponde
 //---------------------------------------------------------------------------------
 // Argumentos:
 //   void
-//---------------------------------------------------------------------------------
-// Es el programa encargado de interpretar lo que entra el usuario con el teclado
-// y ejecutar los otros programas si corresponde
 //---------------------------------------------------------------------------------
 // Retorno
 //   void
 //---------------------------------------------------------------------------------
 void bash(uint64_t arg_c, char ** arg_v){
     if(arg_c!=0){
-        write(1, "error", 100);
         throw_error("Error: el programa no recibe argumentos");
     }
     print_string("Bienvenido!\nQue modulo desea correr?");
-    // print_string("Bienvenido!\nQue modulo desea correr?\n$ ",WHITE);
     while(1){
         print_string("\n$ ");
         int len = get_line(buffer,MAX_BUFFER_SIZE);
@@ -45,6 +36,7 @@ void bash(uint64_t arg_c, char ** arg_v){
         }
     }
 }
+
 
 //---------------------------------------------------------------------------------
 // analyze_buffer: analiza el contenido de lo que ingreso el usuario
@@ -60,15 +52,16 @@ void analyze_buffer(void) {
     //ignoramos espacios iniciales
     for(; buffer[prev_token] == ' ' || buffer[prev_token] == '\t'; prev_token++);
     int new_token = str_tok(buffer + prev_token, ' ');
-    // Si no se ingreso texto, solo ENTER, no se hace nada
+    // Si no se ingreso texto, solo ENTER se genera nueva linea de consola
     if(new_token == 0){
         print_string("\n");
-        // print_string("\n", WHITE);
         return;
     }
-    char tokens[MAX_BUFFER_SIZE];
-    copy_token(tokens, &prev_token, new_token);                // Copiamos el primer string a aux
 
+
+    char tokens[MAX_BUFFER_SIZE];
+    // Copiamos el primer string en tokens
+    copy_token(tokens, &prev_token, new_token);
     // Si se escribe "clear", se borran todas las lineas de comandos previas
     if (strcmp(tokens, "clear") == 0) {
         new_token = str_tok(buffer + prev_token + 1, ' ');
@@ -79,7 +72,6 @@ void analyze_buffer(void) {
             return;
         } else {
             p_error("ERROR: expresion invalida");
-            // print_string("\nERROR: expresion invalida\n", RED);
             clean_buffer();
             return;
         }
@@ -91,9 +83,10 @@ void analyze_buffer(void) {
     if (program_a == NULL) {
         // Lanzar error: El primer string es un programa valido
         p_error("ERROR: programa invalido");
-        // print_string("\nERROR: programa invalido\n", RED);
         return;
     }
+
+
     int background = 0;
     int end = 0;
     int pipe_found = 0;
@@ -106,10 +99,10 @@ void analyze_buffer(void) {
             copy_str(arg_a[i], tokens);           // Subo el argumento al arreglo de argumentos
         }
         // Si es un '|' o es el ultimo token, quiero que no lea mas argumentos
-        //TODO: revisar esto
         if(strcmp(tokens, "|") == 0 || strcmp(tokens,"&")==0 || strcmp(tokens, "\0") == 0 || strcmp(tokens, "\n") == 0) {
             if(i<MAX_ARGS_SIZE){
-                arg_a[i][0] = '\0';                                 // Si se leyo un | o & o \0 debemos borrar el ultimo argumento pues se copio eso
+                // Si se leyo un | o & o \0 debemos borrar el ultimo argumento pues se copio eso
+                arg_a[i][0] = '\0';
                 i--;
             }
             // Contabilizamos como argumento al pipe o \0, por lo que debemos decrementar
@@ -122,8 +115,9 @@ void analyze_buffer(void) {
             }
         }
     }
+
     i = (i > MAX_ARGS_SIZE) ? MAX_ARGS_SIZE : i;
-    char* aux_a[] = {arg_a[0],arg_a[1],arg_a[2]};                        // Este vector es necesario, si no se pierde informacion con el casteo directo a char**
+    char* aux_a[] = {arg_a[0],arg_a[1],arg_a[2]};
     int arg_c_a = i;
     if (!pipe_found){
         new_token = str_tok(buffer+prev_token+1, ' ');
@@ -133,7 +127,6 @@ void analyze_buffer(void) {
             clean_buffer();
             return;
         }
-        //TODO: agregar los FD's
         print_string("\n");
         executable_t exec_a = {get_program_name(program_a),program_a,i,aux_a,!background,NULL};
         print_string("\n");
@@ -145,17 +138,13 @@ void analyze_buffer(void) {
         return;
     }
     // Si se leyo un \0, entonces se ejecuta un solo programa
-//    if (new_token == 0) {
-//        program_t structs[] = {struct_a};
-//        sys_exec(1, structs);
-//        return;
-//    }
+
+
     // Si llegamos aca es porque leimos un | (pipe=1)
     new_token = str_tok(buffer+prev_token+1, ' ');
     if(new_token == 0){
         // Lanzar error: Hubo un pipe pero no hubo un string despues de él
         p_error("ERROR: Programa lector del pipe ausente.");
-//        print_string("\nERROR: Programa de consola derecha ausente\n", RED);
         clean_buffer();
         return;
     }
@@ -168,7 +157,6 @@ void analyze_buffer(void) {
     if (program_b == NULL) {
         // Lanzar error: Programa invalido
         p_error("ERROR: programa lector del pipe invalido");
-        // print_string("\nERROR: programa para consola derecha invalido\n", RED);
         clean_buffer();
         return;
     }
@@ -191,7 +179,6 @@ void analyze_buffer(void) {
                 arg_b[i][0] = '\0';                                 // Si se leyo un \0 debemos borrar el ultimo argumento pues se copio eso
                 i--;                                                // Contabilizamos como argumento al pipe o \0, por lo que debemos decrementar
             }                                             // Contabilizamos como argumento al pipe o \0, por lo que debemos decrementar
-//            pipe_or_end_reached = 1;                            // Actualizamos el flag
             if(strcmp(tokens, "&")==0){
                 background = 1;
             }else{
@@ -211,12 +198,9 @@ void analyze_buffer(void) {
     executable_t exec_a = {get_program_name(program_a),program_a,arg_c_a,aux_a,!background, newFdLeft};
     uint64_t pidLeft = sys_exec(&exec_a);
     close_fd(fd[1]);
-    //print_string("lo cerre");
     executable_t exec_b = {get_program_name(program_b),program_b,i,aux_b,!background, newFdRight};
     uint64_t pidRight = sys_exec(&exec_b);
     close_fd(fd[0]);
-    //close_fd(1);
-    //close_fd(0);
     if(!background) {
         waitpid(pidLeft);
         waitpid(pidRight);
@@ -240,6 +224,7 @@ void clean_buffer(void){
         buffer[i] = '\0';
     }
 }
+
 
 //---------------------------------------------------------------------------------
 // copy_token: Copia en un string lo que haya en el buffer entre dos punteros, start_token y end_token. Finaliza con start_token = end_token para el proximo token en el buffer

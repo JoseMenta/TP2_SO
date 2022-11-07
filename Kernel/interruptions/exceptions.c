@@ -5,11 +5,12 @@
 #include <video_driver.h>
 #include <interrupts.h>
 #include <lib.h>
-#include "../include/scheduler.h"
-#include "../include/pipes.h"
+
+
 exception exceptions[] = {zero_division, 0,0,0,0,0, invalid_opcode};              // Arreglo de punteros a funcion de excepciones
 
 static const char * Names[] = { "R8: ", "R9: ", "R10: ", "R11: ", "R12: ", "R13: ", "R14: ", "R15: ", "RAX: ", "RBX: ", "RCX: ", "RDX: ", "RSI: ", "RDI: ", "RBP: ", "RSP: ", "RIP: ", "FLAGS: "};
+
 //----------------------------------------------------------------------
 // excepitonDispatcher: funcion auxiliar que llama a los handlers de las excecpiones
 //----------------------------------------------------------------------
@@ -32,16 +33,13 @@ void zero_division() {
 }
 
 
-
 //-----------------------------------------------------------------------
 // zero_division: Excepcion ejecutada al utilizar un operador invalido (exceptionID = 6)
 //-----------------------------------------------------------------------
 void invalid_opcode() {
 	write(STDERR, "EXCEPCION generada: Invalid opcode\n", 100);
 	print_registers();
-    //write_handler("\n\nPulse ESC para volver a consola", WHITE);
 }
-
 
 
 //-----------------------------------------------------------------------
@@ -53,7 +51,6 @@ void invalid_opcode() {
 void print_registers(){
 	write(STDERR, "Registros al momento de la excepcion: \n", 100);
 	// Pongo en reg los valores de los registros
-//	uint64_t * reg = get_registers();
     uint64_t * reg = getCurrContext();
     char reg_str[20];
     // Al llamar a write_handler, se consulta la posicion del proceso que se encuentra corriendo actualmente

@@ -97,7 +97,7 @@ void* mm_alloc(uint32_t wanted_size){
     //Le damos la posicion siguente a cuando termina la estructura del bloque (block_t)
     //OJO con estas sumas, hay que castear a uint8_t!!!
     ans = (void *) ((uint8_t*)prev->next_free_block) + block_size;
-    //Creo que lo anterior es lo mismo que hacer
+    //Lo anterior es lo mismo que hacer
 //    ans = curr + block_size;
 
     //Sacamos al bloque de la lista de libres
@@ -113,7 +113,6 @@ void* mm_alloc(uint32_t wanted_size){
     }
     allocated_bytes += curr->block_size;
     allocated_blocks++;
-    //TODO: ver de marcar al bloque para luego verificar si esta allocado cuando hacen free
     curr->next_free_block = NULL;
     return ans;
 

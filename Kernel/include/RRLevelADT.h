@@ -1,6 +1,3 @@
-//
-// Created by Jose Menta on 19/10/2022.
-//
 
 #ifndef TP2_SO_RRLEVELADT_H
 #define TP2_SO_RRLEVELADT_H

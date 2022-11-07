@@ -1,8 +1,8 @@
 #include <libc.h>
 #include <test_util.h>
-//TODO: sacar
-#include "../include/libc.h"
-#include "../include/test_util.h"
+
+
+
 //---------------------------------------------------------------------------------
 // help: imprime informacion sobre los programas disponibles
 //---------------------------------------------------------------------------------
@@ -22,6 +22,13 @@ void help(uint64_t arg_c, const char ** arg_v){
     sys_exit();
 }
 
+//---------------------------------------------------------------------------------
+// mem: Imprime el estado de la memoria
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (0)
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void mem(uint64_t arg_c, const char ** arg_v){
     mm_info_t aux;
     sys_mm_info(&aux);
@@ -37,6 +44,13 @@ void mem(uint64_t arg_c, const char ** arg_v){
     print_string("\n");
 }
 
+//---------------------------------------------------------------------------------
+// mem: Imprime el estado de la memoria
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (0)
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void ps(uint64_t arg_c, const char ** arg_v){
     char* status[] = {"Execute","Ready","Blocked","Finished"};
     uint64_t processes = sys_get_process_count();//OJO si son muchos!!!!
@@ -65,12 +79,28 @@ void ps(uint64_t arg_c, const char ** arg_v){
     }
     sys_mm_free(aux);
 }
+
+//---------------------------------------------------------------------------------
+// loop: Imprime su ID con un saludo cada una determinada cantidad de segundos
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (0)
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void loop(uint64_t arg_c, const char ** arg_v){
     while(1){
         print_number(getpid());
         pause_ticks(10);
     }
 }
+
+//---------------------------------------------------------------------------------
+// kill: Mata un proceso dado su ID
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (1)
+//  arg_v: arreglo con los strings de los argumentos (el pid a matar)
+//---------------------------------------------------------------------------------
 void kill(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=1){
         throw_error("Error: el programa debe recibir el pid del proceso que se desea matar");
@@ -83,6 +113,14 @@ void kill(uint64_t arg_c, const char ** arg_v){
     }
     terminate_process(pid);
 }
+
+//---------------------------------------------------------------------------------
+// nice_command: Cambia la prioridad de un proceso dado su ID y la nueva prioridad
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void nice_command(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=2){
         throw_error("Error: el programa debe recibir el pid del proceso cuya prioridad se desea cambiar y su nueva prioridad entre 0 y 4");
@@ -102,6 +140,14 @@ void nice_command(uint64_t arg_c, const char ** arg_v){
         print_string("Ocurrio un error al intentar cambiar la prioridad del proceso.\n Asegurese de que el proceso no haya terminado\n");
     }
 }
+
+//---------------------------------------------------------------------------------
+// block: Bloquea un proceso dado su ID
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (1)
+//  arg_v: arreglo con los strings de los argumentos (ID a bloquear)
+//---------------------------------------------------------------------------------
 void block(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=1){
         throw_error("Error: el programa debe recibir el pid del proceso que se desea bloquear");
@@ -116,6 +162,14 @@ void block(uint64_t arg_c, const char ** arg_v){
         print_string("Ocurrio un error al intentar bloquear el proceso.\n Asegurese de que el proceso no este bloqueado o terminado\n");
     }
 }
+
+//---------------------------------------------------------------------------------
+// unblock: Desbloquea un proceso dado su ID
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa (1)
+//  arg_v: arreglo con los strings de los argumentos (ID a desbloquear)
+//---------------------------------------------------------------------------------
 void unblock(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=1){
         throw_error("Error: el programa debe recibir el pid del proceso que se desea desbloquear");
@@ -130,6 +184,14 @@ void unblock(uint64_t arg_c, const char ** arg_v){
         print_string("Ocurrio un error al intentar desbloquear el proceso.\n Asegurese de que el proceso este bloqueado\n");
     }
 }
+
+//---------------------------------------------------------------------------------
+// wait_pid_command: Hacer un waitpid de un PID dado
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void wait_pid_command(uint64_t arg_c, const char ** arg_v){
     if(arg_c!=1){
         throw_error("Error: el programa debe recibir el pid del proceso que se desea esperar");
@@ -143,6 +205,13 @@ void wait_pid_command(uint64_t arg_c, const char ** arg_v){
     waitpid(pid);
 }
 
+//---------------------------------------------------------------------------------
+// sem: Imprime la lista de todos los semáforos y sus datos
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void sem(uint64_t arg_c, const char ** arg_v){
     sem_dump_t* aux_sem_dump;
     int32_t count = sys_sem_count();
@@ -165,14 +234,20 @@ void sem(uint64_t arg_c, const char ** arg_v){
     free(aux_sem_dump);
 }
 
+//---------------------------------------------------------------------------------
+// sem: Imprime la lista de todos los pipes y sus datos
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
 void pipe_info(uint64_t arg_c, const char ** arg_v){
     if(arg_c != 1){
-        throw_error("Error: el programa recibe 1 o ningun argumento");
+        throw_error("Error: el programa recibe 1 argumento");
     }
     uint64_t count;
     string_to_number(arg_v[0], &count);
 
-    //pipe_user_info aux[count];
     pipe_user_info * aux = sys_mm_alloc(count * sizeof(pipe_user_info));
     if(aux == NULL){
         throw_error("Error: En la reserva de memoria dinamica");
@@ -203,5 +278,67 @@ void pipe_info(uint64_t arg_c, const char ** arg_v){
         }
     }
     sys_mm_free(aux);
+    return;
+}
+
+
+
+//---------------------------------------------------------------------------------
+// write_pipe_name: Imprimir en un fifo
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
+void write_pipe_name(uint64_t arg_c, const char ** arg_v){
+    int fd = open_fifo(O_RDWR, "PorFavor");
+    print_string_fd("con aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", fd);
+    close_fd(fd);
+    return;
+}
+
+//---------------------------------------------------------------------------------
+// read_pipe_name: Leer de un fifo
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
+void read_pipe_name(uint64_t arg_c, const char ** arg_v){
+    int fd = open_fifo(O_RDWR, "PorFavor");
+    char buf[20];
+    int i;
+    while( (i = read(fd, buf, 1) ) != -1){
+        write(STDOUT, buf, i);
+    }
+    close_fd(fd);
+    return;
+}
+
+//---------------------------------------------------------------------------------
+// write_pipe_common: Imprimir en STDOUT
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
+void write_pipe_common(uint64_t arg_c, const char ** arg_v){
+    print_string("Comun\n");
+    return;
+}
+
+//---------------------------------------------------------------------------------
+// read_pipe_common: leer de STDIN
+//---------------------------------------------------------------------------------
+// Argumentos:
+//  arg_c: cantidad de argumentos del programa
+//  arg_v: arreglo con los strings de los argumentos
+//---------------------------------------------------------------------------------
+void read_pipe_common(uint64_t arg_c, const char ** arg_v){
+    char buf[15];
+    int i;
+    while( (i = read(STDIN, buf, 1) ) != -1){
+        write(STDOUT, buf, i);
+    }
     return;
 }

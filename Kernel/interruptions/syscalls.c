@@ -2,7 +2,6 @@
 #include <video_driver.h>
 #include <keyboard.h>
 #include <scheduler.h>
-#include <queue.h>
 #include <time.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -11,40 +10,8 @@
 #include <pipes.h>
 #include <semaphores.h>
 #include <pipes.h>
-//TODO: sacar
-#include "../include/pipes.h"
-#include "../include/scheduler.h"
-#include "../include/syscalls.h"
-#include "../include/interrupts.h"
-#include "../include/mm.h"
-#include "../include/time.h"
-#include "../include/pipes.h"
 
-//TODO: cambiar a pipes para el read y el keyboard
 
-//----------------------------------------------------------------------
-// read_handler: handler para leer un caracter del teclado
-//----------------------------------------------------------------------
-// Argumentos:
-//  str: char* donde se debe guardar el caracter
-//----------------------------------------------------------------------
-// Retorno:
-//  0 si no hay caracteres para ller
-//  1 si hay caracteres para leer
-//----------------------------------------------------------------------
-/*
-int32_t read_handler(char* str){
-    extern queue_t queue;
-    //TODO: usar un pipe
-    if (is_empty(&queue)){
-        *str = '\0'; //no hay caracteres para imprimir
-        return 0;
-    }          // No hay para leer (el puntero de escritura y lectura estan en la misma posicion), por lo que se devuelve 0
-    *str = dequeue(&queue);           // Si hay para leer, guardamos el siguiente caracter en la primera posicion del string
-    str[1] = '\0';
-    return 1;                       // Devolvemos la cantidad de caracteres leidos
-}
- */
 //----------------------------------------------------------------------
 // read_handler: handler para leer del pipe de consola
 //----------------------------------------------------------------------
@@ -57,16 +24,7 @@ int32_t read_handler(char* str){
 int32_t read_handler(int fd, char * buf, int count) {
     return read(fd, buf, count);
 }
-    /*
-    pipe_info * console_pipe = get_pipe_console();
-    if(console_pipe->index_write == console_pipe->index_read){
-        *str = '\0';
-        return 0;
-    }else{
-        *str = console_pipe->buff[console_pipe->index_read++];
-        return 1;
-    }
-     */
+
 
 //----------------------------------------------------------------------
 // write_handler: imprime un string en la pantalla del proceso que lo llama
@@ -78,25 +36,8 @@ int32_t read_handler(int fd, char * buf, int count) {
 int32_t write_handler(int fd, const char * str, int count){
     return write(fd, str, count);        // Imprime por pantalla
 }
-//    if(process_array_is_empty()){
-//        //No se cargaron procesos, por default imprime en LEFT
-//        positionType position = ALL;
-//        print(str, format, position);
-//        return 0;
-//    }
-//----------------------------------------------------------------------
-// exit_handler: termina el proceso que lo llama
-//----------------------------------------------------------------------
-// Argumentos:
-//  void
-//----------------------------------------------------------------------
-// Retorno
-//  -1 si no hay procesos para terminar
-//  0 si logra terminar el proceso
-//----------------------------------------------------------------------
-//int32_t exit_handler(){
-//    return terminate_process(1);
-//}
+
+
 //----------------------------------------------------------------------
 // time_handler: obtiene la unidad del tiempo que se pide
 //----------------------------------------------------------------------
@@ -113,6 +54,8 @@ uint8_t time_handler(timeType time_unit){
     }
     return get_time(time_unit);
 }
+
+
 //----------------------------------------------------------------------
 // mem_handler: guarda 32 bytes a partir de una direccion que se pasa en un vector
 //----------------------------------------------------------------------
@@ -145,6 +88,8 @@ int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
     // En i se almacenan la cantidad real de datos que se pudieron almacenar
     return i;
 }
+
+
 //----------------------------------------------------------------------
 // tick_handler: obtiene la cantidad de ticks que hizo el timer tick
 //----------------------------------------------------------------------
@@ -157,6 +102,8 @@ int32_t mem_handler(uint64_t init_dir, uint8_t * arr){
 uint64_t tick_handler(void){
     return ticks_elapsed();
 }
+
+
 //----------------------------------------------------------------------
 // blink_handler: hace que el fondo del cursor de la pantalla cambie segun lo especificado en video_blink
 //----------------------------------------------------------------------
@@ -167,6 +114,8 @@ int32_t blink_handler(void){
     video_blink(ALL);
     return 0;
 }
+
+
 //----------------------------------------------------------------------
 // regs_handler: devuelve los valores de los arreglos cuando se utilizo la combinacion Control+s
 //----------------------------------------------------------------------
@@ -181,6 +130,8 @@ uint8_t regs_handler(uint64_t * regs_arr){
     }
     return regs_saved;
 }
+
+
 //----------------------------------------------------------------------
 // clear_handler: Limpiar la terminal de comandos
 //----------------------------------------------------------------------
@@ -191,6 +142,8 @@ int32_t clear_handler(void){
     clear(ALL);
     return 0;
 }
+
+
 int32_t terminate_handler(uint64_t pid){
     int status = 0;
     if((status = terminate_process(pid))==-1){
@@ -202,6 +155,8 @@ int32_t terminate_handler(uint64_t pid){
     _int20();//por si me termino a mi mismo
     return status;
 }
+
+
 int32_t block_process_handler(uint64_t pid){
     int status = 0;
     if((status = block_process(pid))==-1){
@@ -210,6 +165,8 @@ int32_t block_process_handler(uint64_t pid){
     _int20();//llama al scheduler para ver como sigue, es para el caso donde se bloquea a si mismo
     return status;
 }
+
+
 //hace _int20() adentro de wait, para que devuelva el codigo cuando ya esta disponible el que fue esperado
 int32_t waitpid_handler(uint64_t pid){
     int status = 0;
@@ -281,23 +238,18 @@ int read_handler_pipe(int fd, char * buf, int count){
 int64_t get_info_handler(pipe_user_info * user_data, int64_t count){
     return get_info(user_data, count);
 }
-
 sem_t * sem_init_handler(char * name, uint64_t value){
     return sem_init(name, value);
 }
-
 sem_t * sem_open_handler(char * name, uint64_t value, open_modes mode){
     return sem_open(name, value, mode);
 }
-
 int8_t sem_wait_handler(sem_t * sem){
     return sem_wait(sem);
 }
-
 int8_t sem_post_handler(sem_t * sem){
     return sem_post(sem);
 }
-
 int8_t sem_close_handler(sem_t * sem){
     return sem_close(sem);
 }
@@ -307,34 +259,30 @@ uint32_t sem_count_handler(){
 uint32_t sem_info_handler(sem_dump_t * buffer, uint32_t length){
     return sems_dump(buffer,length);
 }
-
 void free_sem_info_handler(sem_dump_t * buffer, uint32_t length){
     sems_dump_free(buffer,length);
 }
-
 int dup2_handler(int oldfd, int newfd){
     return dup2(oldfd, newfd);
 }
-
 int dup_handler(int oldfd){
     return dup(oldfd);
 }
-
 void pause_ticks_handler(uint64_t ticks){
     add_timer(ticks);
     _int20();//veo cual sigue
 }
-
 void mm_info_handler(mm_info_t* info){
     info->total_bytes = get_total_bytes();
     info->allocated_bytes = get_allocated_bytes();
     info->free_bytes = get_free_bytes();
     info->allocated_blocks = get_allocated_blocks();
 }
-
 void sleep_handler(uint32_t seconds){
     pause_ticks_handler(seconds * 18);
 }
+
+
 
 void* syscalls[]={&read_handler,&write_handler,&exec_handler,&exit_handler,&time_handler,&mem_handler,&tick_handler,&blink_handler,&regs_handler,&clear_handler,
                   &block_process_handler, &waitpid_handler,&yield_handler, &unblock_process_handler,&terminate_handler, &nice_handler, &getpid_handler, &scheduler_info_handler, &process_count_handler, &mm_alloc_handler,&mm_free_handler,

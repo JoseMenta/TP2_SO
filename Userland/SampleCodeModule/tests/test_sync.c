@@ -3,9 +3,6 @@
 #include <libc.h>
 #include <test_util.h>
 
-//TODO: sacar
-#include "../include/libc.h"
-#include "../include/test_util.h"
 
 #define SEM_ID "/sem_sync"
 #define TOTAL_PAIR_PROCESSES 2
