@@ -12,7 +12,6 @@
 
 #define BASE_PRIORITY_FOREGROUND 1
 #define BASE_PRIORITY_BACKGROUND 3
-#define CHECK_PID(pid,elem) (pid>=1 && pid<new_pid && hashADT_get(hash,elem)!=NULL)
 
 typedef enum {ALL = 0, LEFT, RIGHT} positionType;
 typedef enum {EXECUTE = 0, READY, BLOCKED, FINISHED} process_status;

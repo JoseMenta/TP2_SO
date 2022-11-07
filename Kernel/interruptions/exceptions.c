@@ -11,7 +11,6 @@
 
 exception exceptions[] = {zero_division, 0,0,0,0,0, invalid_opcode};              // Arreglo de punteros a funcion de excepciones
 
-static const char * Names[] = { "R8: ", "R9: ", "R10: ", "R11: ", "R12: ", "R13: ", "R14: ", "R15: ", "RAX: ", "RBX: ", "RCX: ", "RDX: ", "RSI: ", "RDI: ", "RBP: ", "RSP: ", "RIP: ", "FLAGS: "};
 
 //----------------------------------------------------------------------
 // excepitonDispatcher: funcion auxiliar que llama a los handlers de las excecpiones

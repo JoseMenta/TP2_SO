@@ -20,7 +20,7 @@ front_program_t programs[CANT_PROG] = {
         {"ps","\tps: Imprime la lista de todos los procesos y sus propiedades\n",&ps},
         {"loop","\tloop: Imprime su ID cada 2 segundos\n",&loop},
         {"kill","\tkill: Mata a un proceso dado su ID\n",&kill},
-        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID, donde 0 es la prioridad maxima y 4 la minima\n",&nice_command},
+        {"nice","\tnice: Cambia la prioridad de un proceso dado su ID (0 maxima, 4 minima)\n",&nice_command},
         {"block","\tblock: Bloquea a un proceso dado su ID\n",&block},
         {"unblock","\tunblock: Desbloquea a un proceso dado su ID\n",&unblock},
         {"sem","\tsem: Imprime la lista de los semaforos con sus propiedades\n",&sem},
@@ -36,8 +36,6 @@ front_program_t programs[CANT_PROG] = {
         {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
         {"write-fifo", "\twrite-fifo: escribir en un pipe con nombre\n", &write_pipe_name},
         {"read-fifo", "\tread-fifo: leer de un pipe con nombre\n", &read_pipe_name},
-        {"write-common", "\twrite_common: escribir por salida standart\n", &write_pipe_common},
-        {"read-common", "\tread_common: leer por salida standart\n", &read_pipe_common},
 };
 
 

@@ -1,5 +1,5 @@
 global get_keyboard_scan_code
-section .data
+section .text
 ;----------------------------------------------------------------------
 ; get_keyboard_scan_code: obtiene el codigo de la tecla presionada del teclado
 ;----------------------------------------------------------------------

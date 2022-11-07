@@ -139,7 +139,10 @@ int create_process(executable_t* executable){
     new_process->foreground = executable->foreground;
     new_process->priority = (executable->foreground)?BASE_PRIORITY_FOREGROUND:BASE_PRIORITY_BACKGROUND;
     new_process->waiting_count = 0;
-    new_process->waiting_processes = new_queueADT(elemType_compare_to); //para despertar a los que estan esperando solo si lo estan esperando
+    new_process->waiting_processes = new_queueADT(elemType_compare_to);
+    //para despertar a los que estan esperando solo si lo estan esperando
+    //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
+    //Si no, podria despertar al padre de un pipe y no tiene que ser asi
     if(new_process->waiting_processes==NULL){
 //        print("No se crea la lista de los que esperan",PINK,ALL);
         for(int i = 0; i<new_process->arg_c;i++){
@@ -149,8 +152,6 @@ int create_process(executable_t* executable){
         mm_free(new_process);
         return -1;
     }
-    //Sirve para no despertar siempre al padre por ejemplo, solo cuando hizo waitpid
-    //Si no, podria despertar al padre de un pipe y no tiene que ser asi
     if(executable->fds == NULL){
         for(int i=0; i<MAXFD; i++){
             new_process->fd[i] = current_process->fd[i];
@@ -264,7 +265,6 @@ int terminate_process(uint64_t pid){
             close_fd(i, pid);
         }
     }
-//    print("Se borraron los FDs.\n", WHITE, ALL);
     RR_remove_process(round_robin,process->priority,process); //lo sacamos de la cola de listos (si es que esta todavia)
 
     PCB* curr = NULL;
@@ -305,7 +305,6 @@ int change_process_priority(uint64_t pid, uint8_t new_priority){
     if(!CHECK_PID(pid,&wanted) || !CHECK_PRIORITY(new_priority)){
         return -1;
     }
-//    PCB* process = hash[pid];
 
     PCB* process = hashADT_get(hash,&wanted);
     if(process->status == FINISHED){
@@ -334,14 +333,15 @@ int unblock_process(uint64_t pid){
     wanted.pid = pid;
 
     if(!CHECK_PID(pid,&wanted)){
-        //ACA
         //La unica manera en la que puede no estar es porque
         //se termino al proceso, si no no se saca del hash
         return -1;
     }
     PCB* process = hashADT_get(hash,&wanted);
     if(process->status!=BLOCKED){
-        //Puede entrar aca si tiene timers luego de que hay
+        //Puede entrar aca si tiene timers luego de que haya terminado
+        //En ese caso, el timer va a intentar desbloquearlo
+        //Pero esto lo evita
 //        print("El pid no esta bloqueado",WHITE,ALL);
         if(process->status==FINISHED){
 //            print("El proceso ya ha terminado",WHITE,ALL);
@@ -352,6 +352,7 @@ int unblock_process(uint64_t pid){
     //lo agrego para que pueda seguir ejecutandose cuando sigue
     if(RR_add_process(round_robin,process,process->priority)==-1){
 //        print("Error al agregar el proceso para ejecucion luego de desbloquearlo",WHITE,ALL);
+        return -1;
     }
     return 0;
 }
@@ -372,8 +373,6 @@ void* scheduler(void* curr_rsp){
     //si debe seguir el proceso que esta en el momento
     //Se determina la cantidad de ticks con la prioridad
     if(current_process!=NULL && current_process->status==EXECUTE && scheduler_ticks< max_ticks_for_current){
-//        current_process->sp = curr_rsp;
-//        return current_process->sp;
         free_unused_stack();
         return curr_rsp;
     }
@@ -382,7 +381,6 @@ void* scheduler(void* curr_rsp){
         PCB aux;
         aux.pid = 0;
         //si tenemos que dejarlo para mas adelante
-//        if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!=hash[0]){
         if((current_process->status==EXECUTE || current_process->status==READY)&&current_process!= hashADT_get(hash,&aux)){
             current_process->status = READY;
             if(RR_add_process(round_robin,current_process,current_process->priority)==-1){
@@ -396,7 +394,6 @@ void* scheduler(void* curr_rsp){
     if(RR_process_count(round_robin)==0){
         //si no hay procesos listos, debemos ejecutar al proceso default
         //Notar que no le ponemos el estado en EXECUTE para que intente salir en el proximo tt
-//        current_process = hash[0];
         PCB aux;
         aux.pid = 0;
         current_process = hashADT_get(hash,&aux);
@@ -421,9 +418,7 @@ int waitPid(uint64_t pid){
     }
     PCB* waited = hashADT_get(hash,&wanted);
     //Me agrego a la lista de los que estan esperando para que me despierte cuando termine
-//    if(hash[pid]->status!=FINISHED){
     if(waited->status!=FINISHED){
-//        queueADT_insert(hash[pid]->waiting_processes,current_process);
         if(queueADT_insert(waited->waiting_processes,current_process)==-1){
 //            print("Error al ingresar el proceso a la lista de esperando",RED,ALL);
         }
@@ -438,7 +433,6 @@ int waitPid(uint64_t pid){
         (waited->waiting_count)--;
     }
     int ans = waited->status;
-//    (hash[pid]->waiting_count)--;
     if(waited->waiting_count==0){
         //si soy el ultimo en hacer wait, lo saco del hash
         hashADT_delete(hash,waited);
@@ -468,7 +462,7 @@ PCB* get_pcb_by_pid(uint64_t pid){
 }
 
 
-//Perdon por usar Bubble sort, pero no vamos a tener muchos procesos simultaneamente
+//Parece raro usar Bubble sort, pero no vamos a tener muchos procesos simultaneamente
 //Y no usa recursividad o arreglos temporales
 static void sort_process_info(process_info_t* processInfo, uint32_t n){
     for(int i = 0; i<n-1; i++){

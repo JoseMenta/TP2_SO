@@ -222,7 +222,7 @@ idle_process:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-;TODO: REVISAR ESTO, HAY UN ERROR ACA
+
 	;irqHandlerMaster 0
 	push_state
     call timer_handler
@@ -273,7 +273,7 @@ _int20:
     int 20h
     ret
 
-;TODO: cambiar los push si recibe mas de 2 parametros
+
 _syscallHandler:
     push_state_no_rax
     push rdi
@@ -292,8 +292,6 @@ _syscallHandler:
 error:
     mov rax, -1
 fin:
-;    int 20h ;Esto no va aca
-;    hay que hacerlo adentro de la funcion bloqueante para que se frene inmediatamente la ejecucion ahi
     pop_state_no_rax
     iretq
 

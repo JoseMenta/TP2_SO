@@ -6,7 +6,7 @@
 #include <pipes.h>
 
 
-//El buffer guarda el ASCII del valor presionado en el teclado. Utiliza la estructura queue definida en queue.c
+
 static int key_case = -1;               // Estado actual del formato de la letra (mayuscula: 1, o minuscula: -1)
 static int key_case_default = -1;       // Estado default del formato de la letra
 
