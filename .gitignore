@@ -17,3 +17,6 @@ Userland/.0000-sampleCodeModule.elf.icloud
 .gdb_history 2
 Userland/.0000-sampleCodeModule*.elf.icloud*
 Image/*.icloud
+PVS-Studio.log
+report.tasks
+strace_out
