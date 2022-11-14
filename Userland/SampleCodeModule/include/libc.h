@@ -7,7 +7,7 @@
 
 #define DEFAULTFD 3
 #define MAXLOCK 5
-#define CANT_PROG (22)
+#define CANT_PROG (23)
 
 typedef enum {O_RDONLY = 0, O_WRONLY, O_RDWR} Pipe_modes;
 typedef enum {BLACK=0x00, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, DARK_GREY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, PINK, YELLOW, WHITE} formatType;

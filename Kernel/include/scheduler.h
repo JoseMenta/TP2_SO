@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <pipe_struct.h>
 #include <queueADT.h>
+#include <orderListADT.h>
 
 #define MAXFD 11
 #define DEFAULTFD 3
@@ -31,6 +32,7 @@ typedef struct{
     uint8_t foreground;
     uint64_t arg_c;
     char** arg_v;
+    orderListADT used_mem;
 }PCB;
 typedef struct{
     char* name;
@@ -61,6 +63,8 @@ int unblock_process(uint64_t pid);
 uint64_t get_current_pid();
 PCB * get_current_pcb();
 void* scheduler(void* curr_rsp);
+int add_mm_address(void* addr);
+int mm_free_address(void* addr);
 int waitPid(uint64_t pid);
 int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count);
 uint64_t get_process_count();

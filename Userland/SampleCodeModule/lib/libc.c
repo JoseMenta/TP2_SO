@@ -35,6 +35,7 @@ front_program_t programs[CANT_PROG] = {
         {"test-mm","\ttest_mm: Testeo del funcionamiento del mm \n",&test_mm},
         {"write-fifo", "\twrite-fifo: escribir en un pipe con nombre\n", &write_pipe_name},
         {"read-fifo", "\tread-fifo: leer de un pipe con nombre\n", &read_pipe_name},
+        {"garbage-collector", "\tgarbage-collector: prueba de TP especial\n", &garbage_collector}
 };
 
 

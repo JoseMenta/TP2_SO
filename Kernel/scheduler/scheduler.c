@@ -13,7 +13,8 @@
 #include <stringLib.h>
 #include <queueADT.h>
 
-
+#include "../include/orderListADT.h"
+#include "../include/scheduler.h"
 //en el pid=0, guardamos al proceso default
 static void* stack_to_free = NULL;
 static RRADT round_robin = NULL;
@@ -31,6 +32,9 @@ static int ticks_for_priority[PRIORITY_LEVELS] = {10,8,6,4,2};
 static HashADT hash = NULL;
 
 
+int64_t compare_addr(void* a1, void* a2){
+    return (uint64_t)a1 - (uint64_t)a2;
+}
 
 //----------------------------------------------------------------------
 // initialize_scheduler: inicializa las estructuras que va a utilizar el scheduler
@@ -98,6 +102,11 @@ int create_process(executable_t* executable){
     void* bp; //para guardar las direcciones donde se ubica el stack del proceso
     void* sp;
     new_process->arg_c = executable->arg_c;
+    new_process->used_mem = new_orderListADT(&compare_addr);
+    if(new_process->used_mem==NULL){
+        mm_free(new_process);
+        return -1;
+    }
     //Para que otro no cambie los argumentos si pasa una zona de memoria local
     char** arg_v = executable->arg_v;
     if(new_process->arg_c!=0){
@@ -278,6 +287,13 @@ int terminate_process(uint64_t pid){
     if(process->arg_c!=0){
         mm_free(process->arg_v);
     }
+    if(orderListADT_size(process->used_mem)!=0){
+        orderListADT_toBegin(process->used_mem);
+        while(orderListADT_hasNext(process->used_mem)){
+            mm_free(orderListADT_next(process->used_mem));
+        }
+    }
+    free_orderListADT(process->used_mem);
     //lo hago aca, para que no haya algun mm_alloc despues
     stack_to_free = process->bp;
     //No liberamos la memoria aca, pues la funcion scheduler que se va a llamar despues para cambiar el contexto hace
@@ -408,6 +424,13 @@ void* scheduler(void* curr_rsp){
     return current_process->sp;
 }
 
+int add_mm_address(void* addr){
+    orderListADT_add(current_process->used_mem,addr);
+}
+
+int mm_free_address(void* addr){
+    orderListADT_delete(current_process->used_mem, addr);
+}
 int waitPid(uint64_t pid){
     PCB wanted;
     wanted.pid = pid;
@@ -492,6 +515,7 @@ int32_t get_scheduler_info(process_info_t* processInfo, uint32_t max_count){
     sort_process_info(processInfo,index);
     return index;
 }
+
 
 
 //----------------------------------------------------------------------

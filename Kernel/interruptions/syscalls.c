@@ -13,6 +13,8 @@
 #include <semaphores.h>
 #include <pipes.h>
 
+#include "../include/scheduler.h"
+
 
 //----------------------------------------------------------------------
 // read_handler: handler para leer del pipe de consola
@@ -198,10 +200,15 @@ uint64_t process_count_handler(){
     return get_process_count();
 }
 void* mm_alloc_handler(uint32_t wanted_size){
-    return mm_alloc(wanted_size);
+    void* ans =  mm_alloc(wanted_size);
+    if(ans!=NULL){
+        add_mm_address(ans);
+    }
+    return ans;
 }
 void mm_free_handler(void* p){
     mm_free(p);
+    mm_free_address(p);
 }
 int pipe_handler(int fd[2]){
     return pipe(fd);
